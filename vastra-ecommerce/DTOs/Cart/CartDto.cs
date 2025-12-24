@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace EcommerceApplication.DTOs.Cart
 {
     public class CartDto
@@ -26,19 +24,15 @@ namespace EcommerceApplication.DTOs.Cart
 
     public class AddToCartDto
     {
-        [Required]
         public int ProductVariantId { get; set; }
         
-        [Range(1, int.MaxValue)]
         public int Quantity { get; set; } = 1;
     }
 
     public class UpdateCartItemDto
     {
-        [Required]
         public int CartItemId { get; set; }
         
-        [Range(1, int.MaxValue)]
         public int Quantity { get; set; }
     }
 }

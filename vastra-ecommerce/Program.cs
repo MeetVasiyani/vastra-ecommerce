@@ -1,19 +1,25 @@
 using EcommerceApplication.Data;
-using EcommerceApplication.Interfaces;
 using EcommerceApplication.Models;
-using EcommerceApplication.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using EcommerceApplication.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+
+builder.Services.AddFluentValidationAutoValidation()
+    .AddFluentValidationClientsideAdapters();
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -79,16 +85,8 @@ builder.Services.AddAuthentication(options => {
     };
 });
 
-// Register UnitOfWork
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+// Services and Repositories removed for Controller-based architecture
 
-// Register Services
-builder.Services.AddScoped<EcommerceApplication.Interfaces.IAuthService, EcommerceApplication.Services.AuthService>();
-builder.Services.AddScoped<EcommerceApplication.Interfaces.ICategoryService, EcommerceApplication.Services.CategoryService>();
-builder.Services.AddScoped<EcommerceApplication.Interfaces.IProductService, EcommerceApplication.Services.ProductService>();
-builder.Services.AddScoped<EcommerceApplication.Interfaces.ICartService, EcommerceApplication.Services.CartService>();
-builder.Services.AddScoped<EcommerceApplication.Interfaces.IOrderService, EcommerceApplication.Services.OrderService>();
-builder.Services.AddScoped<EcommerceApplication.Interfaces.IUserService, EcommerceApplication.Services.UserService>();
 
 var app = builder.Build();
 

@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using EcommerceApplication.DTOs.Category;
 
 namespace EcommerceApplication.DTOs.Product
@@ -19,19 +18,14 @@ namespace EcommerceApplication.DTOs.Product
 
     public class CreateProductDto
     {
-        [Required]
         public string Name { get; set; } = string.Empty;
         
-        [Required]
         public string Description { get; set; } = string.Empty;
         
-        [Required]
-        [Range(0, double.MaxValue)]
         public decimal BasePrice { get; set; }
         
         public bool IsActive { get; set; } = true;
         
-        [Required]
         public int CategoryId { get; set; }
 
         public List<string> ImageUrls { get; set; } = new();
@@ -58,15 +52,11 @@ namespace EcommerceApplication.DTOs.Product
 
     public class CreateProductVariantDto
     {
-        [Required]
         public string SKU { get; set; } = string.Empty;
-        [Required]
         public string Size { get; set; } = string.Empty;
-        [Required]
         public string Color { get; set; } = string.Empty;
         public string? Material { get; set; }
         
-        [Range(0, int.MaxValue)]
         public int StockQuantity { get; set; }
         
         public decimal PriceAdjustment { get; set; }

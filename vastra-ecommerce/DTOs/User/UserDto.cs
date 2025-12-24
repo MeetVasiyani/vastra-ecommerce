@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace EcommerceApplication.DTOs.User
 {
     public class UserDto
@@ -23,15 +21,10 @@ namespace EcommerceApplication.DTOs.User
 
     public class CreateAddressDto
     {
-        [Required]
         public string Street { get; set; } = string.Empty;
-        [Required]
         public string City { get; set; } = string.Empty;
-        [Required]
         public string State { get; set; } = string.Empty;
-        [Required]
         public string ZipCode { get; set; } = string.Empty;
-        [Required]
         public string Country { get; set; } = string.Empty;
     }
 }

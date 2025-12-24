@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace EcommerceApplication.DTOs.Order
 {
     public class OrderDto
@@ -23,10 +21,8 @@ namespace EcommerceApplication.DTOs.Order
 
     public class CreateOrderDto
     {
-        [Required]
         public string ShippingAddress { get; set; } = string.Empty;
         
-        [Required]
         public string PaymentMethod { get; set; } = "COD"; // Default
     }
 }
