@@ -1,6 +1,11 @@
 using EcommerceApplication.DTOs.Auth;
-using EcommerceApplication.Interfaces;
+using EcommerceApplication.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace EcommerceApplication.Controllers
 {
@@ -8,11 +13,15 @@ namespace EcommerceApplication.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthService _authService;
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
+        private readonly IConfiguration _configuration;
 
-        public AuthController(IAuthService authService)
+        public AuthController(UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration)
         {
-            _authService = authService;
+            _userManager = userManager;
+            _signInManager = signInManager;
+            _configuration = configuration;
         }
 
         [HttpPost("register")]
@@ -23,14 +32,45 @@ namespace EcommerceApplication.Controllers
                 return BadRequest(ModelState);
             }
 
-            var result = await _authService.RegisterAsync(registerDto);
-
-            if (!result.IsSuccess)
+            var existingUser = await _userManager.FindByEmailAsync(registerDto.Email);
+            if (existingUser != null)
             {
-                return BadRequest(result);
+                return BadRequest(new AuthResponseDto
+                {
+                    IsSuccess = false,
+                    Message = "User already exists with this email"
+                });
             }
 
-            return Ok(result);
+            var user = new User
+            {
+                Email = registerDto.Email,
+                UserName = registerDto.Email,
+                FirstName = registerDto.FirstName,
+                LastName = registerDto.LastName
+            };
+
+            var result = await _userManager.CreateAsync(user, registerDto.Password);
+
+            if (!result.Succeeded)
+            {
+                return BadRequest(new AuthResponseDto
+                {
+                    IsSuccess = false,
+                    Message = string.Join(", ", result.Errors.Select(e => e.Description))
+                });
+            }
+
+            var token = GenerateJwtToken(user);
+
+            return Ok(new AuthResponseDto
+            {
+                IsSuccess = true,
+                Token = token,
+                Email = user.Email!,
+                UserId = user.Id,
+                Message = "User registered successfully"
+            });
         }
 
         [HttpPost("login")]
@@ -41,14 +81,65 @@ namespace EcommerceApplication.Controllers
                 return BadRequest(ModelState);
             }
 
-            var result = await _authService.LoginAsync(loginDto);
+            var user = await _userManager.FindByEmailAsync(loginDto.Email);
 
-            if (!result.IsSuccess)
+            if (user == null)
             {
-                return Unauthorized(result);
+                return Unauthorized(new AuthResponseDto
+                {
+                    IsSuccess = false,
+                    Message = "Invalid email or password"
+                });
             }
 
-            return Ok(result);
+            var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
+
+            if (!result.Succeeded)
+            {
+                return Unauthorized(new AuthResponseDto
+                {
+                    IsSuccess = false,
+                    Message = "Invalid email or password"
+                });
+            }
+
+            var token = GenerateJwtToken(user);
+
+            return Ok(new AuthResponseDto
+            {
+                IsSuccess = true,
+                Token = token,
+                Email = user.Email!,
+                UserId = user.Id,
+                Message = "Login successful"
+            });
+        }
+
+        private string GenerateJwtToken(User user)
+        {
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(ClaimTypes.Email, user.Email!),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.UtcNow.AddDays(7),
+                SigningCredentials = creds,
+                Issuer = _configuration["Jwt:Issuer"],
+                Audience = _configuration["Jwt:Audience"]
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+
+            return tokenHandler.WriteToken(token);
         }
     }
 }
