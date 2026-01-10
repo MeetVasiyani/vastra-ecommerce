@@ -25,7 +25,7 @@ namespace EcommerceApplication.Controllers
         [HttpGet]
         public async Task<IActionResult> GetCart()
         {
-             var cart = await GetOrCreateCart(GetUserId());
+             var cart = await GetOrCreateCart(GetUserId(), includeDetails: true);
              return Ok(await MapToDto(cart));
         }
 
@@ -41,15 +41,29 @@ namespace EcommerceApplication.Controllers
 
                 var existingItem = cart.Items.FirstOrDefault(i => i.ProductVariantId == addToCartDto.ProductVariantId);
 
+                // Get variant to check stock
+                var variant = await _context.ProductVariants.FindAsync(addToCartDto.ProductVariantId);
+                if (variant == null) return NotFound("Variant not found");
+
+                // Calculate total quantity (existing + new)
+                var totalQuantity = addToCartDto.Quantity;
+                if (existingItem != null)
+                {
+                    totalQuantity += existingItem.Quantity;
+                }
+
+                // Validate stock availability
+                if (totalQuantity > variant.StockQuantity)
+                {
+                    return BadRequest($"Insufficient stock. Only {variant.StockQuantity} items available.");
+                }
+
                 if (existingItem != null)
                 {
                     existingItem.Quantity += addToCartDto.Quantity;
                 }
                 else
                 {
-                    var variant = await _context.ProductVariants.FindAsync(addToCartDto.ProductVariantId);
-                    if (variant == null) return NotFound("Variant not found");
-
                     var newItem = new CartItem
                     {
                         CartId = cart.Id,
@@ -62,9 +76,8 @@ namespace EcommerceApplication.Controllers
                 await _context.SaveChangesAsync();
                 
                 // Refresh cart to get full data for DTO
-                 // Reload cart with includes
-                var updatedCart = await GetCartWithDetails(userId);
-                return Ok(await MapToDto(updatedCart!));
+                var updatedCart = await GetOrCreateCart(userId, includeDetails: true);
+                return Ok(await MapToDto(updatedCart));
             }
             catch (Exception ex)
             {
@@ -81,14 +94,22 @@ namespace EcommerceApplication.Controllers
             var cart = await GetOrCreateCart(userId);
             var item = cart.Items.FirstOrDefault(i => i.Id == updateCartItemDto.CartItemId);
 
-            if (item != null)
+            if (item == null) return NotFound("Cart item not found");
+
+            // Validate stock before updating
+            var variant = await _context.ProductVariants.FindAsync(item.ProductVariantId);
+            if (variant == null) return NotFound("Product variant not found");
+
+            if (updateCartItemDto.Quantity > variant.StockQuantity)
             {
-                item.Quantity = updateCartItemDto.Quantity;
-                await _context.SaveChangesAsync();
+                return BadRequest($"Insufficient stock. Only {variant.StockQuantity} items available.");
             }
 
-            var updatedCart = await GetCartWithDetails(userId);
-            return Ok(await MapToDto(updatedCart!));
+            item.Quantity = updateCartItemDto.Quantity;
+            await _context.SaveChangesAsync();
+
+            var updatedCart = await GetOrCreateCart(userId, includeDetails: true);
+            return Ok(await MapToDto(updatedCart));
         }
 
         [HttpDelete("items/{itemId}")]
@@ -118,11 +139,24 @@ namespace EcommerceApplication.Controllers
             return NoContent();
         }
 
-        private async Task<Cart> GetOrCreateCart(string userId)
+        private async Task<Cart> GetOrCreateCart(string userId, bool includeDetails = false)
         {
-            var cart = await _context.Carts
-                .Include(c => c.Items)
-                .FirstOrDefaultAsync(c => c.UserId == userId);
+            IQueryable<Cart> query = _context.Carts;
+
+            if (includeDetails)
+            {
+                query = query
+                    .Include(c => c.Items)
+                    .ThenInclude(i => i.ProductVariant)
+                    .ThenInclude(v => v.Product)
+                    .ThenInclude(p => p.Images);
+            }
+            else
+            {
+                query = query.Include(c => c.Items);
+            }
+
+            var cart = await query.FirstOrDefaultAsync(c => c.UserId == userId);
 
             if (cart == null)
             {
@@ -133,30 +167,9 @@ namespace EcommerceApplication.Controllers
             return cart;
         }
 
-        private async Task<Cart?> GetCartWithDetails(string userId)
+        private Task<CartDto> MapToDto(Cart cart)
         {
-             return await _context.Carts
-                .Include(c => c.Items)
-                .ThenInclude(i => i.ProductVariant)
-                .ThenInclude(v => v.Product)
-                .ThenInclude(p => p.Images)
-                .FirstOrDefaultAsync(c => c.UserId == userId);
-        }
-
-        private async Task<CartDto> MapToDto(Cart cart)
-        {
-             // If items are not loaded with full depth, we might need to reload or rely on GetCartWithDetails being called first.
-             // Assumption: 'cart' passed here has relations loaded if coming from GetCartWithDetails.
-             // If coming from GetOrCreateCart, it only has Items.
-             
-             // To be safe, we should ensure we have the details.
-             if (cart.Items.Any() && cart.Items.First().ProductVariant == null)
-             {
-                 var fullyLoaded = await GetCartWithDetails(cart.UserId);
-                 cart = fullyLoaded ?? cart;
-             }
-
-             var cartDto = new CartDto
+            var cartDto = new CartDto
             {
                 Id = cart.Id,
                 UserId = cart.UserId,
@@ -189,7 +202,7 @@ namespace EcommerceApplication.Controllers
             }
 
             cartDto.TotalAmount = cartDto.Items.Sum(i => i.Price * i.Quantity);
-            return cartDto;
+            return Task.FromResult(cartDto);
         }
     }
 }

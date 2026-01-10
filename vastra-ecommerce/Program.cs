@@ -90,6 +90,13 @@ builder.Services.AddAuthentication(options => {
 
 var app = builder.Build();
 
+// Seed roles and admin user
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await EcommerceApplication.Data.RoleSeeder.SeedRolesAndAdminAsync(services);
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

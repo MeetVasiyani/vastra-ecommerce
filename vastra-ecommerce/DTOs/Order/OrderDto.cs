@@ -24,5 +24,7 @@ namespace EcommerceApplication.DTOs.Order
         public string ShippingAddress { get; set; } = string.Empty;
         
         public string PaymentMethod { get; set; } = "COD"; // Default
+        
+        public int? CouponId { get; set; } // Optional coupon
     }
 }

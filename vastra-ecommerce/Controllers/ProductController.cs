@@ -19,8 +19,11 @@ namespace EcommerceApplication.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] string? search, [FromQuery] int? categoryId)
+        public async Task<IActionResult> GetAll([FromQuery] string? search, [FromQuery] int? categoryId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
+            if (page < 1) page = 1;
+            if (pageSize < 1 || pageSize > 100) pageSize = 20;
+
             var query = _context.Products.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
@@ -33,7 +36,11 @@ namespace EcommerceApplication.Controllers
                 query = query.Where(p => p.CategoryId == categoryId.Value);
             }
 
+            var totalCount = await query.CountAsync();
             var products = await query
+                .OrderBy(p => p.Name)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(p => new ProductDto
                 {
                     Id = p.Id,
@@ -46,7 +53,15 @@ namespace EcommerceApplication.Controllers
                 })
                 .ToListAsync();
 
-            return Ok(products);
+            var result = new DTOs.Common.PagedResult<ProductDto>
+            {
+                Items = products,
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize
+            };
+
+            return Ok(result);
         }
 
         [HttpGet("{id}")]
@@ -73,6 +88,16 @@ namespace EcommerceApplication.Controllers
                     Id = i.Id,
                     ImageUrl = i.ImageUrl,
                     IsMainImage = i.IsMainImage
+                }).ToList(),
+                Variants = product.Variants.Select(v => new ProductVariantDto
+                {
+                    Id = v.Id,
+                    SKU = v.SKU,
+                    Size = v.Size,
+                    Color = v.Color,
+                    Material = v.Material,
+                    StockQuantity = v.StockQuantity,
+                    PriceAdjustment = v.PriceAdjustment
                 }).ToList()
                 // Include variants mapping if needed for frontend
             };
@@ -81,7 +106,7 @@ namespace EcommerceApplication.Controllers
         }
 
         [HttpPost]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([FromBody] CreateProductDto createProductDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -151,17 +176,21 @@ namespace EcommerceApplication.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return BadRequest(new { error = ex.Message });
             }
         }
 
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(int id, [FromBody] CreateProductDto createProductDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var product = await _context.Products.FindAsync(id);
+            var product = await _context.Products
+                .Include(p => p.Images)
+                .Include(p => p.Variants)
+                .FirstOrDefaultAsync(p => p.Id == id);
+            
             if (product == null) return NotFound();
 
             product.Name = createProductDto.Name;
@@ -170,15 +199,49 @@ namespace EcommerceApplication.Controllers
             product.IsActive = createProductDto.IsActive;
             product.CategoryId = createProductDto.CategoryId;
 
-            // Simple update, skipping deep variant update logic as per previous service implementation expectation
-            // Ideally should replace images and variants if provided.
+            // Update images - remove old, add new
+            if (createProductDto.ImageUrls != null && createProductDto.ImageUrls.Any())
+            {
+                _context.ProductImages.RemoveRange(product.Images);
+                
+                var firstUrl = createProductDto.ImageUrls.FirstOrDefault();
+                foreach (var url in createProductDto.ImageUrls)
+                {
+                    _context.ProductImages.Add(new ProductImage
+                    {
+                        ImageUrl = url,
+                        Product = product,
+                        IsMainImage = url == firstUrl
+                    });
+                }
+            }
+
+            // Update variants - remove old, add new
+            if (createProductDto.Variants != null && createProductDto.Variants.Any())
+            {
+                _context.ProductVariants.RemoveRange(product.Variants);
+                
+                foreach (var variantDto in createProductDto.Variants)
+                {
+                    _context.ProductVariants.Add(new ProductVariant
+                    {
+                        SKU = variantDto.SKU,
+                        Size = variantDto.Size,
+                        Color = variantDto.Color,
+                        Material = variantDto.Material,
+                        StockQuantity = variantDto.StockQuantity,
+                        PriceAdjustment = variantDto.PriceAdjustment,
+                        Product = product
+                    });
+                }
+            }
             
             await _context.SaveChangesAsync();
             return NoContent();
         }
 
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             var product = await _context.Products.FindAsync(id);

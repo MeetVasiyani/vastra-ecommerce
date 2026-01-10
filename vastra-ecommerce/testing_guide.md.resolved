@@ -1,0 +1,209 @@
+# API Testing Guide for Vastra E-commerce
+
+This guide provides step-by-step instructions to test all available APIs in the Vastra E-commerce application.
+
+## Prerequisites
+
+1.  **Run the Application**: Ensure the backend application is running.
+    *   Command: `dotnet run` (from the project root `d:\vastra-ecommerce\vastra-ecommerce`)
+    *   The app typically runs on `https://localhost:7193` or `http://localhost:5222` (check your launch output).
+2.  **Tools**:
+    *   **Swagger UI**: Best for quick interactive testing. Available at `/swagger/index.html` (e.g., `https://localhost:7193/swagger/index.html`).
+    *   **Postman/Insomnia**: Recommended for more complex scenarios or saving requests.
+
+---
+
+## 1. Authentication (Get Your Token)
+
+Most endpoints require authentication. You must first register or login to get a JWT token.
+
+### Register a New User
+*   **Method**: `POST`
+*   **URL**: `/api/auth/register`
+*   **Body** (JSON):
+    ```json
+    {
+      "email": "testuser@example.com",
+      "password": "Password123!",
+      "firstName": "Test",
+      "lastName": "User"
+    }
+    ```
+
+### Login
+*   **Method**: `POST`
+*   **URL**: `/api/auth/login`
+*   **Body** (JSON):
+    ```json
+    {
+      "email": "testuser@example.com",
+      "password": "Password123!"
+    }
+    ```
+*   **Response**: You will receive a long string under `token`. **Copy this token.**
+
+### Authorize in Swagger
+1.  Click the **Authorize** button at the top right of the Swagger page.
+2.  Type `Bearer <your_token>` in the text box (e.g., `Bearer eyJhbGci...`).
+3.  Click **Authorize**.
+
+---
+
+## 2. Product Management
+
+### Create a Product (Requires Admin/Auth)
+*   **Method**: `POST`
+*   **URL**: `/api/product`
+*   **Body**:
+    ```json
+    {
+      "name": "Elegant Silk Saree",
+      "description": "Pure silk saree with rich border.",
+      "basePrice": 4999.00,
+      "isActive": true,
+      "categoryId": 1, 
+      "imageUrls": [
+        "https://example.com/saree-front.jpg",
+        "https://example.com/saree-back.jpg"
+      ],
+      "variants": [
+        {
+          "sku": "SR-SILK-RED",
+          "size": "Free Size",
+          "color": "Red",
+          "material": "Silk",
+          "stockQuantity": 10,
+          "priceAdjustment": 0
+        }
+      ]
+    }
+    ```
+    *Note: Ensure a Category with ID 1 exists (see Category section).*
+
+### Get All Products
+*   **Method**: `GET`
+*   **URL**: `/api/product`
+*   **Query Params** (Optional): `?search=Silk&categoryId=1`
+
+### Get Product by ID
+*   **Method**: `GET`
+*   **URL**: `/api/product/{id}`
+
+### Update Product
+*   **Method**: `PUT`
+*   **URL**: `/api/product/{id}`
+*   **Body**: Same structure as Create Product.
+
+### Delete Product
+*   **Method**: `DELETE`
+*   **URL**: `/api/product/{id}`
+
+---
+
+## 3. Category Management
+
+### Create a Category
+*   **Method**: `POST`
+*   **URL**: `/api/category`
+*   **Body**:
+    ```json
+    {
+      "name": "Sarees",
+      "description": "Traditional Indian Sarees",
+      "imageUrl": "https://example.com/category-saree.jpg"
+    }
+    ```
+
+### Get All Categories
+*   **Method**: `GET`
+*   **URL**: `/api/category`
+
+### Get Category by ID
+*   **Method**: `GET`
+*   **URL**: `/api/category/{id}`
+
+---
+
+## 4. Cart Operations
+*Note: These require Authentication.*
+
+### Add to Cart
+*   **Method**: `POST`
+*   **URL**: `/api/cart/items`
+*   **Body**:
+    ```json
+    {
+      "productVariantId": 1, 
+      "quantity": 1
+    }
+    ```
+    *Find `productVariantId` from Product details (in database or response if included).*
+
+### Get My Cart
+*   **Method**: `GET`
+*   **URL**: `/api/cart`
+
+### Update Cart Item
+*   **Method**: `PUT`
+*   **URL**: `/api/cart/items`
+*   **Body**:
+    ```json
+    {
+      "cartItemId": 5, 
+      "quantity": 2
+    }
+    ```
+
+### Remove Cart Item
+*   **Method**: `DELETE`
+*   **URL**: `/api/cart/items/{itemId}`
+
+---
+
+## 5. Order Processing
+*Note: Requires Authentication and items in Cart.*
+
+### Place Order
+*   **Method**: `POST`
+*   **URL**: `/api/order`
+*   **Body**:
+    ```json
+    {
+      "paymentMethod": "Credit Card"
+    }
+    ```
+    *This will convert your current Cart into an Order.*
+
+### Get My Orders
+*   **Method**: `GET`
+*   **URL**: `/api/order`
+
+### Get Order by ID
+*   **Method**: `GET`
+*   **URL**: `/api/order/{id}`
+
+---
+
+## 6. User Profile
+
+### Get Profile
+*   **Method**: `GET`
+*   **URL**: `/api/user/profile`
+
+### Add Address
+*   **Method**: `POST`
+*   **URL**: `/api/user/addresses`
+*   **Body**:
+    ```json
+    {
+      "street": "123 Main St",
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "zipCode": "400001",
+      "country": "India"
+    }
+    ```
+
+### Remove Address
+*   **Method**: `DELETE`
+*   **URL**: `/api/user/addresses/{addressId}`

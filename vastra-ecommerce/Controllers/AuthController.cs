@@ -61,7 +61,10 @@ namespace EcommerceApplication.Controllers
                 });
             }
 
-            var token = GenerateJwtToken(user);
+            // Assign default Customer role
+            await _userManager.AddToRoleAsync(user, "Customer");
+
+            var token = await GenerateJwtToken(user);
 
             return Ok(new AuthResponseDto
             {
@@ -103,7 +106,7 @@ namespace EcommerceApplication.Controllers
                 });
             }
 
-            var token = GenerateJwtToken(user);
+            var token = await GenerateJwtToken(user);
 
             return Ok(new AuthResponseDto
             {
@@ -115,7 +118,7 @@ namespace EcommerceApplication.Controllers
             });
         }
 
-        private string GenerateJwtToken(User user)
+        private async Task<string> GenerateJwtToken(User user)
         {
             var claims = new List<Claim>
             {
@@ -123,6 +126,13 @@ namespace EcommerceApplication.Controllers
                 new Claim(ClaimTypes.Email, user.Email!),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
+
+            // Add user roles to claims
+            var roles = await _userManager.GetRolesAsync(user);
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

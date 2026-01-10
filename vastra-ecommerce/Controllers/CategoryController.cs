@@ -50,7 +50,7 @@ namespace EcommerceApplication.Controllers
         }
 
         [HttpPost]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([FromBody] CreateCategoryDto createCategoryDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -75,7 +75,7 @@ namespace EcommerceApplication.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(int id, [FromBody] CreateCategoryDto createCategoryDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -92,7 +92,7 @@ namespace EcommerceApplication.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             var category = await _context.Categories.FindAsync(id);
