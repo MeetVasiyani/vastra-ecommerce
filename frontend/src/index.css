@@ -1,0 +1,264 @@
+/* Import Bootstrap */
+@import 'bootstrap/dist/css/bootstrap.min.css';
+
+/* CSS Variables - Vastra Color Palette */
+:root {
+  --vastra-ivory: #FFFFF0;
+  --vastra-beige: #F5F5DC;
+  --vastra-maroon: #800020;
+  --vastra-gold: #D4AF37;
+  --vastra-dark: #2C1810;
+  --vastra-light-gold: #E8D7A8;
+  --vastra-deep-maroon: #5C0011;
+}
+
+/* Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'EB Garamond', serif;
+  background-color: var(--vastra-ivory);
+  color: var(--vastra-dark);
+  overflow-x: hidden;
+  line-height: 1.7;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--vastra-beige);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--vastra-maroon);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--vastra-deep-maroon);
+}
+
+/* Typography */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'EB Garamond', serif;
+  font-weight: 600;
+  color: var(--vastra-dark);
+}
+
+p {
+  font-size: 1.1rem;
+  line-height: 1.8;
+}
+
+/* Custom Button Styles */
+.btn-vastra-primary {
+  background-color: var(--vastra-maroon);
+  color: var(--vastra-ivory);
+  border: 2px solid var(--vastra-maroon);
+  padding: 14px 40px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  font-family: 'EB Garamond', serif;
+}
+
+.btn-vastra-primary:hover {
+  background-color: var(--vastra-deep-maroon);
+  border-color: var(--vastra-deep-maroon);
+  color: var(--vastra-ivory);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(128, 0, 32, 0.3);
+}
+
+.btn-vastra-primary:focus,
+.btn-vastra-primary:active,
+.btn-vastra-primary:focus-visible {
+  background-color: var(--vastra-deep-maroon);
+  border-color: var(--vastra-deep-maroon);
+  color: var(--vastra-ivory);
+  outline: none;
+  box-shadow: 0 0 0 0.25rem rgba(128, 0, 32, 0.25);
+}
+
+.btn-vastra-outline {
+  background-color: transparent;
+  color: var(--vastra-maroon);
+  border: 2px solid var(--vastra-maroon);
+  padding: 14px 40px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  font-family: 'EB Garamond', serif;
+}
+
+.btn-vastra-outline:hover {
+  background-color: var(--vastra-maroon);
+  color: var(--vastra-ivory);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(128, 0, 32, 0.3);
+}
+
+.btn-vastra-outline:focus,
+.btn-vastra-outline:active,
+.btn-vastra-outline:focus-visible {
+  background-color: var(--vastra-maroon);
+  color: var(--vastra-ivory);
+  outline: none;
+  box-shadow: 0 0 0 0.25rem rgba(128, 0, 32, 0.25);
+}
+
+/* Bootstrap Button Override - Remove all default focus states */
+.btn:focus,
+.btn:active,
+.btn:focus-visible,
+.btn.active,
+.btn:active:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Ensure our custom buttons override Bootstrap */
+.btn-vastra-primary:focus,
+.btn-vastra-primary:active,
+.btn-vastra-primary.active,
+.btn-vastra-primary:active:focus {
+  background-color: var(--vastra-deep-maroon) !important;
+  border-color: var(--vastra-deep-maroon) !important;
+  color: var(--vastra-ivory) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 0.25rem rgba(128, 0, 32, 0.25) !important;
+}
+
+.btn-vastra-outline:focus,
+.btn-vastra-outline:active,
+.btn-vastra-outline.active,
+.btn-vastra-outline:active:focus {
+  background-color: var(--vastra-maroon) !important;
+  color: var(--vastra-ivory) !important;
+  border-color: var(--vastra-maroon) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 0.25rem rgba(128, 0, 32, 0.25) !important;
+}
+
+/* Card Styles */
+.vastra-card {
+  background: var(--vastra-ivory);
+  border: 1px solid rgba(128, 0, 32, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.vastra-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 16px 36px rgba(128, 0, 32, 0.12);
+  border-color: var(--vastra-gold);
+}
+
+.vastra-card:focus,
+.vastra-card:focus-visible {
+  outline: 3px solid var(--vastra-maroon);
+  outline-offset: 4px;
+  border-color: var(--vastra-maroon);
+}
+
+.vastra-card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to top, rgba(128, 0, 32, 0.9), transparent);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  display: flex;
+  align-items: flex-end;
+  padding: 2rem;
+  color: var(--vastra-ivory);
+}
+
+.vastra-card:hover .vastra-card-overlay {
+  opacity: 1;
+}
+
+/* Section Spacing */
+.vastra-section {
+  padding: 100px 0;
+}
+
+/* Decorative Elements */
+.vastra-divider {
+  width: 80px;
+  height: 3px;
+  background: linear-gradient(to right, var(--vastra-maroon), var(--vastra-gold));
+  margin: 2rem auto;
+}
+
+/* Testimonial Card */
+.testimonial-card {
+  background: linear-gradient(135deg, var(--vastra-beige) 0%, var(--vastra-ivory) 100%);
+  border-left: 4px solid var(--vastra-gold);
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.testimonial-card:hover {
+  box-shadow: 0 15px 40px rgba(128, 0, 32, 0.12);
+  transform: translateY(-5px);
+}
+
+/* Feature Icon */
+.feature-icon {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--vastra-maroon), var(--vastra-deep-maroon));
+  border-radius: 50%;
+  color: var(--vastra-ivory);
+  margin: 0 auto 1.5rem;
+  box-shadow: 0 8px 20px rgba(128, 0, 32, 0.2);
+}
+
+/* Utility Classes */
+.text-vastra-maroon {
+  color: var(--vastra-maroon);
+}
+
+.text-vastra-gold {
+  color: var(--vastra-gold);
+}
+
+.bg-vastra-beige {
+  background-color: var(--vastra-beige);
+}
+
+.bg-vastra-ivory {
+  background-color: var(--vastra-ivory);
+}
