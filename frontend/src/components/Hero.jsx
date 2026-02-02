@@ -1,9 +1,11 @@
 import React from 'react';
 import { Container } from 'react-bootstrap';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import Button from './ui/Button';
 
 const Hero = () => {
+    const navigate = useNavigate();
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {
@@ -122,7 +124,7 @@ const Hero = () => {
                         variants={itemVariants}
                         className="d-flex gap-3 justify-content-center flex-wrap"
                     >
-                        <Button variant="primary" size="lg">
+                        <Button variant="primary" size="lg" onClick={() => navigate('/shop')}>
                             Explore Collection
                         </Button>
                         <Button variant="outline" size="lg">

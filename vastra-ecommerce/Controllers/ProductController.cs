@@ -19,12 +19,23 @@ namespace EcommerceApplication.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] string? search, [FromQuery] int? categoryId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+        public async Task<IActionResult> GetAll(
+            [FromQuery] string? search, 
+            [FromQuery] int? categoryId, 
+            [FromQuery] decimal? minPrice,
+            [FromQuery] decimal? maxPrice,
+            [FromQuery] string? colors, // Comma-separated
+            [FromQuery] string? sizes,  // Comma-separated
+            [FromQuery] int page = 1, 
+            [FromQuery] int pageSize = 20)
         {
             if (page < 1) page = 1;
             if (pageSize < 1 || pageSize > 100) pageSize = 20;
 
-            var query = _context.Products.AsQueryable();
+            var query = _context.Products
+                .Include(p => p.Images)
+                .Include(p => p.Variants)
+                .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -33,7 +44,30 @@ namespace EcommerceApplication.Controllers
 
             if (categoryId.HasValue)
             {
-                query = query.Where(p => p.CategoryId == categoryId.Value);
+                var categoryIds = await GetCategoryAndChildrenIds(categoryId.Value);
+                query = query.Where(p => categoryIds.Contains(p.CategoryId));
+            }
+
+            if (minPrice.HasValue)
+            {
+                query = query.Where(p => p.BasePrice >= minPrice.Value);
+            }
+
+            if (maxPrice.HasValue)
+            {
+                query = query.Where(p => p.BasePrice <= maxPrice.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(colors))
+            {
+                var colorList = colors.Split(',').Select(c => c.Trim().ToLower()).ToList();
+                query = query.Where(p => p.Variants.Any(v => colorList.Contains(v.Color.ToLower())));
+            }
+
+            if (!string.IsNullOrWhiteSpace(sizes))
+            {
+                var sizeList = sizes.Split(',').Select(s => s.Trim().ToUpper()).ToList();
+                query = query.Where(p => p.Variants.Any(v => sizeList.Contains(v.Size.ToUpper())));
             }
 
             var totalCount = await query.CountAsync();
@@ -49,7 +83,23 @@ namespace EcommerceApplication.Controllers
                     BasePrice = p.BasePrice,
                     IsActive = p.IsActive,
                     CategoryId = p.CategoryId,
-                    CreatedDate = p.CreatedDate
+                    CreatedDate = p.CreatedDate,
+                    Images = p.Images.Select(i => new ProductImageDto
+                    {
+                        Id = i.Id,
+                        ImageUrl = i.ImageUrl,
+                        IsMainImage = i.IsMainImage
+                    }).ToList(),
+                    Variants = p.Variants.Select(v => new ProductVariantDto
+                    {
+                        Id = v.Id,
+                        SKU = v.SKU,
+                        Size = v.Size,
+                        Color = v.Color,
+                        Material = v.Material,
+                        StockQuantity = v.StockQuantity,
+                        PriceAdjustment = v.PriceAdjustment
+                    }).ToList()
                 })
                 .ToListAsync();
 
@@ -250,6 +300,78 @@ namespace EcommerceApplication.Controllers
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
             return NoContent();
+        }
+
+        /// <summary>
+        /// Fix Anarkali product images - updates placeholder URLs to local image paths
+        /// </summary>
+        [HttpPost("fix-anarkali-images")]
+        public async Task<IActionResult> FixAnarkaliImages()
+        {
+            // Find the Anarkalis category
+            var anarkaliCategory = await _context.Categories
+                .FirstOrDefaultAsync(c => c.Name == "Anarkalis");
+
+            if (anarkaliCategory == null)
+                return NotFound(new { message = "Anarkalis category not found" });
+
+            // Get all Anarkali products with their images
+            var anarkaliProducts = await _context.Products
+                .Include(p => p.Images)
+                .Where(p => p.CategoryId == anarkaliCategory.Id)
+                .OrderBy(p => p.Id)
+                .ToListAsync();
+
+            if (!anarkaliProducts.Any())
+                return NotFound(new { message = "No Anarkali products found" });
+
+            int updatedCount = 0;
+            int imageIndex = 1;
+
+            foreach (var product in anarkaliProducts)
+            {
+                // Remove existing images
+                if (product.Images.Any())
+                {
+                    _context.ProductImages.RemoveRange(product.Images);
+                }
+
+                // Add correct local image (cycle through 1-5)
+                var imageNumber = ((imageIndex - 1) % 5) + 1;
+                _context.ProductImages.Add(new ProductImage
+                {
+                    ProductId = product.Id,
+                    ImageUrl = $"/images/products/anarkali/Anarkali {imageNumber}.png",
+                    IsMainImage = true
+                });
+
+                imageIndex++;
+                updatedCount++;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new 
+            { 
+                message = $"Successfully updated {updatedCount} Anarkali products with local images",
+                productsUpdated = updatedCount
+            });
+        }
+
+        private async Task<List<int>> GetCategoryAndChildrenIds(int categoryId)
+        {
+            var ids = new List<int> { categoryId };
+            var childIds = await _context.Categories
+                .Where(c => c.ParentCategoryId == categoryId)
+                .Select(c => c.Id)
+                .ToListAsync();
+
+            foreach (var childId in childIds)
+            {
+                ids.AddRange(await GetCategoryAndChildrenIds(childId));
+            }
+
+            return ids;
         }
     }
 }

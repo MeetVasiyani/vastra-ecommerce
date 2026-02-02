@@ -9,6 +9,8 @@ namespace EcommerceApplication.DTOs.Category
         public string Description { get; set; } = string.Empty;
         
         public string ImageUrl { get; set; } = string.Empty;
+
+        public int? ParentCategoryId { get; set; }
     }
 
     public class CreateCategoryDto

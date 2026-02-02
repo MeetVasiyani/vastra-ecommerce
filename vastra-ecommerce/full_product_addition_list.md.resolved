@@ -1,0 +1,240 @@
+# Product Addition List
+
+This document contains the JSON payloads for all products found in `wwwroot/images/products`.
+**Note**: `categoryId` values are estimated. Please verify.
+
+## Men
+
+### Men Kurtas (Category ID: 13)
+
+#### 1. Men Kurtas - 1
+```json
+{ "name": "Vastra Men Kurta - Design 1", "description": "Traditional Men Kurta.", "basePrice": 2500, "isActive": true, "categoryId": 13, "imageUrls": ["/images/products/Men Kurtas/Men Kurtas - 1.png"], "variants": [{ "sku": "VAS-MK-1-M", "size": "M", "color": "Blue", "stockQuantity": 20 }] }
+```
+#### 2. Men Kurtas - 2
+```json
+{ "name": "Vastra Men Kurta - Design 2", "description": "Elegant Men Kurta.", "basePrice": 2800, "isActive": true, "categoryId": 13, "imageUrls": ["/images/products/Men Kurtas/Men Kurtas - 2.png"], "variants": [{ "sku": "VAS-MK-2-M", "size": "M", "color": "Red", "stockQuantity": 20 }] }
+```
+#### 3. Men Kurtas - 3
+```json
+{ "name": "Vastra Men Kurta - Design 3", "description": "Festive Men Kurta.", "basePrice": 3000, "isActive": true, "categoryId": 13, "imageUrls": ["/images/products/Men Kurtas/Men Kurtas - 3.png"], "variants": [{ "sku": "VAS-MK-3-M", "size": "M", "color": "Gold", "stockQuantity": 10 }] }
+```
+#### 4. Men Kurtas - 4
+```json
+{ "name": "Vastra Men Kurta - Design 4", "description": "Classic Men Kurta.", "basePrice": 2200, "isActive": true, "categoryId": 13, "imageUrls": ["/images/products/Men Kurtas/Men Kurtas - 4.png"], "variants": [{ "sku": "VAS-MK-4-M", "size": "M", "color": "White", "stockQuantity": 25 }] }
+```
+#### 5. Men Kurtas - 5
+```json
+{ "name": "Vastra Men Kurta - Design 5", "description": "Modern Men Kurta.", "basePrice": 2700, "isActive": true, "categoryId": 13, "imageUrls": ["/images/products/Men Kurtas/Men Kurtas - 5.png"], "variants": [{ "sku": "VAS-MK-5-M", "size": "M", "color": "Green", "stockQuantity": 18 }] }
+```
+
+### Sherwanis (Category ID: 4)
+
+#### 1. Sherwanis - 1
+```json
+{ "name": "Vastra Sherwani - Design 1", "description": "Royal Sherwani.", "basePrice": 15000, "isActive": true, "categoryId": 4, "imageUrls": ["/images/products/Sherwanis/Sherwanis - 1.png"], "variants": [{ "sku": "VAS-SH-1-M", "size": "M", "color": "Cream", "stockQuantity": 5 }] }
+```
+#### 2. Sherwanis - 2
+```json
+{ "name": "Vastra Sherwani - Design 2", "description": "Classic Sherwani.", "basePrice": 18000, "isActive": true, "categoryId": 4, "imageUrls": ["/images/products/Sherwanis/Sherwanis - 2.png"], "variants": [{ "sku": "VAS-SH-2-L", "size": "L", "color": "Gold", "stockQuantity": 3 }] }
+```
+#### 3. Sherwanis - 3
+```json
+{ "name": "Vastra Sherwani - Design 3", "description": "Designer Sherwani.", "basePrice": 16500, "isActive": true, "categoryId": 4, "imageUrls": ["/images/products/Sherwanis/Sherwanis - 3.png"], "variants": [{ "sku": "VAS-SH-3-M", "size": "M", "color": "Maroon", "stockQuantity": 4 }] }
+```
+#### 4. Sherwanis - 4
+```json
+{ "name": "Vastra Sherwani - Design 4", "description": "Elegant Sherwani.", "basePrice": 14000, "isActive": true, "categoryId": 4, "imageUrls": ["/images/products/Sherwanis/Sherwanis - 4.png"], "variants": [{ "sku": "VAS-SH-4-M", "size": "M", "color": "Blue", "stockQuantity": 6 }] }
+```
+#### 5. Sherwanis - 5
+```json
+{ "name": "Vastra Sherwani - Design 5", "description": "Grand Sherwani.", "basePrice": 19000, "isActive": true, "categoryId": 4, "imageUrls": ["/images/products/Sherwanis/Sherwanis - 5.png"], "variants": [{ "sku": "VAS-SH-5-XL", "size": "XL", "color": "Off-White", "stockQuantity": 2 }] }
+```
+
+### Nehru Jackets (Category ID: 5)
+
+#### 1. Nehru Jackets - 1
+```json
+{ "name": "Vastra Nehru Jacket - Design 1", "description": "Versatile Nehru Jacket.", "basePrice": 3500, "isActive": true, "categoryId": 5, "imageUrls": ["/images/products/Nehru Jackets/Nehru Jackets - 1.png"], "variants": [{ "sku": "VAS-NJ-1-M", "size": "M", "color": "Black", "stockQuantity": 15 }] }
+```
+#### 2. Nehru Jackets - 2
+```json
+{ "name": "Vastra Nehru Jacket - Design 2", "description": "Printed Nehru Jacket.", "basePrice": 3800, "isActive": true, "categoryId": 5, "imageUrls": ["/images/products/Nehru Jackets/Nehru Jackets - 2.png"], "variants": [{ "sku": "VAS-NJ-2-L", "size": "L", "color": "Blue", "stockQuantity": 10 }] }
+```
+#### 3. Nehru Jackets - 3
+```json
+{ "name": "Vastra Nehru Jacket - Design 3", "description": "Solid Nehru Jacket.", "basePrice": 3200, "isActive": true, "categoryId": 5, "imageUrls": ["/images/products/Nehru Jackets/Nehru Jackets - 3.png"], "variants": [{ "sku": "VAS-NJ-3-M", "size": "M", "color": "Grey", "stockQuantity": 12 }] }
+```
+#### 4. Nehru Jackets - 4
+```json
+{ "name": "Vastra Nehru Jacket - Design 4", "description": "Festive Nehru Jacket.", "basePrice": 4000, "isActive": true, "categoryId": 5, "imageUrls": ["/images/products/Nehru Jackets/Nehru Jackets - 4.png"], "variants": [{ "sku": "VAS-NJ-4-M", "size": "M", "color": "Yellow", "stockQuantity": 8 }] }
+```
+#### 5. Nehru Jackets - 5
+```json
+{ "name": "Vastra Nehru Jacket - Design 5", "description": "Premium Nehru Jacket.", "basePrice": 4500, "isActive": true, "categoryId": 5, "imageUrls": ["/images/products/Nehru Jackets/Nehru Jackets - 5.png"], "variants": [{ "sku": "VAS-NJ-5-XL", "size": "XL", "color": "Red", "stockQuantity": 5 }] }
+```
+
+## Woman
+
+### Anarkalis (Category ID: 10)
+
+#### 1. Anarkali - 1
+```json
+{ "name": "Vastra Anarkali - Design 1", "description": "Flowy Anarkali.", "basePrice": 7500, "isActive": true, "categoryId": 10, "imageUrls": ["/images/products/Anarkali/Anarkali - 1.png"], "variants": [{ "sku": "VAS-AN-1-M", "size": "M", "color": "Pink", "stockQuantity": 10 }] }
+```
+#### 2. Anarkali - 2
+```json
+{ "name": "Vastra Anarkali - Design 2", "description": "Floor-length Anarkali.", "basePrice": 8200, "isActive": true, "categoryId": 10, "imageUrls": ["/images/products/Anarkali/Anarkali - 2.png"], "variants": [{ "sku": "VAS-AN-2-L", "size": "L", "color": "Green", "stockQuantity": 8 }] }
+```
+#### 3. Anarkali - 3
+```json
+{ "name": "Vastra Anarkali - Design 3", "description": "Designer Anarkali.", "basePrice": 9000, "isActive": true, "categoryId": 10, "imageUrls": ["/images/products/Anarkali/Anarkali - 3.png"], "variants": [{ "sku": "VAS-AN-3-M", "size": "M", "color": "Blue", "stockQuantity": 6 }] }
+```
+#### 4. Anarkali - 4
+```json
+{ "name": "Vastra Anarkali - Design 4", "description": "Party Anarkali.", "basePrice": 8800, "isActive": true, "categoryId": 10, "imageUrls": ["/images/products/Anarkali/Anarkali - 4.png"], "variants": [{ "sku": "VAS-AN-4-S", "size": "S", "color": "Red", "stockQuantity": 12 }] }
+```
+#### 5. Anarkali - 5
+```json
+{ "name": "Vastra Anarkali - Design 5", "description": "Classic Anarkali.", "basePrice": 7800, "isActive": true, "categoryId": 10, "imageUrls": ["/images/products/Anarkali/Anarkali - 5.png"], "variants": [{ "sku": "VAS-AN-5-M", "size": "M", "color": "Orange", "stockQuantity": 9 }] }
+```
+
+### Lehengas (Category ID: 8)
+
+#### 1. Lehengas - 1
+```json
+{ "name": "Vastra Lehenga - Design 1", "description": "Bridal Lehenga.", "basePrice": 25000, "isActive": true, "categoryId": 8, "imageUrls": ["/images/products/Lehengas/Lehengas - 1.png"], "variants": [{ "sku": "VAS-LH-1-M", "size": "M", "color": "Red", "stockQuantity": 2 }] }
+```
+#### 2. Lehengas - 2
+```json
+{ "name": "Vastra Lehenga - Design 2", "description": "Designer Lehenga.", "basePrice": 18000, "isActive": true, "categoryId": 8, "imageUrls": ["/images/products/Lehengas/Lehengas - 2.png"], "variants": [{ "sku": "VAS-LH-2-L", "size": "L", "color": "Pink", "stockQuantity": 4 }] }
+```
+#### 3. Lehengas - 3
+```json
+{ "name": "Vastra Lehenga - Design 3", "description": "Festive Lehenga.", "basePrice": 12000, "isActive": true, "categoryId": 8, "imageUrls": ["/images/products/Lehengas/Lehengas - 3.png"], "variants": [{ "sku": "VAS-LH-3-M", "size": "M", "color": "Yellow", "stockQuantity": 6 }] }
+```
+#### 4. Lehengas - 4
+```json
+{ "name": "Vastra Lehenga - Design 4", "description": "Party Lehenga.", "basePrice": 14000, "isActive": true, "categoryId": 8, "imageUrls": ["/images/products/Lehengas/Lehengas - 4.png"], "variants": [{ "sku": "VAS-LH-4-S", "size": "S", "color": "Blue", "stockQuantity": 5 }] }
+```
+#### 5. Lehengas - 5
+```json
+{ "name": "Vastra Lehenga - Design 5", "description": "Classic Lehenga.", "basePrice": 16000, "isActive": true, "categoryId": 8, "imageUrls": ["/images/products/Lehengas/Lehengas - 5.png"], "variants": [{ "sku": "VAS-LH-5-M", "size": "M", "color": "Green", "stockQuantity": 7 }] }
+```
+
+### Kurtis (Category ID: 9)
+
+#### 1. Kurtis - 1
+```json
+{ "name": "Vastra Kurti - Design 1", "description": "Daily Wear Kurti.", "basePrice": 1200, "isActive": true, "categoryId": 9, "imageUrls": ["/images/products/Kurtis/Kurtis - 1.png"], "variants": [{ "sku": "VAS-KU-1-M", "size": "M", "color": "White", "stockQuantity": 50 }] }
+```
+#### 2. Kurtis - 2
+```json
+{ "name": "Vastra Kurti - Design 2", "description": "Printed Kurti.", "basePrice": 1400, "isActive": true, "categoryId": 9, "imageUrls": ["/images/products/Kurtis/Kurtis - 2.png"], "variants": [{ "sku": "VAS-KU-2-L", "size": "L", "color": "Blue", "stockQuantity": 40 }] }
+```
+#### 3. Kurtis - 3
+```json
+{ "name": "Vastra Kurti - Design 3", "description": "Embroidered Kurti.", "basePrice": 1800, "isActive": true, "categoryId": 9, "imageUrls": ["/images/products/Kurtis/Kurtis - 3.png"], "variants": [{ "sku": "VAS-KU-3-M", "size": "M", "color": "Red", "stockQuantity": 30 }] }
+```
+#### 4. Kurtis - 4
+```json
+{ "name": "Vastra Kurti - Design 4", "description": "Long Kurti.", "basePrice": 1600, "isActive": true, "categoryId": 9, "imageUrls": ["/images/products/Kurtis/Kurtis - 4.png"], "variants": [{ "sku": "VAS-KU-4-S", "size": "S", "color": "Yellow", "stockQuantity": 25 }] }
+```
+#### 5. Kurtis - 5
+```json
+{ "name": "Vastra Kurti - Design 5", "description": "Party Kurti.", "basePrice": 2000, "isActive": true, "categoryId": 9, "imageUrls": ["/images/products/Kurtis/Kurtis - 5.png"], "variants": [{ "sku": "VAS-KU-5-XL", "size": "XL", "color": "Black", "stockQuantity": 20 }] }
+```
+
+### Kurta Sets (Category ID: 6)
+
+#### 1. Kurta Sets - 1
+```json
+{ "name": "Vastra Kurta Set - Design 1", "description": "Complete Kurta Set.", "basePrice": 3500, "isActive": true, "categoryId": 6, "imageUrls": ["/images/products/Kurta Sets/Kurta Sets - 1.png"], "variants": [{ "sku": "VAS-KS-1-M", "size": "M", "color": "Green", "stockQuantity": 15 }] }
+```
+#### 2. Kurta Sets - 2
+```json
+{ "name": "Vastra Kurta Set - Design 2", "description": "Office Kurta Set.", "basePrice": 3200, "isActive": true, "categoryId": 6, "imageUrls": ["/images/products/Kurta Sets/Kurta Sets - 2.png"], "variants": [{ "sku": "VAS-KS-2-L", "size": "L", "color": "Peach", "stockQuantity": 12 }] }
+```
+#### 3. Kurta Sets - 3
+```json
+{ "name": "Vastra Kurta Set - Design 3", "description": "Festive Kurta Set.", "basePrice": 4500, "isActive": true, "categoryId": 6, "imageUrls": ["/images/products/Kurta Sets/Kurta Sets - 3.png"], "variants": [{ "sku": "VAS-KS-3-M", "size": "M", "color": "Maroon", "stockQuantity": 10 }] }
+```
+#### 4. Kurta Sets - 4
+```json
+{ "name": "Vastra Kurta Set - Design 4", "description": "Modern Kurta Set.", "basePrice": 3800, "isActive": true, "categoryId": 6, "imageUrls": ["/images/products/Kurta Sets/Kurta Sets - 4.png"], "variants": [{ "sku": "VAS-KS-4-S", "size": "S", "color": "Teal", "stockQuantity": 8 }] }
+```
+#### 5. Kurta Sets - 5
+```json
+{ "name": "Vastra Kurta Set - Design 5", "description": "Printed Kurta Set.", "basePrice": 3000, "isActive": true, "categoryId": 6, "imageUrls": ["/images/products/Kurta Sets/Kurta Sets - 5.png"], "variants": [{ "sku": "VAS-KS-5-XL", "size": "XL", "color": "Beige", "stockQuantity": 10 }] }
+```
+
+### Sarees (Category ID: 7)
+
+#### 1. Sarees - 1
+```json
+{ "name": "Vastra Saree - Design 1", "description": "Silk Saree.", "basePrice": 12000, "isActive": true, "categoryId": 7, "imageUrls": ["/images/products/Sarees/Sarees - 1.png"], "variants": [{ "sku": "VAS-SA-1-Free", "size": "Free", "color": "Red", "stockQuantity": 10 }] }
+```
+#### 2. Sarees - 2
+```json
+{ "name": "Vastra Saree - Design 2", "description": "Banarasi Saree.", "basePrice": 15000, "isActive": true, "categoryId": 7, "imageUrls": ["/images/products/Sarees/Sarees - 2.png"], "variants": [{ "sku": "VAS-SA-2-Free", "size": "Free", "color": "Blue", "stockQuantity": 8 }] }
+```
+#### 3. Sarees - 3
+```json
+{ "name": "Vastra Saree - Design 3", "description": "Chiffon Saree.", "basePrice": 5000, "isActive": true, "categoryId": 7, "imageUrls": ["/images/products/Sarees/Sarees - 3.png"], "variants": [{ "sku": "VAS-SA-3-Free", "size": "Free", "color": "Pink", "stockQuantity": 15 }] }
+```
+#### 4. Sarees - 4
+```json
+{ "name": "Vastra Saree - Design 4", "description": "Georgette Saree.", "basePrice": 6500, "isActive": true, "categoryId": 7, "imageUrls": ["/images/products/Sarees/Sarees - 4.png"], "variants": [{ "sku": "VAS-SA-4-Free", "size": "Free", "color": "Yellow", "stockQuantity": 12 }] }
+```
+#### 5. Sarees - 5
+```json
+{ "name": "Vastra Saree - Design 5", "description": "Cotton Saree.", "basePrice": 3500, "isActive": true, "categoryId": 7, "imageUrls": ["/images/products/Sarees/Sarees - 5.png"], "variants": [{ "sku": "VAS-SA-5-Free", "size": "Free", "color": "White", "stockQuantity": 20 }] }
+```
+
+## Kids
+
+### Boys Ethnic (Category ID: 11)
+
+#### 1. Boys Ethnic - 1
+```json
+{ "name": "Vastra Boys Kurta - Design 1", "description": "Boys Kurta.", "basePrice": 1500, "isActive": true, "categoryId": 11, "imageUrls": ["/images/products/Boys Ethnic/Boys Ethnic - 1.png"], "variants": [{ "sku": "VAS-BE-1-24", "size": "24", "color": "Blue", "stockQuantity": 10 }] }
+```
+#### 2. Boys Ethnic - 2
+```json
+{ "name": "Vastra Boys Sherwani - Design 2", "description": "Boys Sherwani.", "basePrice": 3000, "isActive": true, "categoryId": 11, "imageUrls": ["/images/products/Boys Ethnic/Boys Ethnic - 2.png"], "variants": [{ "sku": "VAS-BE-2-26", "size": "26", "color": "Red", "stockQuantity": 5 }] }
+```
+#### 3. Boys Ethnic - 3
+```json
+{ "name": "Vastra Boys Jacket - Design 3", "description": "Boys Jacket Set.", "basePrice": 2200, "isActive": true, "categoryId": 11, "imageUrls": ["/images/products/Boys Ethnic/Boys Ethnic - 3.png"], "variants": [{ "sku": "VAS-BE-3-28", "size": "28", "color": "Yellow", "stockQuantity": 8 }] }
+```
+#### 4. Boys Ethnic - 4
+```json
+{ "name": "Vastra Boys Dhoti - Design 4", "description": "Boys Dhoti Set.", "basePrice": 1800, "isActive": true, "categoryId": 11, "imageUrls": ["/images/products/Boys Ethnic/Boys Ethnic - 4.png"], "variants": [{ "sku": "VAS-BE-4-24", "size": "24", "color": "Orange", "stockQuantity": 6 }] }
+```
+#### 5. Boys Ethnic - 5
+```json
+{ "name": "Vastra Boys Pathani - Design 5", "description": "Boys Pathani.", "basePrice": 1600, "isActive": true, "categoryId": 11, "imageUrls": ["/images/products/Boys Ethnic/Boys Ethnic - 5.png"], "variants": [{ "sku": "VAS-BE-5-30", "size": "30", "color": "Black", "stockQuantity": 10 }] }
+```
+
+### Girls Ethnic (Category ID: 12)
+
+#### 1. Girls Ethnic - 1
+```json
+{ "name": "Vastra Girls Lehenga - Design 1", "description": "Girls Lehenga.", "basePrice": 2500, "isActive": true, "categoryId": 12, "imageUrls": ["/images/products/Girls Ethnic/Girls Ethnic - 1.png"], "variants": [{ "sku": "VAS-GE-1-24", "size": "24", "color": "Pink", "stockQuantity": 10 }] }
+```
+#### 2. Girls Ethnic - 2
+```json
+{ "name": "Vastra Girls Frock - Design 2", "description": "Girls Frock.", "basePrice": 1800, "isActive": true, "categoryId": 12, "imageUrls": ["/images/products/Girls Ethnic/Girls Ethnic - 2.png"], "variants": [{ "sku": "VAS-GE-2-26", "size": "26", "color": "Blue", "stockQuantity": 12 }] }
+```
+#### 3. Girls Ethnic - 3
+```json
+{ "name": "Vastra Girls Anarkali - Design 3", "description": "Girls Anarkali.", "basePrice": 2200, "isActive": true, "categoryId": 12, "imageUrls": ["/images/products/Girls Ethnic/Girls Ethnic - 3.png"], "variants": [{ "sku": "VAS-GE-3-28", "size": "28", "color": "Red", "stockQuantity": 8 }] }
+```
+#### 4. Girls Ethnic - 4
+```json
+{ "name": "Vastra Girls Sharara - Design 4", "description": "Girls Sharara.", "basePrice": 2400, "isActive": true, "categoryId": 12, "imageUrls": ["/images/products/Girls Ethnic/Girls Ethnic - 4.png"], "variants": [{ "sku": "VAS-GE-4-30", "size": "30", "color": "Green", "stockQuantity": 6 }] }
+```
+#### 5. Girls Ethnic - 5
+```json
+{ "name": "Vastra Girls Gown - Design 5", "description": "Girls Gown.", "basePrice": 3000, "isActive": true, "categoryId": 12, "imageUrls": ["/images/products/Girls Ethnic/Girls Ethnic - 5.png"], "variants": [{ "sku": "VAS-GE-5-32", "size": "32", "color": "Purple", "stockQuantity": 5 }] }
+```

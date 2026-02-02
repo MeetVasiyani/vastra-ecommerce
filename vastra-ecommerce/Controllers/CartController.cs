@@ -81,7 +81,8 @@ namespace EcommerceApplication.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                var innerMessage = ex.InnerException?.Message ?? "";
+                return BadRequest($"{ex.Message} | Inner: {innerMessage}");
             }
         }
 

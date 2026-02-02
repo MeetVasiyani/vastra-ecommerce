@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 namespace EcommerceApplication.Models
 {
     public class ProductVariant
@@ -10,6 +11,7 @@ namespace EcommerceApplication.Models
         public string Color { get; set; } = string.Empty;
         public string? Material { get; set; }
         public int StockQuantity { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
         public decimal PriceAdjustment { get; set; }
     }
 }

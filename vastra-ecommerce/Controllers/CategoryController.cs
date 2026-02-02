@@ -27,7 +27,8 @@ namespace EcommerceApplication.Controllers
                     Id = c.Id,
                     Name = c.Name,
                     Description = c.Description,
-                    ImageUrl = c.ImageUrl
+                    ImageUrl = c.ImageUrl,
+                    ParentCategoryId = c.ParentCategoryId
                 })
                 .ToListAsync();
 
@@ -45,7 +46,8 @@ namespace EcommerceApplication.Controllers
                 Id = category.Id,
                 Name = category.Name,
                 Description = category.Description,
-                ImageUrl = category.ImageUrl
+                ImageUrl = category.ImageUrl,
+                ParentCategoryId = category.ParentCategoryId
             });
         }
 

@@ -87,6 +87,16 @@ builder.Services.AddAuthentication(options => {
 
 // Services and Repositories removed for Controller-based architecture
 
+// Configure CORS for frontend
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 var app = builder.Build();
 
@@ -94,7 +104,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    await EcommerceApplication.Data.RoleSeeder.SeedRolesAndAdminAsync(services);
+    await EcommerceApplication.Data.DataSeeder.SeedDataAsync(services);
 }
 
 // Configure the HTTP request pipeline.
@@ -105,6 +115,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseStaticFiles();
+
+app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();

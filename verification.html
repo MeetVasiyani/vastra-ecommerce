@@ -1,0 +1,322 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Product Color Verification</title>
+        <style>
+            body { font-family: sans-serif; padding: 20px; }
+            .product { border: 1px solid #ccc; padding: 10px; margin-bottom: 20px; display: inline-block; vertical-align: top; width: 300px; margin-right: 10px; }
+            img { max-width: 100%; height: auto; display: block; margin-top: 10px; }
+            .info { margin-top: 5px; }
+            .color-box { display: inline-block; width: 15px; height: 15px; border: 1px solid #000; margin-left: 5px; vertical-align: middle; }
+        </style>
+    </head>
+    <body>
+        <h1>Product Color Verification</h1>
+        <p>Total Products: 50</p>
+        <div id="container">
+    
+        <div class="product" id="p-0">
+            <h3>1. Vastra Men Kurta - Design 1</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Blue</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Men Kurtas/Men Kurtas - 1.png" alt="Vastra Men Kurta - Design 1">
+        </div>
+        
+        <div class="product" id="p-1">
+            <h3>2. Vastra Men Kurta - Design 2</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Red</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Men Kurtas/Men Kurtas - 2.png" alt="Vastra Men Kurta - Design 2">
+        </div>
+        
+        <div class="product" id="p-2">
+            <h3>3. Vastra Men Kurta - Design 3</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Gold</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Men Kurtas/Men Kurtas - 3.png" alt="Vastra Men Kurta - Design 3">
+        </div>
+        
+        <div class="product" id="p-3">
+            <h3>4. Vastra Men Kurta - Design 4</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">White</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Men Kurtas/Men Kurtas - 4.png" alt="Vastra Men Kurta - Design 4">
+        </div>
+        
+        <div class="product" id="p-4">
+            <h3>5. Vastra Men Kurta - Design 5</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Green</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Men Kurtas/Men Kurtas - 5.png" alt="Vastra Men Kurta - Design 5">
+        </div>
+        
+        <div class="product" id="p-5">
+            <h3>6. Vastra Sherwani - Design 1</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Cream</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Sherwanis/Sherwanis - 1.png" alt="Vastra Sherwani - Design 1">
+        </div>
+        
+        <div class="product" id="p-6">
+            <h3>7. Vastra Sherwani - Design 2</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Gold</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Sherwanis/Sherwanis - 2.png" alt="Vastra Sherwani - Design 2">
+        </div>
+        
+        <div class="product" id="p-7">
+            <h3>8. Vastra Sherwani - Design 3</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Maroon</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Sherwanis/Sherwanis - 3.png" alt="Vastra Sherwani - Design 3">
+        </div>
+        
+        <div class="product" id="p-8">
+            <h3>9. Vastra Sherwani - Design 4</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Blue</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Sherwanis/Sherwanis - 4.png" alt="Vastra Sherwani - Design 4">
+        </div>
+        
+        <div class="product" id="p-9">
+            <h3>10. Vastra Sherwani - Design 5</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Off-White</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Sherwanis/Sherwanis - 5.png" alt="Vastra Sherwani - Design 5">
+        </div>
+        
+        <div class="product" id="p-10">
+            <h3>11. Vastra Nehru Jacket - Design 1</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Black</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Nehru Jackets/Nehru Jackets - 1.png" alt="Vastra Nehru Jacket - Design 1">
+        </div>
+        
+        <div class="product" id="p-11">
+            <h3>12. Vastra Nehru Jacket - Design 2</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Blue</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Nehru Jackets/Nehru Jackets - 2.png" alt="Vastra Nehru Jacket - Design 2">
+        </div>
+        
+        <div class="product" id="p-12">
+            <h3>13. Vastra Nehru Jacket - Design 3</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Grey</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Nehru Jackets/Nehru Jackets - 3.png" alt="Vastra Nehru Jacket - Design 3">
+        </div>
+        
+        <div class="product" id="p-13">
+            <h3>14. Vastra Nehru Jacket - Design 4</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Yellow</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Nehru Jackets/Nehru Jackets - 4.png" alt="Vastra Nehru Jacket - Design 4">
+        </div>
+        
+        <div class="product" id="p-14">
+            <h3>15. Vastra Nehru Jacket - Design 5</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Red</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Nehru Jackets/Nehru Jackets - 5.png" alt="Vastra Nehru Jacket - Design 5">
+        </div>
+        
+        <div class="product" id="p-15">
+            <h3>16. Vastra Anarkali - Design 1</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Pink</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Anarkali/Anarkali - 1.png" alt="Vastra Anarkali - Design 1">
+        </div>
+        
+        <div class="product" id="p-16">
+            <h3>17. Vastra Anarkali - Design 2</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Green</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Anarkali/Anarkali - 2.png" alt="Vastra Anarkali - Design 2">
+        </div>
+        
+        <div class="product" id="p-17">
+            <h3>18. Vastra Anarkali - Design 3</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Blue</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Anarkali/Anarkali - 3.png" alt="Vastra Anarkali - Design 3">
+        </div>
+        
+        <div class="product" id="p-18">
+            <h3>19. Vastra Anarkali - Design 4</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Red</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Anarkali/Anarkali - 4.png" alt="Vastra Anarkali - Design 4">
+        </div>
+        
+        <div class="product" id="p-19">
+            <h3>20. Vastra Anarkali - Design 5</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Orange</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Anarkali/Anarkali - 5.png" alt="Vastra Anarkali - Design 5">
+        </div>
+        
+        <div class="product" id="p-20">
+            <h3>21. Vastra Lehenga - Design 1</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Red</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Lehengas/Lehengas - 1.png" alt="Vastra Lehenga - Design 1">
+        </div>
+        
+        <div class="product" id="p-21">
+            <h3>22. Vastra Lehenga - Design 2</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Pink</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Lehengas/Lehengas - 2.png" alt="Vastra Lehenga - Design 2">
+        </div>
+        
+        <div class="product" id="p-22">
+            <h3>23. Vastra Lehenga - Design 3</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Yellow</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Lehengas/Lehengas - 3.png" alt="Vastra Lehenga - Design 3">
+        </div>
+        
+        <div class="product" id="p-23">
+            <h3>24. Vastra Lehenga - Design 4</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Blue</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Lehengas/Lehengas - 4.png" alt="Vastra Lehenga - Design 4">
+        </div>
+        
+        <div class="product" id="p-24">
+            <h3>25. Vastra Lehenga - Design 5</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Green</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Lehengas/Lehengas - 5.png" alt="Vastra Lehenga - Design 5">
+        </div>
+        
+        <div class="product" id="p-25">
+            <h3>26. Vastra Kurti - Design 1</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">White</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Kurtis/Kurtis - 1.png" alt="Vastra Kurti - Design 1">
+        </div>
+        
+        <div class="product" id="p-26">
+            <h3>27. Vastra Kurti - Design 2</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Blue</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Kurtis/Kurtis - 2.png" alt="Vastra Kurti - Design 2">
+        </div>
+        
+        <div class="product" id="p-27">
+            <h3>28. Vastra Kurti - Design 3</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Red</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Kurtis/Kurtis - 3.png" alt="Vastra Kurti - Design 3">
+        </div>
+        
+        <div class="product" id="p-28">
+            <h3>29. Vastra Kurti - Design 4</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Yellow</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Kurtis/Kurtis - 4.png" alt="Vastra Kurti - Design 4">
+        </div>
+        
+        <div class="product" id="p-29">
+            <h3>30. Vastra Kurti - Design 5</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Black</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Kurtis/Kurtis - 5.png" alt="Vastra Kurti - Design 5">
+        </div>
+        
+        <div class="product" id="p-30">
+            <h3>31. Vastra Kurta Set - Design 1</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Green</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Kurta Sets/Kurta Sets - 1.png" alt="Vastra Kurta Set - Design 1">
+        </div>
+        
+        <div class="product" id="p-31">
+            <h3>32. Vastra Kurta Set - Design 2</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Peach</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Kurta Sets/Kurta Sets - 2.png" alt="Vastra Kurta Set - Design 2">
+        </div>
+        
+        <div class="product" id="p-32">
+            <h3>33. Vastra Kurta Set - Design 3</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Maroon</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Kurta Sets/Kurta Sets - 3.png" alt="Vastra Kurta Set - Design 3">
+        </div>
+        
+        <div class="product" id="p-33">
+            <h3>34. Vastra Kurta Set - Design 4</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Teal</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Kurta Sets/Kurta Sets - 4.png" alt="Vastra Kurta Set - Design 4">
+        </div>
+        
+        <div class="product" id="p-34">
+            <h3>35. Vastra Kurta Set - Design 5</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Beige</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Kurta Sets/Kurta Sets - 5.png" alt="Vastra Kurta Set - Design 5">
+        </div>
+        
+        <div class="product" id="p-35">
+            <h3>36. Vastra Saree - Design 1</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Red</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Sarees/Sarees - 1.png" alt="Vastra Saree - Design 1">
+        </div>
+        
+        <div class="product" id="p-36">
+            <h3>37. Vastra Saree - Design 2</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Blue</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Sarees/Sarees - 2.png" alt="Vastra Saree - Design 2">
+        </div>
+        
+        <div class="product" id="p-37">
+            <h3>38. Vastra Saree - Design 3</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Pink</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Sarees/Sarees - 3.png" alt="Vastra Saree - Design 3">
+        </div>
+        
+        <div class="product" id="p-38">
+            <h3>39. Vastra Saree - Design 4</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Yellow</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Sarees/Sarees - 4.png" alt="Vastra Saree - Design 4">
+        </div>
+        
+        <div class="product" id="p-39">
+            <h3>40. Vastra Saree - Design 5</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">White</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Sarees/Sarees - 5.png" alt="Vastra Saree - Design 5">
+        </div>
+        
+        <div class="product" id="p-40">
+            <h3>41. Vastra Boys Kurta - Design 1</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Blue</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Boys Ethnic/Boys Ethnic - 1.png" alt="Vastra Boys Kurta - Design 1">
+        </div>
+        
+        <div class="product" id="p-41">
+            <h3>42. Vastra Boys Sherwani - Design 2</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Red</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Boys Ethnic/Boys Ethnic - 2.png" alt="Vastra Boys Sherwani - Design 2">
+        </div>
+        
+        <div class="product" id="p-42">
+            <h3>43. Vastra Boys Jacket - Design 3</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Yellow</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Boys Ethnic/Boys Ethnic - 3.png" alt="Vastra Boys Jacket - Design 3">
+        </div>
+        
+        <div class="product" id="p-43">
+            <h3>44. Vastra Boys Dhoti - Design 4</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Orange</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Boys Ethnic/Boys Ethnic - 4.png" alt="Vastra Boys Dhoti - Design 4">
+        </div>
+        
+        <div class="product" id="p-44">
+            <h3>45. Vastra Boys Pathani - Design 5</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Black</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Boys Ethnic/Boys Ethnic - 5.png" alt="Vastra Boys Pathani - Design 5">
+        </div>
+        
+        <div class="product" id="p-45">
+            <h3>46. Vastra Girls Lehenga - Design 1</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Pink</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Girls Ethnic/Girls Ethnic - 1.png" alt="Vastra Girls Lehenga - Design 1">
+        </div>
+        
+        <div class="product" id="p-46">
+            <h3>47. Vastra Girls Frock - Design 2</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Blue</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Girls Ethnic/Girls Ethnic - 2.png" alt="Vastra Girls Frock - Design 2">
+        </div>
+        
+        <div class="product" id="p-47">
+            <h3>48. Vastra Girls Anarkali - Design 3</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Red</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Girls Ethnic/Girls Ethnic - 3.png" alt="Vastra Girls Anarkali - Design 3">
+        </div>
+        
+        <div class="product" id="p-48">
+            <h3>49. Vastra Girls Sharara - Design 4</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Green</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Girls Ethnic/Girls Ethnic - 4.png" alt="Vastra Girls Sharara - Design 4">
+        </div>
+        
+        <div class="product" id="p-49">
+            <h3>50. Vastra Girls Gown - Design 5</h3>
+            <div class="info"><strong>Current Color:</strong> <span class="current-color">Purple</span></div>
+            <img src="file:///d:/vastra-ecommerce/vastra-ecommerce/wwwroot/images/products/Girls Ethnic/Girls Ethnic - 5.png" alt="Vastra Girls Gown - Design 5">
+        </div>
+        
+        </div>
+    </body>
+    </html>
+    
