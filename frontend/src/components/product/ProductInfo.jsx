@@ -6,16 +6,18 @@ import { formatPrice } from '../../services/api';
 import { getColorHex } from '../../utils/constants';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
+import { useWishlist } from '../../context/WishlistContext';
 
 const ProductInfo = ({ product }) => {
     const navigate = useNavigate();
     const { addToCart, isLoading: isCartLoading } = useCart();
     const { isAuthenticated } = useAuth();
+    const { isInWishlist, toggleWishlist, isLoading: isWishlistLoading } = useWishlist();
 
     const [selectedColor, setSelectedColor] = useState(null);
     const [selectedSize, setSelectedSize] = useState(null);
     const [quantity, setQuantity] = useState(1);
-    const [isWishlisted, setIsWishlisted] = useState(false);
+    const [isTogglingWishlist, setIsTogglingWishlist] = useState(false);
     const [isAddingToCart, setIsAddingToCart] = useState(false);
     const [cartFeedback, setCartFeedback] = useState(null);
 
@@ -368,13 +370,34 @@ const ProductInfo = ({ product }) => {
                     )}
                 </motion.button>
                 <motion.button
-                    className={`btn ${isWishlisted ? 'btn-vastra-primary' : 'btn-vastra-outline'} d-flex align-items-center justify-content-center`}
-                    onClick={() => setIsWishlisted(!isWishlisted)}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    className={`btn ${selectedVariant && isInWishlist(selectedVariant.id).inWishlist ? 'btn-vastra-primary' : 'btn-vastra-outline'} d-flex align-items-center justify-content-center`}
+                    onClick={async () => {
+                        if (!isAuthenticated) {
+                            navigate('/login', { state: { from: window.location.pathname } });
+                            return;
+                        }
+                        if (!selectedVariant) {
+                            setCartFeedback({ type: 'error', message: 'Please select color and size' });
+                            setTimeout(() => setCartFeedback(null), 3000);
+                            return;
+                        }
+                        setIsTogglingWishlist(true);
+                        const result = await toggleWishlist(selectedVariant.id);
+                        setIsTogglingWishlist(false);
+                        if (result.requiresAuth) {
+                            navigate('/login', { state: { from: window.location.pathname } });
+                        }
+                    }}
+                    whileHover={{ scale: isTogglingWishlist ? 1 : 1.05 }}
+                    whileTap={{ scale: isTogglingWishlist ? 1 : 0.95 }}
                     style={{ width: '55px', height: '55px', padding: 0 }}
+                    disabled={isTogglingWishlist || !selectedVariant}
                 >
-                    <Heart size={22} fill={isWishlisted ? 'currentColor' : 'none'} />
+                    {isTogglingWishlist ? (
+                        <Loader2 size={22} style={{ animation: 'spin 1s linear infinite' }} />
+                    ) : (
+                        <Heart size={22} fill={selectedVariant && isInWishlist(selectedVariant.id).inWishlist ? 'currentColor' : 'none'} />
+                    )}
                 </motion.button>
             </motion.div>
 

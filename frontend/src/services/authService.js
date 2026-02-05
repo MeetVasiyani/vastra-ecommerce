@@ -1,4 +1,4 @@
-// Authentication Service for Vastra E-commerce
+// Auth Service for Vastra
 const BACKEND_URL = 'http://localhost:5121';
 const API_BASE_URL = `${BACKEND_URL}/api`;
 
@@ -7,17 +7,13 @@ const TOKEN_KEY = 'vastra_auth_token';
 const USER_KEY = 'vastra_user';
 const REMEMBER_KEY = 'vastra_remember';
 
-/**
- * Get the appropriate storage based on remember preference
- */
+// Get storage based on remember preference
 const getStorage = () => {
     const remember = localStorage.getItem(REMEMBER_KEY) === 'true';
     return remember ? localStorage : sessionStorage;
 };
 
-/**
- * Store authentication data
- */
+// Store auth data
 const storeAuthData = (token, user, remember = true) => {
     localStorage.setItem(REMEMBER_KEY, remember.toString());
     const storage = remember ? localStorage : sessionStorage;
@@ -25,9 +21,7 @@ const storeAuthData = (token, user, remember = true) => {
     storage.setItem(USER_KEY, JSON.stringify(user));
 };
 
-/**
- * Clear authentication data from both storages
- */
+// Clear auth data
 const clearAuthData = () => {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
@@ -36,16 +30,12 @@ const clearAuthData = () => {
     sessionStorage.removeItem(USER_KEY);
 };
 
-/**
- * Get stored authentication token
- */
+// Get stored token
 export const getToken = () => {
     return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
 };
 
-/**
- * Get stored user data
- */
+// Get stored user
 export const getStoredUser = () => {
     const userStr = localStorage.getItem(USER_KEY) || sessionStorage.getItem(USER_KEY);
     if (userStr) {
@@ -58,26 +48,22 @@ export const getStoredUser = () => {
     return null;
 };
 
-/**
- * Check if user is authenticated
- */
+// Check if user is authenticated
 export const isAuthenticated = () => {
     const token = getToken();
     if (!token) return false;
 
-    // Basic JWT expiry check
+    // Check JWT expiry
     try {
         const payload = JSON.parse(atob(token.split('.')[1]));
-        const exp = payload.exp * 1000; // Convert to milliseconds
+        const exp = payload.exp * 1000;
         return Date.now() < exp;
     } catch {
         return false;
     }
 };
 
-/**
- * Get authorization headers for API requests
- */
+// Get auth headers for API requests
 export const getAuthHeaders = () => {
     const token = getToken();
     if (token) {
@@ -91,13 +77,7 @@ export const getAuthHeaders = () => {
     };
 };
 
-/**
- * Login user
- * @param {string} email 
- * @param {string} password 
- * @param {boolean} remember - Whether to persist session
- * @returns {Promise<{success: boolean, user?: object, error?: string}>}
- */
+// Login
 export const login = async (email, password, remember = true) => {
     try {
         const response = await fetch(`${API_BASE_URL}/Auth/login`, {
@@ -133,11 +113,7 @@ export const login = async (email, password, remember = true) => {
     }
 };
 
-/**
- * Register new user
- * @param {object} userData - { firstName, lastName, email, password }
- * @returns {Promise<{success: boolean, user?: object, error?: string}>}
- */
+// Register
 export const register = async (userData) => {
     try {
         const response = await fetch(`${API_BASE_URL}/Auth/register`, {
@@ -173,17 +149,12 @@ export const register = async (userData) => {
     }
 };
 
-/**
- * Logout user
- */
+// Logout
 export const logout = () => {
     clearAuthData();
 };
 
-/**
- * Fetch user profile from API
- * @returns {Promise<{success: boolean, profile?: object, error?: string}>}
- */
+// Fetch user profile
 export const fetchUserProfile = async () => {
     try {
         const response = await fetch(`${API_BASE_URL}/User/profile`, {
@@ -208,6 +179,57 @@ export const fetchUserProfile = async () => {
     }
 };
 
+// Add user address
+export const addUserAddress = async (addressData) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/User/addresses`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(addressData)
+        });
+
+        if (response.ok) {
+            const address = await response.json();
+            return { success: true, address };
+        }
+
+        if (response.status === 401) {
+            clearAuthData();
+            return { success: false, error: 'Session expired' };
+        }
+
+        const errorText = await response.text();
+        return { success: false, error: errorText || 'Failed to add address' };
+    } catch (error) {
+        console.error('Add address error:', error);
+        return { success: false, error: 'Network error' };
+    }
+};
+
+// Delete user address
+export const deleteUserAddress = async (addressId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/User/addresses/${addressId}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+
+        if (response.ok || response.status === 204) {
+            return { success: true };
+        }
+
+        if (response.status === 401) {
+            clearAuthData();
+            return { success: false, error: 'Session expired' };
+        }
+
+        return { success: false, error: 'Failed to delete address' };
+    } catch (error) {
+        console.error('Delete address error:', error);
+        return { success: false, error: 'Network error' };
+    }
+};
+
 export default {
     login,
     register,
@@ -216,5 +238,7 @@ export default {
     getStoredUser,
     isAuthenticated,
     getAuthHeaders,
-    fetchUserProfile
+    fetchUserProfile,
+    addUserAddress,
+    deleteUserAddress
 };

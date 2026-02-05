@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Filter, RotateCcw, ChevronDown } from 'lucide-react';
 import { VASTRA_COLORS, VASTRA_SIZES } from '../../utils/constants';
@@ -10,53 +10,65 @@ const FilterSidebar = ({
     colors = VASTRA_COLORS,
     sizes = VASTRA_SIZES
 }) => {
-    // Local state for price inputs to prevent rapid API calls/focus loss
-    const [localPrices, setLocalPrices] = React.useState({
-        minPrice: filters.minPrice || '',
-        maxPrice: filters.maxPrice || ''
-    });
+    // Local state for price inputs
+    const [localMinPrice, setLocalMinPrice] = useState(filters.minPrice || '');
+    const [localMaxPrice, setLocalMaxPrice] = useState(filters.maxPrice || '');
 
-    // Collapsible state for color palette
-    const [isColorOpen, setIsColorOpen] = React.useState(false);
+    // Collapsible state for colors
+    const [isColorOpen, setIsColorOpen] = useState(false);
 
-    // Sync local state when filters prop changes (e.g. clear filters)
-    React.useEffect(() => {
-        setLocalPrices({
-            minPrice: filters.minPrice || '',
-            maxPrice: filters.maxPrice || ''
-        });
+    // Sync local state when filters change
+    useEffect(() => {
+        setLocalMinPrice(filters.minPrice || '');
+        setLocalMaxPrice(filters.maxPrice || '');
     }, [filters.minPrice, filters.maxPrice]);
 
-    const handleLocalPriceChange = (e) => {
-        const { name, value } = e.target;
-        setLocalPrices(prev => ({
-            ...prev,
-            [name]: value
-        }));
+    // Price handlers
+    const handleMinPriceChange = (e) => {
+        setLocalMinPrice(e.target.value);
     };
 
-    const handlePriceCommit = (name) => {
-        const value = localPrices[name];
-        const numValue = value === '' ? null : Number(value);
-        if (numValue !== filters[name]) {
-            onFilterChange(name, numValue);
+    const handleMaxPriceChange = (e) => {
+        setLocalMaxPrice(e.target.value);
+    };
+
+    const handleMinPriceBlur = () => {
+        const value = localMinPrice === '' ? null : Number(localMinPrice);
+        if (value !== filters.minPrice) {
+            onFilterChange('minPrice', value);
         }
     };
 
-    const handleKeyDown = (e, name) => {
+    const handleMaxPriceBlur = () => {
+        const value = localMaxPrice === '' ? null : Number(localMaxPrice);
+        if (value !== filters.maxPrice) {
+            onFilterChange('maxPrice', value);
+        }
+    };
+
+    const handlePriceKeyDown = (e, type) => {
         if (e.key === 'Enter') {
-            handlePriceCommit(name);
+            if (type === 'min') {
+                handleMinPriceBlur();
+            } else {
+                handleMaxPriceBlur();
+            }
         }
     };
 
+    // Toggle color/size filter
     const handleCheckboxChange = (type, value) => {
         const currentValues = filters[type] || [];
-        const newValues = currentValues.includes(value)
-            ? currentValues.filter(v => v !== value)
-            : [...currentValues, value];
+        let newValues;
+        if (currentValues.includes(value)) {
+            newValues = currentValues.filter(v => v !== value);
+        } else {
+            newValues = [...currentValues, value];
+        }
         onFilterChange(type, newValues);
     };
 
+    // Animation variants
     const containerVariants = {
         hidden: { opacity: 0, x: -30 },
         visible: {
@@ -84,10 +96,12 @@ const FilterSidebar = ({
             animate="visible"
         >
             <div className="filter-header d-flex justify-content-between align-items-center mb-4">
-                <h4 className="m-0 d-flex align-items-center gap-2">
-                    <Filter size={20} strokeWidth={1.5} className="text-vastra-maroon" />
-                    Refine Collection
-                </h4>
+                <div className="filter-header-title">
+                    <div className="filter-icon-wrapper">
+                        <Filter size={18} strokeWidth={2} />
+                    </div>
+                    <h4 className="m-0">Refine Collection</h4>
+                </div>
                 <motion.button
                     className="clear-btn d-flex align-items-center gap-1"
                     onClick={onClearFilters}
@@ -107,13 +121,12 @@ const FilterSidebar = ({
                         <span>₹</span>
                         <input
                             type="number"
-                            name="minPrice"
                             placeholder="Min"
                             className="vastra-input"
-                            value={localPrices.minPrice}
-                            onChange={handleLocalPriceChange}
-                            onBlur={() => handlePriceCommit('minPrice')}
-                            onKeyDown={(e) => handleKeyDown(e, 'minPrice')}
+                            value={localMinPrice}
+                            onChange={handleMinPriceChange}
+                            onBlur={handleMinPriceBlur}
+                            onKeyDown={(e) => handlePriceKeyDown(e, 'min')}
                         />
                     </div>
                     <div className="price-divider"></div>
@@ -121,13 +134,12 @@ const FilterSidebar = ({
                         <span>₹</span>
                         <input
                             type="number"
-                            name="maxPrice"
                             placeholder="Max"
                             className="vastra-input"
-                            value={localPrices.maxPrice}
-                            onChange={handleLocalPriceChange}
-                            onBlur={() => handlePriceCommit('maxPrice')}
-                            onKeyDown={(e) => handleKeyDown(e, 'maxPrice')}
+                            value={localMaxPrice}
+                            onChange={handleMaxPriceChange}
+                            onBlur={handleMaxPriceBlur}
+                            onKeyDown={(e) => handlePriceKeyDown(e, 'max')}
                         />
                     </div>
                 </div>
@@ -217,4 +229,3 @@ const FilterSidebar = ({
 };
 
 export default FilterSidebar;
-

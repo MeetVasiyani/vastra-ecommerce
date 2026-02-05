@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, LogOut, ShoppingBag, Menu, X } from 'lucide-react';
+import { User, LogOut, ShoppingBag, Heart, Menu, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
+import { useWishlist } from '../../context/WishlistContext';
 
 const Navbar = () => {
     const [isScrolled, setIsScrolled] = useState(false);
@@ -13,6 +14,7 @@ const Navbar = () => {
 
     const { isAuthenticated, user, logout } = useAuth();
     const { itemCount } = useCart();
+    const { itemCount: wishlistCount } = useWishlist();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -141,6 +143,41 @@ const Navbar = () => {
                         </AnimatePresence>
                     </Link>
 
+                    {/* Wishlist Icon */}
+                    <Link
+                        to="/wishlist"
+                        className="position-relative d-flex align-items-center text-decoration-none nav-link-vastra"
+                        style={{
+                            color: 'var(--vastra-dark)',
+                            transition: 'color 0.3s ease'
+                        }}
+                    >
+                        <Heart size={22} />
+                        <AnimatePresence>
+                            {wishlistCount > 0 && (
+                                <motion.span
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    exit={{ scale: 0 }}
+                                    className="position-absolute d-flex align-items-center justify-content-center"
+                                    style={{
+                                        top: '-8px',
+                                        right: '-10px',
+                                        width: '20px',
+                                        height: '20px',
+                                        borderRadius: '50%',
+                                        background: 'var(--vastra-maroon)',
+                                        color: '#fff',
+                                        fontSize: '0.7rem',
+                                        fontWeight: 600
+                                    }}
+                                >
+                                    {wishlistCount > 99 ? '99+' : wishlistCount}
+                                </motion.span>
+                            )}
+                        </AnimatePresence>
+                    </Link>
+
                     {/* Auth Section */}
                     {isAuthenticated ? (
                         <div className="position-relative" ref={userMenuRef}>
@@ -217,6 +254,24 @@ const Navbar = () => {
                                             </p>
                                         </div>
                                         <div className="py-2">
+                                            <Link
+                                                to="/account"
+                                                className="d-flex align-items-center gap-2 w-100 px-4 py-2 text-decoration-none"
+                                                style={{
+                                                    color: 'var(--vastra-dark)',
+                                                    transition: 'background 0.2s ease'
+                                                }}
+                                                onClick={() => setIsUserMenuOpen(false)}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.background = 'rgba(128, 0, 32, 0.05)';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.background = 'transparent';
+                                                }}
+                                            >
+                                                <User size={16} />
+                                                <span>My Account</span>
+                                            </Link>
                                             <button
                                                 onClick={handleLogout}
                                                 className="d-flex align-items-center gap-2 w-100 px-4 py-2 bg-transparent border-0 text-start"
@@ -332,6 +387,29 @@ const Navbar = () => {
                                         </span>
                                     )}
                                 </Link>
+                                <Link
+                                    to="/wishlist"
+                                    className="text-decoration-none py-2 d-flex align-items-center gap-2"
+                                    style={{ color: 'var(--vastra-dark)', fontWeight: 500 }}
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                >
+                                    <Heart size={18} />
+                                    Wishlist
+                                    {wishlistCount > 0 && (
+                                        <span
+                                            style={{
+                                                background: 'var(--vastra-maroon)',
+                                                color: '#fff',
+                                                fontSize: '0.75rem',
+                                                fontWeight: 600,
+                                                padding: '2px 8px',
+                                                borderRadius: '12px'
+                                            }}
+                                        >
+                                            {wishlistCount}
+                                        </span>
+                                    )}
+                                </Link>
 
                                 <hr style={{ borderColor: 'rgba(128, 0, 32, 0.1)' }} />
 
@@ -347,6 +425,18 @@ const Navbar = () => {
                                         >
                                             Signed in as {user?.email}
                                         </div>
+                                        <Link
+                                            to="/account"
+                                            className="d-flex align-items-center gap-2 text-decoration-none py-2"
+                                            style={{
+                                                color: 'var(--vastra-dark)',
+                                                fontWeight: 500
+                                            }}
+                                            onClick={() => setIsMobileMenuOpen(false)}
+                                        >
+                                            <User size={18} />
+                                            My Account
+                                        </Link>
                                         <button
                                             onClick={() => {
                                                 handleLogout();

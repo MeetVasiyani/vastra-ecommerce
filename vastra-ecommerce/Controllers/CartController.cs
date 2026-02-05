@@ -161,6 +161,13 @@ namespace EcommerceApplication.Controllers
 
             if (cart == null)
             {
+                // Verify user exists to prevent FK violation (e.g. stale token)
+                var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
+                if (!userExists)
+                {
+                     throw new Exception("User account not found. The user associated with this token implies a stale session. Please log out and log in again.");
+                }
+
                 cart = new Cart { UserId = userId };
                 _context.Carts.Add(cart);
                 await _context.SaveChangesAsync();

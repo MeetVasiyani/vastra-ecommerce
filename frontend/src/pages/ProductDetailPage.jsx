@@ -4,6 +4,7 @@ import { Container, Row, Col } from 'react-bootstrap';
 import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
+import Footer from '../components/layout/Footer';
 import ProductHeader from '../components/product/ProductHeader';
 import ProductImageGallery from '../components/product/ProductImageGallery';
 import ProductInfo from '../components/product/ProductInfo';
@@ -241,6 +242,9 @@ const ProductDetailPage = () => {
                     currentProductId={product?.id}
                 />
             )}
+
+            {/* Footer */}
+            <Footer />
         </div>
     );
 };

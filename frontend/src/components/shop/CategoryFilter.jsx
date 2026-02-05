@@ -1,17 +1,12 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const CategoryFilter = ({ categories, selectedCategory, onCategoryChange }) => {
     // Separate parents and children
-    const { parents, children } = useMemo(() => {
-        return {
-            parents: categories.filter(c => !c.parentCategoryId),
-            children: categories.filter(c => c.parentCategoryId)
-        };
-    }, [categories]);
+    const parents = categories.filter(c => !c.parentCategoryId);
+    const children = categories.filter(c => c.parentCategoryId);
 
-    // Track active parent tab. 
-    // If a child category is selected (from URL/props), find its parent to set active tab.
+    // Track active parent tab
     const [activeParentId, setActiveParentId] = useState(null);
 
     useEffect(() => {
@@ -29,10 +24,6 @@ const CategoryFilter = ({ categories, selectedCategory, onCategoryChange }) => {
 
     const handleParentClick = (parentId) => {
         setActiveParentId(parentId);
-        // Ensure we filter by the parent immediately if they switch tabs
-        // Optional: If you want clicking "Men" to show All Men's products, pass parentId.
-        // If you want it to just show subcats but keep "All" products until a subcat is picked, pass null or parentId.
-        // Based on user request "Men: Kurtas...", usually clicking "Men" should show Men's stuff.
         onCategoryChange(parentId);
     };
 
@@ -74,7 +65,7 @@ const CategoryFilter = ({ categories, selectedCategory, onCategoryChange }) => {
             <AnimatePresence mode="wait">
                 {activeParentId && activeChildren.length > 0 && (
                     <motion.div
-                        key={activeParentId} // Re-render when parent changes
+                        key={activeParentId}
                         className="d-flex flex-wrap justify-content-center gap-2"
                         variants={containerVariants}
                         initial="hidden"
@@ -119,7 +110,6 @@ const CategoryFilter = ({ categories, selectedCategory, onCategoryChange }) => {
                     border-bottom-color: var(--vastra-maroon);
                     font-weight: 600;
                 }
-                /* Reuse existing pill styles but ensure they look good here */
                 .category-filter-btn {
                     font-size: 0.95rem;
                     padding: 8px 20px;

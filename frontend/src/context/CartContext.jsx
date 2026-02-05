@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
     getCart as fetchCart,
     addToCart as apiAddToCart,
@@ -8,12 +8,9 @@ import {
 } from '../services/cartService';
 import { useAuth } from './AuthContext';
 
-// Create the cart context
 const CartContext = createContext(null);
 
-/**
- * Cart Provider component that wraps the app
- */
+// Cart Provider component
 export const CartProvider = ({ children }) => {
     const [cart, setCart] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -25,20 +22,17 @@ export const CartProvider = ({ children }) => {
     // Calculate cart item count
     const itemCount = cart?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
 
-    // Fetch cart when user authenticates
+    // Fetch cart when user logs in
     useEffect(() => {
         if (isAuthenticated) {
             loadCart();
         } else {
-            // Clear cart state when user logs out
             setCart(null);
         }
     }, [isAuthenticated, user]);
 
-    /**
-     * Load cart from API
-     */
-    const loadCart = useCallback(async () => {
+    // Load cart from API
+    const loadCart = async () => {
         if (!isAuthenticated) return;
 
         setIsLoading(true);
@@ -54,21 +48,16 @@ export const CartProvider = ({ children }) => {
         } finally {
             setIsLoading(false);
         }
-    }, [isAuthenticated]);
+    };
 
-    /**
-     * Show notification
-     */
-    const showNotification = useCallback((message, type = 'success') => {
+    // Show notification
+    const showNotification = (message, type = 'success') => {
         setNotification({ message, type });
-        // Auto-dismiss after 3 seconds
         setTimeout(() => setNotification(null), 3000);
-    }, []);
+    };
 
-    /**
-     * Add item to cart
-     */
-    const addToCart = useCallback(async (productVariantId, quantity = 1) => {
+    // Add item to cart
+    const addToCart = async (productVariantId, quantity = 1) => {
         setIsLoading(true);
         setError(null);
 
@@ -91,12 +80,10 @@ export const CartProvider = ({ children }) => {
         } finally {
             setIsLoading(false);
         }
-    }, [showNotification]);
+    };
 
-    /**
-     * Update cart item quantity
-     */
-    const updateCartItem = useCallback(async (cartItemId, quantity) => {
+    // Update cart item quantity
+    const updateCartItem = async (cartItemId, quantity) => {
         setIsLoading(true);
         setError(null);
 
@@ -114,12 +101,10 @@ export const CartProvider = ({ children }) => {
         } finally {
             setIsLoading(false);
         }
-    }, [showNotification]);
+    };
 
-    /**
-     * Remove item from cart
-     */
-    const removeFromCart = useCallback(async (itemId) => {
+    // Remove item from cart
+    const removeFromCart = async (itemId) => {
         setIsLoading(true);
         setError(null);
 
@@ -127,7 +112,6 @@ export const CartProvider = ({ children }) => {
             const result = await apiRemoveFromCart(itemId);
 
             if (result.success) {
-                // Remove item from local state
                 setCart(prev => ({
                     ...prev,
                     items: prev.items.filter(item => item.id !== itemId),
@@ -145,12 +129,10 @@ export const CartProvider = ({ children }) => {
         } finally {
             setIsLoading(false);
         }
-    }, [showNotification]);
+    };
 
-    /**
-     * Clear entire cart
-     */
-    const clearCartItems = useCallback(async () => {
+    // Clear entire cart
+    const clearCartItems = async () => {
         setIsLoading(true);
         setError(null);
 
@@ -173,14 +155,12 @@ export const CartProvider = ({ children }) => {
         } finally {
             setIsLoading(false);
         }
-    }, [showNotification]);
+    };
 
-    /**
-     * Dismiss notification
-     */
-    const dismissNotification = useCallback(() => {
+    // Dismiss notification
+    const dismissNotification = () => {
         setNotification(null);
-    }, []);
+    };
 
     const value = {
         cart,
@@ -205,9 +185,7 @@ export const CartProvider = ({ children }) => {
     );
 };
 
-/**
- * Custom hook to use cart context
- */
+// Hook to use cart context
 export const useCart = () => {
     const context = useContext(CartContext);
     if (!context) {

@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container } from 'react-bootstrap';
 import { motion } from 'framer-motion';
 import Navbar from '../components/layout/Navbar';
+import Footer from '../components/layout/Footer';
 import ShopHeader from '../components/shop/ShopHeader';
 import ProductGrid from '../components/shop/ProductGrid';
 import ProductSkeleton from '../components/shop/ProductSkeleton';
@@ -9,10 +10,11 @@ import CategoryFilter from '../components/shop/CategoryFilter';
 import EmptyState from '../components/shop/EmptyState';
 import Pagination from '../components/shop/Pagination';
 import FilterSidebar from '../components/shop/FilterSidebar';
+import SearchInput from '../components/shop/SearchInput';
 import { fetchProducts, fetchCategories } from '../services/api';
 
 const ShopPage = () => {
-    // State management
+    // State
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState(null);
@@ -20,6 +22,7 @@ const ShopPage = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
     const [filters, setFilters] = useState({
         minPrice: null,
         maxPrice: null,
@@ -29,7 +32,7 @@ const ShopPage = () => {
 
     const pageSize = 12;
 
-    // Fetch categories on mount
+    // Load categories on mount
     useEffect(() => {
         const loadCategories = async () => {
             try {
@@ -43,8 +46,12 @@ const ShopPage = () => {
         loadCategories();
     }, []);
 
-    // Fetch products when filters change
-    const loadProducts = useCallback(async () => {
+    // Load products when filters change
+    useEffect(() => {
+        loadProducts();
+    }, [currentPage, selectedCategory, filters, searchQuery]);
+
+    const loadProducts = async () => {
         setIsLoading(true);
         setError(null);
 
@@ -53,6 +60,7 @@ const ShopPage = () => {
                 page: currentPage,
                 pageSize,
                 categoryId: selectedCategory,
+                search: searchQuery,
                 ...filters
             });
 
@@ -65,26 +73,24 @@ const ShopPage = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [currentPage, selectedCategory, filters]);
-
-    useEffect(() => {
-        loadProducts();
-    }, [loadProducts, filters]);
-
-    // Handlers
-    const handleCategoryChange = (categoryId) => {
-        setSelectedCategory(categoryId);
-        setCurrentPage(1); // Reset to first page when category changes
     };
 
+    // Handle category change
+    const handleCategoryChange = (categoryId) => {
+        setSelectedCategory(categoryId);
+        setCurrentPage(1);
+    };
+
+    // Handle page change
     const handlePageChange = (page) => {
         setCurrentPage(page);
-        // Scroll to top of products section
         window.scrollTo({ top: 400, behavior: 'smooth' });
     };
 
+    // Clear all filters
     const handleClearFilters = () => {
         setSelectedCategory(null);
+        setSearchQuery('');
         setFilters({
             minPrice: null,
             maxPrice: null,
@@ -94,6 +100,19 @@ const ShopPage = () => {
         setCurrentPage(1);
     };
 
+    // Handle search input
+    const handleSearchChange = (value) => {
+        setSearchQuery(value);
+        setCurrentPage(1);
+    };
+
+    // Clear search
+    const handleSearchClear = () => {
+        setSearchQuery('');
+        setCurrentPage(1);
+    };
+
+    // Handle filter change
     const handleFilterChange = (name, value) => {
         setFilters(prev => ({
             ...prev,
@@ -138,6 +157,14 @@ const ShopPage = () => {
 
                         {/* Main Content */}
                         <div className="col-lg-9">
+                            {/* Search Input */}
+                            <SearchInput
+                                value={searchQuery}
+                                onChange={handleSearchChange}
+                                onClear={handleSearchClear}
+                                placeholder="Search for sarees, kurtas, lehengas..."
+                            />
+
                             {/* Error State */}
                             {error && (
                                 <motion.div
@@ -180,7 +207,7 @@ const ShopPage = () => {
                             {/* Empty State */}
                             {!isLoading && !error && products.length === 0 && (
                                 <EmptyState
-                                    hasFilters={selectedCategory !== null || filters.minPrice !== null || filters.maxPrice !== null || filters.colors.length > 0 || filters.sizes.length > 0}
+                                    hasFilters={selectedCategory !== null || searchQuery !== '' || filters.minPrice !== null || filters.maxPrice !== null || filters.colors.length > 0 || filters.sizes.length > 0}
                                     onClearFilters={handleClearFilters}
                                 />
                             )}
@@ -188,6 +215,9 @@ const ShopPage = () => {
                     </div>
                 </Container>
             </section>
+
+            {/* Footer */}
+            <Footer />
         </div>
     );
 };

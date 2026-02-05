@@ -497,11 +497,38 @@ p {
   display: none;
 }
 
+.filter-header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.filter-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background: linear-gradient(135deg, var(--vastra-maroon), var(--vastra-deep-maroon));
+  border-radius: 10px;
+  color: var(--vastra-ivory);
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(128, 0, 32, 0.2);
+  transition: all 0.3s ease;
+}
+
+.filter-icon-wrapper:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(128, 0, 32, 0.3);
+}
+
 .filter-header h4 {
   font-family: 'EB Garamond', serif;
-  font-size: 1.4rem;
+  font-size: 1.35rem;
+  font-weight: 600;
   color: var(--vastra-dark);
   letter-spacing: 0.5px;
+  line-height: 1;
 }
 
 .clear-btn {
@@ -1119,5 +1146,124 @@ p {
   .cart-item .d-flex.justify-content-between {
     flex-direction: column;
     gap: 1rem;
+  }
+}
+
+/* ========================================
+   ACCOUNT PAGE STYLES
+   ======================================== */
+
+/* Account Page */
+.account-page {
+  min-height: 100vh;
+  background: var(--vastra-ivory);
+}
+
+.account-header {
+  margin-top: 70px;
+}
+
+/* Account Cards */
+.account-page .vastra-card {
+  transition: all 0.3s ease;
+}
+
+.account-page .vastra-card:hover {
+  box-shadow: 0 8px 30px rgba(128, 0, 32, 0.1);
+}
+
+/* Order Card Expansion */
+.order-card-expanded {
+  border-color: var(--vastra-maroon) !important;
+}
+
+/* Responsive Adjustments for Account Page */
+@media (max-width: 991.98px) {
+
+  .account-page .col-lg-5,
+  .account-page .col-lg-7 {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .account-header {
+    margin-top: 60px;
+    padding: 1.5rem 0 !important;
+  }
+
+  .account-page h1 {
+    font-size: 1.8rem !important;
+  }
+}
+
+/* ========================================
+   FOOTER STYLES
+   ======================================== */
+
+/* Footer Links */
+.footer-link {
+  color: var(--vastra-beige);
+  text-decoration: none;
+  font-size: 0.95rem;
+  opacity: 0.8;
+  transition: all 0.3s ease;
+  display: inline-block;
+}
+
+.footer-link:hover {
+  color: var(--vastra-gold);
+  opacity: 1;
+  transform: translateX(3px);
+}
+
+/* Footer Container */
+.vastra-footer {
+  position: relative;
+  overflow: hidden;
+}
+
+.vastra-footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: radial-gradient(circle at 10% 20%, rgba(212, 175, 55, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(255, 255, 240, 0.02) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* Responsive Adjustments for Footer */
+@media (max-width: 991.98px) {
+  .vastra-footer {
+    padding-top: 50px !important;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .vastra-footer {
+    padding-top: 40px !important;
+    text-align: center;
+  }
+
+  .vastra-footer .col-lg-4 {
+    text-align: center;
+  }
+
+  .vastra-footer .col-lg-4 p {
+    max-width: 100% !important;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .vastra-footer .col-lg-4 div[style*="width: 60px"] {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .footer-link:hover {
+    transform: none;
   }
 }

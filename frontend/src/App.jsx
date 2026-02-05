@@ -1,46 +1,26 @@
-import React, { Suspense, lazy } from 'react';
+import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import { WishlistProvider } from './context/WishlistContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
-// Lazy load pages for better performance
-const LandingPage = lazy(() => import('./pages/LandingPage'));
-const ShopPage = lazy(() => import('./pages/ShopPage'));
-const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage'));
-const LoginPage = lazy(() => import('./pages/LoginPage'));
-const SignupPage = lazy(() => import('./pages/SignupPage'));
-const CartPage = lazy(() => import('./pages/CartPage'));
-
-// Loading fallback component
-const PageLoader = () => (
-    <div
-        className="d-flex justify-content-center align-items-center"
-        style={{
-            minHeight: '100vh',
-            background: 'var(--vastra-ivory)',
-        }}
-    >
-        <div className="text-center">
-            <div
-                className="spinner-border"
-                role="status"
-                style={{ color: 'var(--vastra-maroon)', width: '3rem', height: '3rem' }}
-            >
-                <span className="visually-hidden">Loading...</span>
-            </div>
-            <p className="mt-3" style={{ color: 'var(--vastra-dark)', fontStyle: 'italic' }}>
-                Loading Vastra...
-            </p>
-        </div>
-    </div>
-);
+// Pages - direct imports (simpler than lazy loading)
+import LandingPage from './pages/LandingPage';
+import ShopPage from './pages/ShopPage';
+import ProductDetailPage from './pages/ProductDetailPage';
+import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
+import CartPage from './pages/CartPage';
+import CheckoutPage from './pages/CheckoutPage';
+import AccountPage from './pages/AccountPage';
+import WishlistPage from './pages/WishlistPage';
 
 const App = () => {
     return (
         <AuthProvider>
             <CartProvider>
-                <Suspense fallback={<PageLoader />}>
+                <WishlistProvider>
                     <Routes>
                         {/* Public Routes */}
                         <Route path="/" element={<LandingPage />} />
@@ -54,8 +34,7 @@ const App = () => {
                         {/* Cart Route */}
                         <Route path="/cart" element={<CartPage />} />
 
-                        {/* Protected Routes (for future checkout) */}
-                        {/* 
+                        {/* Protected Routes */}
                         <Route path="/checkout" element={
                             <ProtectedRoute>
                                 <CheckoutPage />
@@ -66,9 +45,13 @@ const App = () => {
                                 <AccountPage />
                             </ProtectedRoute>
                         } />
-                        */}
+                        <Route path="/wishlist" element={
+                            <ProtectedRoute>
+                                <WishlistPage />
+                            </ProtectedRoute>
+                        } />
                     </Routes>
-                </Suspense>
+                </WishlistProvider>
             </CartProvider>
         </AuthProvider>
     );

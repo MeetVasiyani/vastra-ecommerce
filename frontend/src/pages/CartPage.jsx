@@ -4,6 +4,7 @@ import { Container, Row, Col } from 'react-bootstrap';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Trash2, Plus, Minus, ArrowLeft, ArrowRight } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
+import Footer from '../components/layout/Footer';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { formatPrice, getImageUrl } from '../services/api';
@@ -394,8 +395,7 @@ const CartPage = () => {
     };
 
     const handleProceedToCheckout = () => {
-        // TODO: Navigate to checkout page when implemented
-        alert('Checkout functionality coming soon!');
+        navigate('/checkout');
     };
 
     if (!isAuthenticated) {
@@ -489,6 +489,9 @@ const CartPage = () => {
                     )}
                 </Container>
             </section>
+
+            {/* Footer */}
+            <Footer />
         </div>
     );
 };

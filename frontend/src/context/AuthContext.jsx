@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
     login as authLogin,
     register as authRegister,
@@ -8,18 +8,15 @@ import {
     fetchUserProfile
 } from '../services/authService';
 
-// Create the auth context
 const AuthContext = createContext(null);
 
-/**
- * Auth Provider component that wraps the app
- */
+// Auth Provider component
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Check authentication status on mount
+    // Check if user is already logged in on mount
     useEffect(() => {
         const initAuth = async () => {
             try {
@@ -27,7 +24,7 @@ export const AuthProvider = ({ children }) => {
                     const storedUser = getStoredUser();
                     if (storedUser) {
                         setUser(storedUser);
-                        // Optionally fetch fresh profile data
+                        // Get fresh profile data
                         const { success, profile } = await fetchUserProfile();
                         if (success && profile) {
                             setUser(prev => ({ ...prev, ...profile }));
@@ -44,10 +41,8 @@ export const AuthProvider = ({ children }) => {
         initAuth();
     }, []);
 
-    /**
-     * Login handler
-     */
-    const login = useCallback(async (email, password, remember = true) => {
+    // Login function
+    const login = async (email, password, remember = true) => {
         setError(null);
         setIsLoading(true);
         try {
@@ -61,12 +56,10 @@ export const AuthProvider = ({ children }) => {
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    };
 
-    /**
-     * Register handler
-     */
-    const register = useCallback(async (userData) => {
+    // Register function
+    const register = async (userData) => {
         setError(null);
         setIsLoading(true);
         try {
@@ -80,23 +73,19 @@ export const AuthProvider = ({ children }) => {
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    };
 
-    /**
-     * Logout handler
-     */
-    const logout = useCallback(() => {
+    // Logout function
+    const logout = () => {
         authLogout();
         setUser(null);
         setError(null);
-    }, []);
+    };
 
-    /**
-     * Clear any auth errors
-     */
-    const clearError = useCallback(() => {
+    // Clear errors
+    const clearError = () => {
         setError(null);
-    }, []);
+    };
 
     const value = {
         user,
@@ -116,9 +105,7 @@ export const AuthProvider = ({ children }) => {
     );
 };
 
-/**
- * Custom hook to use auth context
- */
+// Hook to use auth context
 export const useAuth = () => {
     const context = useContext(AuthContext);
     if (!context) {

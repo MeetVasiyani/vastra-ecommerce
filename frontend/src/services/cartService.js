@@ -1,13 +1,10 @@
-// Cart Service for Vastra E-commerce
+// Cart Service for Vastra
 import { getAuthHeaders, isAuthenticated } from './authService';
 
 const BACKEND_URL = 'http://localhost:5121';
 const API_BASE_URL = `${BACKEND_URL}/api`;
 
-/**
- * Get the current user's cart
- * @returns {Promise<{success: boolean, cart?: object, error?: string}>}
- */
+// Get the current user's cart
 export const getCart = async () => {
     if (!isAuthenticated()) {
         return { success: false, error: 'Not authenticated' };
@@ -36,12 +33,7 @@ export const getCart = async () => {
     }
 };
 
-/**
- * Add an item to the cart
- * @param {number} productVariantId - The variant ID to add
- * @param {number} quantity - Quantity to add (default: 1)
- * @returns {Promise<{success: boolean, cart?: object, error?: string}>}
- */
+// Add item to cart
 export const addToCart = async (productVariantId, quantity = 1) => {
     if (!isAuthenticated()) {
         return { success: false, error: 'Please login to add items to cart', requiresAuth: true };
@@ -68,7 +60,6 @@ export const addToCart = async (productVariantId, quantity = 1) => {
             return { success: false, error: 'Session expired', requiresAuth: true };
         }
 
-        // Handle specific error messages (e.g., insufficient stock)
         const errorText = await response.text();
         console.error('Cart API Error:', errorText);
         return { success: false, error: errorText || 'Failed to add item to cart' };
@@ -78,12 +69,7 @@ export const addToCart = async (productVariantId, quantity = 1) => {
     }
 };
 
-/**
- * Update cart item quantity
- * @param {number} cartItemId - The cart item ID to update
- * @param {number} quantity - New quantity
- * @returns {Promise<{success: boolean, cart?: object, error?: string}>}
- */
+// Update cart item quantity
 export const updateCartItem = async (cartItemId, quantity) => {
     if (!isAuthenticated()) {
         return { success: false, error: 'Not authenticated', requiresAuth: true };
@@ -113,11 +99,7 @@ export const updateCartItem = async (cartItemId, quantity) => {
     }
 };
 
-/**
- * Remove an item from the cart
- * @param {number} itemId - The cart item ID to remove
- * @returns {Promise<{success: boolean, error?: string}>}
- */
+// Remove item from cart
 export const removeFromCart = async (itemId) => {
     if (!isAuthenticated()) {
         return { success: false, error: 'Not authenticated', requiresAuth: true };
@@ -144,10 +126,7 @@ export const removeFromCart = async (itemId) => {
     }
 };
 
-/**
- * Clear all items from the cart
- * @returns {Promise<{success: boolean, error?: string}>}
- */
+// Clear all items from cart
 export const clearCart = async () => {
     if (!isAuthenticated()) {
         return { success: false, error: 'Not authenticated', requiresAuth: true };

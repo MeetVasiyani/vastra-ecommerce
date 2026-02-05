@@ -1,47 +1,36 @@
-// API Service Layer for Vastra E-commerce
+// API Service for Vastra
 const BACKEND_URL = 'http://localhost:5121';
 const API_BASE_URL = `${BACKEND_URL}/api`;
 
-/**
- * Get full image URL from relative path
- * @param {string} relativePath - Relative image path from API (e.g., /images/products/...)
- * @returns {string} Full URL to the image
- */
-export const getImageUrl = (relativePath) => {
-    if (!relativePath) return null;
+// Get full image URL from relative path
+export const getImageUrl = (path) => {
+    if (!path) return null;
 
-    // Use a version token to bust cache (useful when replacement images have same filename)
-    // In a real app, this could be a build hash or a specific version from config
     const version = "1.0.1";
 
-    // If it's already a full URL, return as-is
-    if (relativePath.startsWith('http://') || relativePath.startsWith('https://')) {
-        return relativePath;
+    // If already a full URL, return it
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+        return path;
     }
-    // Prepend backend URL to relative paths and add cache buster
-    const url = `${BACKEND_URL}${relativePath.startsWith('/') ? '' : '/'}${relativePath}`;
+
+    // Add backend URL to relative paths
+    const url = `${BACKEND_URL}${path.startsWith('/') ? '' : '/'}${path}`;
     return `${url}?v=${version}`;
 };
 
-/**
- * Fetch products with pagination, search, and category filtering
- * @param {Object} options - Query options
- * @param {number} options.page - Page number (default: 1)
- * @param {number} options.pageSize - Items per page (default: 12)
- * @param {number|null} options.categoryId - Category filter (optional)
- * @param {string} options.search - Search query (optional)
- * @returns {Promise<{items: Array, totalCount: number, page: number, pageSize: number}>}
- */
-export const fetchProducts = async ({
-    page = 1,
-    pageSize = 12,
-    categoryId = null,
-    search = '',
-    minPrice = null,
-    maxPrice = null,
-    colors = [],
-    sizes = []
-} = {}) => {
+// Fetch products with filters
+export const fetchProducts = async (options = {}) => {
+    const {
+        page = 1,
+        pageSize = 12,
+        categoryId = null,
+        search = '',
+        minPrice = null,
+        maxPrice = null,
+        colors = [],
+        sizes = []
+    } = options;
+
     const params = new URLSearchParams({
         page: page.toString(),
         pageSize: pageSize.toString(),
@@ -85,11 +74,7 @@ export const fetchProducts = async ({
     return response.json();
 };
 
-/**
- * Fetch a single product by ID with images and variants
- * @param {number} id - Product ID
- * @returns {Promise<Object>}
- */
+// Fetch single product by ID
 export const fetchProductById = async (id) => {
     const response = await fetch(`${API_BASE_URL}/Product/${id}`, {
         method: 'GET',
@@ -105,10 +90,7 @@ export const fetchProductById = async (id) => {
     return response.json();
 };
 
-/**
- * Fetch all categories
- * @returns {Promise<Array<{id: number, name: string, description: string, imageUrl: string}>>}
- */
+// Fetch all categories
 export const fetchCategories = async () => {
     const response = await fetch(`${API_BASE_URL}/Category`, {
         method: 'GET',
@@ -124,11 +106,7 @@ export const fetchCategories = async () => {
     return response.json();
 };
 
-/**
- * Format price in Indian Rupees
- * @param {number} price - Price value
- * @returns {string} Formatted price with ₹ symbol
- */
+// Format price in Indian Rupees
 export const formatPrice = (price) => {
     return new Intl.NumberFormat('en-IN', {
         style: 'currency',
