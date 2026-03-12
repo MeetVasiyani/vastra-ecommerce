@@ -4,30 +4,31 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import Button from './ui/Button';
 
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.3,
+            delayChildren: 0.2
+        }
+    }
+};
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: {
+            duration: 0.8,
+            ease: [0.25, 0.46, 0.45, 0.94]
+        }
+    }
+};
+
 const Hero = () => {
     const navigate = useNavigate();
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.3,
-                delayChildren: 0.2
-            }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 30 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: {
-                duration: 0.8,
-                ease: [0.25, 0.46, 0.45, 0.94]
-            }
-        }
-    };
 
     return (
         <section

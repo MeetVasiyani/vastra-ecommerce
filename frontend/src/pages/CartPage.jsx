@@ -1,10 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Container, Row, Col } from 'react-bootstrap';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Trash2, Plus, Minus, ArrowLeft, ArrowRight } from 'lucide-react';
-import Navbar from '../components/layout/Navbar';
-import Footer from '../components/layout/Footer';
+import PageHeaderLayout from '../components/layout/PageHeaderLayout';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { formatPrice, getImageUrl } from '../services/api';
@@ -113,8 +112,6 @@ const CartItem = ({ item, onUpdateQuantity, onRemove, isUpdating }) => {
                             objectFit: 'cover',
                             transition: 'transform 0.3s ease'
                         }}
-                        onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
-                        onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
                     />
                 </div>
             </Link>
@@ -134,8 +131,6 @@ const CartItem = ({ item, onUpdateQuantity, onRemove, isUpdating }) => {
                                 fontSize: '1.2rem',
                                 transition: 'color 0.3s ease'
                             }}
-                            onMouseEnter={(e) => e.target.style.color = 'var(--vastra-maroon)'}
-                            onMouseLeave={(e) => e.target.style.color = 'var(--vastra-dark)'}
                         >
                             {item.productName}
                         </h5>
@@ -247,123 +242,261 @@ const CartItem = ({ item, onUpdateQuantity, onRemove, isUpdating }) => {
 };
 
 // Cart Summary Component
-const CartSummary = ({ totalAmount, itemCount, onProceedToCheckout }) => (
-    <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="cart-summary p-4"
-        style={{
-            background: '#fff',
-            borderRadius: '16px',
-            boxShadow: '0 4px 20px rgba(128, 0, 32, 0.06)',
-            border: '1px solid rgba(128, 0, 32, 0.08)',
-            position: 'sticky',
-            top: '100px'
-        }}
-    >
-        <h4
-            className="mb-4"
+const CartSummary = ({ totalAmount, itemCount, onProceedToCheckout }) => {
+    const { applyCoupon, removeCoupon, appliedCoupon, discountAmount, finalTotal, isCouponLoading } = useCart();
+    const [couponCode, setCouponCode] = useState('');
+    const [couponError, setCouponError] = useState('');
+
+    const handleApplyCoupon = async () => {
+        if (!couponCode.trim()) {
+            setCouponError('Please enter a coupon code');
+            return;
+        }
+
+        setCouponError('');
+        const result = await applyCoupon(couponCode.trim());
+
+        if (!result.success) {
+            setCouponError(result.error || 'Invalid coupon code');
+        } else {
+            setCouponCode('');
+        }
+    };
+
+    const handleRemoveCoupon = () => {
+        removeCoupon();
+        setCouponCode('');
+        setCouponError('');
+    };
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="cart-summary p-4"
             style={{
-                fontFamily: 'EB Garamond, serif',
-                color: 'var(--vastra-dark)',
-                fontSize: '1.5rem',
-                fontWeight: 600
+                background: '#fff',
+                borderRadius: '16px',
+                boxShadow: '0 4px 20px rgba(128, 0, 32, 0.06)',
+                border: '1px solid rgba(128, 0, 32, 0.08)',
+                position: 'sticky',
+                top: '100px'
             }}
         >
-            Order Summary
-        </h4>
-
-        <div className="d-flex justify-content-between mb-3">
-            <span style={{ color: 'var(--vastra-dark)', opacity: 0.8 }}>
-                Subtotal ({itemCount} {itemCount === 1 ? 'item' : 'items'})
-            </span>
-            <span style={{ fontWeight: 500, color: 'var(--vastra-dark)' }}>
-                {formatPrice(totalAmount)}
-            </span>
-        </div>
-
-        <div className="d-flex justify-content-between mb-3">
-            <span style={{ color: 'var(--vastra-dark)', opacity: 0.8 }}>
-                Shipping
-            </span>
-            <span style={{ fontWeight: 500, color: 'var(--vastra-maroon)' }}>
-                FREE
-            </span>
-        </div>
-
-        <hr style={{ borderColor: 'rgba(128, 0, 32, 0.1)' }} />
-
-        <div className="d-flex justify-content-between mb-4">
-            <span
+            <h4
+                className="mb-4"
                 style={{
-                    fontSize: '1.1rem',
-                    fontWeight: 600,
-                    color: 'var(--vastra-dark)'
-                }}
-            >
-                Total
-            </span>
-            <span
-                style={{
+                    fontFamily: 'EB Garamond, serif',
+                    color: 'var(--vastra-dark)',
                     fontSize: '1.5rem',
-                    fontWeight: 600,
-                    color: 'var(--vastra-maroon)',
-                    fontFamily: 'EB Garamond, serif'
+                    fontWeight: 600
                 }}
             >
-                {formatPrice(totalAmount)}
-            </span>
-        </div>
+                Order Summary
+            </h4>
 
-        <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="btn btn-vastra-primary w-100 d-flex align-items-center justify-content-center gap-2"
-            onClick={onProceedToCheckout}
-            style={{ height: '55px' }}
-        >
-            Proceed to Checkout
-            <ArrowRight size={18} />
-        </motion.button>
+            {/* Coupon Section */}
+            <div className="mb-4">
+                <label
+                    className="mb-2 d-block"
+                    style={{
+                        fontSize: '0.9rem',
+                        fontWeight: 500,
+                        color: 'var(--vastra-dark)'
+                    }}
+                >
+                    Have a coupon?
+                </label>
 
-        <Link
-            to="/shop"
-            className="d-block text-center mt-3 text-decoration-none"
-            style={{
-                color: 'var(--vastra-maroon)',
-                fontSize: '0.95rem'
-            }}
-        >
-            <ArrowLeft size={16} className="me-1" />
-            Continue Shopping
-        </Link>
+                {!appliedCoupon ? (
+                    <>
+                        <div className="d-flex gap-2 mb-2">
+                            <input
+                                type="text"
+                                className="form-control"
+                                placeholder="Enter coupon code"
+                                value={couponCode}
+                                onChange={(e) => {
+                                    setCouponCode(e.target.value.toUpperCase());
+                                    setCouponError('');
+                                }}
+                                onKeyPress={(e) => e.key === 'Enter' && handleApplyCoupon()}
+                                disabled={isCouponLoading}
+                                style={{
+                                    borderRadius: '10px',
+                                    border: `1px solid ${couponError ? '#dc3545' : 'rgba(128, 0, 32, 0.2)'}`,
+                                    padding: '10px 14px',
+                                    fontSize: '0.9rem'
+                                }}
+                            />
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="btn"
+                                onClick={handleApplyCoupon}
+                                disabled={isCouponLoading || !couponCode.trim()}
+                                style={{
+                                    background: 'var(--vastra-maroon)',
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderRadius: '10px',
+                                    padding: '10px 20px',
+                                    fontWeight: 500,
+                                    fontSize: '0.9rem',
+                                    whiteSpace: 'nowrap'
+                                }}
+                            >
+                                {isCouponLoading ? 'Applying...' : 'Apply'}
+                            </motion.button>
+                        </div>
+                        {couponError && (
+                            <p className="mb-0" style={{ fontSize: '0.8rem', color: '#dc3545' }}>
+                                {couponError}
+                            </p>
+                        )}
+                    </>
+                ) : (
+                    <div
+                        className="d-flex align-items-center justify-content-between p-3"
+                        style={{
+                            background: 'linear-gradient(135deg, rgba(40, 167, 69, 0.08) 0%, rgba(40, 167, 69, 0.03) 100%)',
+                            borderRadius: '10px',
+                            border: '1px solid rgba(40, 167, 69, 0.2)'
+                        }}
+                    >
+                        <div>
+                            <p className="mb-0" style={{ fontSize: '0.85rem', color: '#28a745', fontWeight: 600 }}>
+                                ✓ {appliedCoupon.code}
+                            </p>
+                            <p className="mb-0" style={{ fontSize: '0.75rem', color: 'var(--vastra-dark)', opacity: 0.7 }}>
+                                Coupon applied
+                            </p>
+                        </div>
+                        <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="btn btn-sm"
+                            onClick={handleRemoveCoupon}
+                            style={{
+                                background: 'rgba(220, 53, 69, 0.1)',
+                                color: '#dc3545',
+                                border: 'none',
+                                borderRadius: '8px',
+                                padding: '6px 12px',
+                                fontSize: '0.8rem'
+                            }}
+                        >
+                            Remove
+                        </motion.button>
+                    </div>
+                )}
+            </div>
 
-        {/* Trust Indicators */}
-        <div
-            className="mt-4 pt-4 text-center"
-            style={{ borderTop: '1px solid rgba(128, 0, 32, 0.1)' }}
-        >
-            <p
-                className="mb-2"
-                style={{ fontSize: '0.8rem', color: 'var(--vastra-dark)', opacity: 0.7 }}
+            <hr style={{ borderColor: 'rgba(128, 0, 32, 0.1)' }} />
+
+            <div className="d-flex justify-content-between mb-3">
+                <span style={{ color: 'var(--vastra-dark)', opacity: 0.8 }}>
+                    Subtotal ({itemCount} {itemCount === 1 ? 'item' : 'items'})
+                </span>
+                <span style={{ fontWeight: 500, color: 'var(--vastra-dark)' }}>
+                    {formatPrice(totalAmount)}
+                </span>
+            </div>
+
+            {discountAmount > 0 && (
+                <div className="d-flex justify-content-between mb-3">
+                    <span style={{ color: '#28a745', fontWeight: 500 }}>
+                        Discount ({appliedCoupon?.code})
+                    </span>
+                    <span style={{ fontWeight: 500, color: '#28a745' }}>
+                        -{formatPrice(discountAmount)}
+                    </span>
+                </div>
+            )}
+
+            <div className="d-flex justify-content-between mb-3">
+                <span style={{ color: 'var(--vastra-dark)', opacity: 0.8 }}>
+                    Shipping
+                </span>
+                <span style={{ fontWeight: 500, color: 'var(--vastra-maroon)' }}>
+                    FREE
+                </span>
+            </div>
+
+            <hr style={{ borderColor: 'rgba(128, 0, 32, 0.1)' }} />
+
+            <div className="d-flex justify-content-between mb-4">
+                <span
+                    style={{
+                        fontSize: '1.1rem',
+                        fontWeight: 600,
+                        color: 'var(--vastra-dark)'
+                    }}
+                >
+                    Total
+                </span>
+                <span
+                    style={{
+                        fontSize: '1.5rem',
+                        fontWeight: 600,
+                        color: 'var(--vastra-maroon)',
+                        fontFamily: 'EB Garamond, serif'
+                    }}
+                >
+                    {formatPrice(discountAmount > 0 ? finalTotal : totalAmount)}
+                </span>
+            </div>
+
+            <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="btn btn-vastra-primary w-100 d-flex align-items-center justify-content-center gap-2"
+                onClick={onProceedToCheckout}
+                style={{ height: '55px' }}
             >
-                ✓ Free shipping on all orders
-            </p>
-            <p
-                className="mb-2"
-                style={{ fontSize: '0.8rem', color: 'var(--vastra-dark)', opacity: 0.7 }}
+                Proceed to Checkout
+                <ArrowRight size={18} />
+            </motion.button>
+
+            <Link
+                to="/shop"
+                className="d-block text-center mt-3 text-decoration-none"
+                style={{
+                    color: 'var(--vastra-maroon)',
+                    fontSize: '0.95rem'
+                }}
             >
-                ✓ Secure payment
-            </p>
-            <p
-                className="mb-0"
-                style={{ fontSize: '0.8rem', color: 'var(--vastra-dark)', opacity: 0.7 }}
+                <ArrowLeft size={16} className="me-1" />
+                Continue Shopping
+            </Link>
+
+            {/* Trust Indicators */}
+            <div
+                className="mt-4 pt-4 text-center"
+                style={{ borderTop: '1px solid rgba(128, 0, 32, 0.1)' }}
             >
-                ✓ Easy returns within 30 days
-            </p>
-        </div>
-    </motion.div>
-);
+                <p
+                    className="mb-2"
+                    style={{ fontSize: '0.8rem', color: 'var(--vastra-dark)', opacity: 0.7 }}
+                >
+                    ✓ Free shipping on all orders
+                </p>
+                <p
+                    className="mb-2"
+                    style={{ fontSize: '0.8rem', color: 'var(--vastra-dark)', opacity: 0.7 }}
+                >
+                    ✓ Secure payment
+                </p>
+                <p
+                    className="mb-0"
+                    style={{ fontSize: '0.8rem', color: 'var(--vastra-dark)', opacity: 0.7 }}
+                >
+                    ✓ Easy returns within 30 days
+                </p>
+            </div>
+        </motion.div>
+    );
+};
 
 // Main Cart Page Component
 const CartPage = () => {
@@ -379,7 +512,7 @@ const CartPage = () => {
     } = useCart();
 
     // Redirect to login if not authenticated
-    React.useEffect(() => {
+    useEffect(() => {
         if (!isAuthenticated) {
             navigate('/login', { state: { from: '/cart' } });
         }
@@ -403,96 +536,52 @@ const CartPage = () => {
     }
 
     return (
-        <div className="cart-page">
-            <Navbar />
-
-            {/* Page Header */}
-            <section
-                className="cart-header py-5"
-                style={{
-                    background: 'linear-gradient(135deg, var(--vastra-ivory) 0%, var(--vastra-beige) 100%)',
-                    marginTop: '70px',
-                    borderBottom: '1px solid rgba(128, 0, 32, 0.08)'
-                }}
-            >
-                <Container>
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="text-center"
-                    >
-                        <h1
-                            style={{
-                                fontFamily: 'EB Garamond, serif',
-                                fontSize: 'clamp(2rem, 5vw, 3rem)',
-                                color: 'var(--vastra-dark)',
-                                fontWeight: 600,
-                                marginBottom: '0.5rem'
-                            }}
+        <PageHeaderLayout
+            title="Shopping Cart"
+            subtitle={`${itemCount} ${itemCount === 1 ? 'item' : 'items'} in your cart`}
+        >
+            <Container>
+                {isLoading && items.length === 0 ? (
+                    <div className="text-center py-5">
+                        <div
+                            className="spinner-border"
+                            role="status"
+                            style={{ color: 'var(--vastra-maroon)' }}
                         >
-                            Shopping Cart
-                        </h1>
-                        <p style={{ color: 'var(--vastra-dark)', opacity: 0.7 }}>
-                            {itemCount} {itemCount === 1 ? 'item' : 'items'} in your cart
-                        </p>
-                    </motion.div>
-                </Container>
-            </section>
-
-            {/* Cart Content */}
-            <section
-                className="cart-content py-5"
-                style={{
-                    background: 'var(--vastra-ivory)',
-                    minHeight: '60vh'
-                }}
-            >
-                <Container>
-                    {isLoading && items.length === 0 ? (
-                        <div className="text-center py-5">
-                            <div
-                                className="spinner-border"
-                                role="status"
-                                style={{ color: 'var(--vastra-maroon)' }}
-                            >
-                                <span className="visually-hidden">Loading...</span>
-                            </div>
+                            <span className="visually-hidden">Loading...</span>
                         </div>
-                    ) : items.length === 0 ? (
-                        <EmptyCart />
-                    ) : (
-                        <Row className="g-4">
-                            {/* Cart Items */}
-                            <Col lg={8}>
-                                <AnimatePresence mode="popLayout">
-                                    {items.map((item) => (
-                                        <CartItem
-                                            key={item.id}
-                                            item={item}
-                                            onUpdateQuantity={handleUpdateQuantity}
-                                            onRemove={handleRemoveItem}
-                                            isUpdating={isLoading}
-                                        />
-                                    ))}
-                                </AnimatePresence>
-                            </Col>
+                    </div>
+                ) : items.length === 0 ? (
+                    <EmptyCart />
+                ) : (
+                    <Row className="g-4">
+                        {/* Cart Items */}
+                        <Col lg={8}>
+                            <AnimatePresence mode="popLayout">
+                                {items.map((item) => (
+                                    <CartItem
+                                        key={item.id}
+                                        item={item}
+                                        onUpdateQuantity={handleUpdateQuantity}
+                                        onRemove={handleRemoveItem}
+                                        isUpdating={isLoading}
+                                    />
+                                ))}
+                            </AnimatePresence>
+                        </Col>
 
-                            {/* Cart Summary */}
-                            <Col lg={4}>
-                                <CartSummary
-                                    totalAmount={totalAmount}
-                                    itemCount={itemCount}
-                                    onProceedToCheckout={handleProceedToCheckout}
-                                />
-                            </Col>
-                        </Row>
-                    )}
-                </Container>
-            </section>
-
-            {/* Footer */}
-            <Footer />
-        </div>
+                        {/* Cart Summary */}
+                        <Col lg={4}>
+                            <CartSummary
+                                totalAmount={totalAmount}
+                                itemCount={itemCount}
+                                onProceedToCheckout={handleProceedToCheckout}
+                            />
+                        </Col>
+                    </Row>
+                )}
+            </Container>
+        </PageHeaderLayout>
     );
 };
 

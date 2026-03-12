@@ -147,6 +147,11 @@ const Footer = () => {
                                         Privacy Policy
                                     </Link>
                                 </li>
+                                <li className="mb-2">
+                                    <Link to="/contact" className="footer-link">
+                                        Contact Us
+                                    </Link>
+                                </li>
                             </ul>
                         </nav>
                     </div>

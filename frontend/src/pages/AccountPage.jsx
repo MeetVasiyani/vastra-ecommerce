@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Form } from 'react-bootstrap';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,474 +10,81 @@ import {
     Plus,
     Trash2,
     ChevronDown,
-    ChevronUp,
     ShoppingBag,
     Calendar,
-    CreditCard,
     AlertCircle,
-    CheckCircle2,
     ArrowLeft,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    Phone,
+    Edit,
+    X,
+    Star,
+    MessageSquare,
+    KeyRound
 } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import { useAuth } from '../context/AuthContext';
 import { formatPrice } from '../services/api';
-import { fetchUserProfile, addUserAddress, deleteUserAddress } from '../services/authService';
-import { getMyOrders } from '../services/orderService';
+import { fetchUserProfile, addUserAddress, deleteUserAddress, updateUserAddress, updateUserProfile, deleteAccount, changePassword } from '../services/authService';
+import { getMyOrders, cancelOrder } from '../services/orderService';
+import { fetchMyReviews, updateReview, deleteReview } from '../services/reviewService';
 
-// Address Card Component
-const AddressCard = ({ address, onDelete, isDeleting }) => (
-    <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, x: -20 }}
-        className="p-3 mb-2"
-        style={{
-            background: '#fff',
-            borderRadius: '12px',
-            border: '1px solid rgba(128, 0, 32, 0.1)',
-        }}
-    >
-        <div className="d-flex justify-content-between align-items-start">
-            <div className="d-flex gap-3">
-                <div
-                    className="d-flex align-items-center justify-content-center flex-shrink-0"
-                    style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '10px',
-                        background: 'linear-gradient(135deg, rgba(128, 0, 32, 0.1) 0%, rgba(212, 175, 55, 0.1) 100%)'
-                    }}
-                >
-                    <MapPin size={18} style={{ color: 'var(--vastra-maroon)' }} />
-                </div>
-                <div>
-                    <p className="mb-1" style={{ fontWeight: 500, color: 'var(--vastra-dark)' }}>
-                        {address.street}
-                    </p>
-                    <p className="mb-0" style={{ fontSize: '0.9rem', color: 'var(--vastra-dark)', opacity: 0.7 }}>
-                        {address.city}, {address.state} - {address.zipCode}
-                    </p>
-                    <p className="mb-0" style={{ fontSize: '0.9rem', color: 'var(--vastra-dark)', opacity: 0.7 }}>
-                        {address.country}
-                    </p>
-                </div>
-            </div>
-            <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                className="btn btn-link p-2"
-                onClick={() => onDelete(address.id)}
-                disabled={isDeleting}
-                style={{ color: '#dc3545' }}
-                title="Delete address"
-            >
-                {isDeleting ? (
-                    <div className="spinner-border spinner-border-sm" role="status" />
-                ) : (
-                    <Trash2 size={18} />
-                )}
-            </motion.button>
-        </div>
-    </motion.div>
-);
-
-// New Address Form Component
-const NewAddressForm = ({ onAddAddress, onCancel, isLoading }) => {
-    const [formData, setFormData] = useState({
-        street: '',
-        city: '',
-        state: '',
-        zipCode: '',
-        country: 'India'
-    });
-    const [errors, setErrors] = useState({});
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-        if (errors[name]) {
-            setErrors(prev => ({ ...prev, [name]: '' }));
-        }
-    };
-
-    const validate = () => {
-        const newErrors = {};
-        if (!formData.street.trim()) newErrors.street = 'Street address is required';
-        if (!formData.city.trim()) newErrors.city = 'City is required';
-        if (!formData.state.trim()) newErrors.state = 'State is required';
-        if (!formData.zipCode.trim()) newErrors.zipCode = 'ZIP code is required';
-        if (!formData.country.trim()) newErrors.country = 'Country is required';
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (validate()) {
-            onAddAddress(formData);
-        }
-    };
-
-    const inputStyle = {
-        borderRadius: '10px',
-        border: '1px solid rgba(128, 0, 32, 0.2)',
-        padding: '12px 16px',
-        fontSize: '0.95rem',
-        transition: 'all 0.3s ease'
-    };
-
-    return (
-        <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="p-4 mb-3"
-            style={{
-                background: 'var(--vastra-beige)',
-                borderRadius: '12px',
-                border: '1px solid rgba(128, 0, 32, 0.1)'
-            }}
-        >
-            <h6 className="mb-3" style={{ color: 'var(--vastra-dark)', fontWeight: 600 }}>
-                Add New Address
-            </h6>
-            <Form onSubmit={handleSubmit}>
-                <Form.Group className="mb-3">
-                    <Form.Control
-                        type="text"
-                        name="street"
-                        placeholder="Street Address"
-                        value={formData.street}
-                        onChange={handleChange}
-                        style={inputStyle}
-                        isInvalid={!!errors.street}
-                    />
-                    <Form.Control.Feedback type="invalid">{errors.street}</Form.Control.Feedback>
-                </Form.Group>
-
-                <Row className="g-3 mb-3">
-                    <Col md={6}>
-                        <Form.Control
-                            type="text"
-                            name="city"
-                            placeholder="City"
-                            value={formData.city}
-                            onChange={handleChange}
-                            style={inputStyle}
-                            isInvalid={!!errors.city}
-                        />
-                        <Form.Control.Feedback type="invalid">{errors.city}</Form.Control.Feedback>
-                    </Col>
-                    <Col md={6}>
-                        <Form.Control
-                            type="text"
-                            name="state"
-                            placeholder="State"
-                            value={formData.state}
-                            onChange={handleChange}
-                            style={inputStyle}
-                            isInvalid={!!errors.state}
-                        />
-                        <Form.Control.Feedback type="invalid">{errors.state}</Form.Control.Feedback>
-                    </Col>
-                </Row>
-
-                <Row className="g-3 mb-3">
-                    <Col md={6}>
-                        <Form.Control
-                            type="text"
-                            name="zipCode"
-                            placeholder="ZIP Code"
-                            value={formData.zipCode}
-                            onChange={handleChange}
-                            style={inputStyle}
-                            isInvalid={!!errors.zipCode}
-                        />
-                        <Form.Control.Feedback type="invalid">{errors.zipCode}</Form.Control.Feedback>
-                    </Col>
-                    <Col md={6}>
-                        <Form.Control
-                            type="text"
-                            name="country"
-                            placeholder="Country"
-                            value={formData.country}
-                            onChange={handleChange}
-                            style={inputStyle}
-                            isInvalid={!!errors.country}
-                        />
-                        <Form.Control.Feedback type="invalid">{errors.country}</Form.Control.Feedback>
-                    </Col>
-                </Row>
-
-                <div className="d-flex gap-2">
-                    <motion.button
-                        type="submit"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="btn btn-vastra-primary"
-                        disabled={isLoading}
-                        style={{ padding: '10px 24px' }}
-                    >
-                        {isLoading ? 'Adding...' : 'Add Address'}
-                    </motion.button>
-                    <motion.button
-                        type="button"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="btn"
-                        onClick={onCancel}
-                        style={{
-                            border: '1px solid rgba(128, 0, 32, 0.3)',
-                            color: 'var(--vastra-dark)',
-                            padding: '10px 24px'
-                        }}
-                    >
-                        Cancel
-                    </motion.button>
-                </div>
-            </Form>
-        </motion.div>
-    );
-};
-
-// Order Card Component
-const OrderCard = ({ order }) => {
-    const [isExpanded, setIsExpanded] = useState(false);
-
-    const getStatusColor = (status) => {
-        switch (status?.toLowerCase()) {
-            case 'delivered': return '#28a745';
-            case 'shipped': return '#17a2b8';
-            case 'processing': return '#ffc107';
-            case 'cancelled': return '#dc3545';
-            default: return 'var(--vastra-maroon)';
-        }
-    };
-
-    const getPaymentStatusColor = (status) => {
-        switch (status?.toLowerCase()) {
-            case 'paid': return '#28a745';
-            case 'pending': return '#ffc107';
-            case 'failed': return '#dc3545';
-            default: return 'var(--vastra-dark)';
-        }
-    };
-
-    const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('en-IN', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric'
-        });
-    };
-
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-3"
-            style={{
-                background: '#fff',
-                borderRadius: '16px',
-                border: '1px solid rgba(128, 0, 32, 0.08)',
-                boxShadow: '0 4px 15px rgba(128, 0, 32, 0.04)',
-                overflow: 'hidden'
-            }}
-        >
-            {/* Order Header */}
-            <div
-                className="p-4"
-                style={{
-                    background: 'linear-gradient(135deg, rgba(128, 0, 32, 0.03) 0%, rgba(212, 175, 55, 0.02) 100%)',
-                    cursor: 'pointer'
-                }}
-                onClick={() => setIsExpanded(!isExpanded)}
-            >
-                <div className="d-flex justify-content-between align-items-start">
-                    <div>
-                        <div className="d-flex align-items-center gap-2 mb-2">
-                            <Package size={18} style={{ color: 'var(--vastra-maroon)' }} />
-                            <span style={{ fontWeight: 600, color: 'var(--vastra-dark)', fontFamily: 'EB Garamond, serif' }}>
-                                Order #{order.id}
-                            </span>
-                        </div>
-                        <div className="d-flex align-items-center gap-3 flex-wrap">
-                            <span className="d-flex align-items-center gap-1" style={{ fontSize: '0.85rem', color: 'var(--vastra-dark)', opacity: 0.7 }}>
-                                <Calendar size={14} />
-                                {formatDate(order.orderDate)}
-                            </span>
-                            <span
-                                className="px-2 py-1"
-                                style={{
-                                    fontSize: '0.75rem',
-                                    fontWeight: 600,
-                                    color: getStatusColor(order.status),
-                                    background: `${getStatusColor(order.status)}15`,
-                                    borderRadius: '6px',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.5px'
-                                }}
-                            >
-                                {order.status}
-                            </span>
-                            <span
-                                className="px-2 py-1"
-                                style={{
-                                    fontSize: '0.75rem',
-                                    fontWeight: 500,
-                                    color: getPaymentStatusColor(order.paymentStatus),
-                                    background: `${getPaymentStatusColor(order.paymentStatus)}15`,
-                                    borderRadius: '6px'
-                                }}
-                            >
-                                {order.paymentStatus}
-                            </span>
-                        </div>
-                    </div>
-                    <div className="text-end">
-                        <p
-                            className="mb-1"
-                            style={{
-                                fontWeight: 600,
-                                color: 'var(--vastra-maroon)',
-                                fontSize: '1.2rem',
-                                fontFamily: 'EB Garamond, serif'
-                            }}
-                        >
-                            {formatPrice(order.totalAmount)}
-                        </p>
-                        <motion.div
-                            animate={{ rotate: isExpanded ? 180 : 0 }}
-                            transition={{ duration: 0.2 }}
-                        >
-                            <ChevronDown size={20} style={{ color: 'var(--vastra-maroon)' }} />
-                        </motion.div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Order Items (Expandable) */}
-            <AnimatePresence>
-                {isExpanded && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="px-4 pb-4"
-                    >
-                        <div style={{ borderTop: '1px solid rgba(128, 0, 32, 0.08)', paddingTop: '1rem' }}>
-                            <h6 className="mb-3" style={{ color: 'var(--vastra-dark)', fontWeight: 600, fontSize: '0.9rem' }}>
-                                Order Items ({order.items?.length || 0})
-                            </h6>
-                            {order.items?.map((item, index) => (
-                                <div
-                                    key={item.id || index}
-                                    className="d-flex justify-content-between align-items-center py-2"
-                                    style={{
-                                        borderBottom: index < order.items.length - 1 ? '1px solid rgba(128, 0, 32, 0.05)' : 'none'
-                                    }}
-                                >
-                                    <div>
-                                        <p className="mb-0" style={{ fontWeight: 500, color: 'var(--vastra-dark)', fontSize: '0.95rem' }}>
-                                            {item.productName}
-                                        </p>
-                                        <p className="mb-0" style={{ fontSize: '0.8rem', color: 'var(--vastra-dark)', opacity: 0.6 }}>
-                                            {item.variantSku && `SKU: ${item.variantSku} • `}Qty: {item.quantity}
-                                        </p>
-                                    </div>
-                                    <span style={{ fontWeight: 500, color: 'var(--vastra-maroon)', fontFamily: 'EB Garamond, serif' }}>
-                                        {formatPrice(item.unitPrice * item.quantity)}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </motion.div>
-    );
-};
-
-// Pagination Component
-const Pagination = ({ currentPage, totalPages, onPageChange }) => {
-    if (totalPages <= 1) return null;
-
-    return (
-        <div className="d-flex justify-content-center align-items-center gap-2 mt-4">
-            <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="pagination-btn"
-                onClick={() => onPageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-            >
-                <ChevronLeft size={18} />
-            </motion.button>
-
-            {[...Array(Math.min(5, totalPages))].map((_, i) => {
-                let pageNum;
-                if (totalPages <= 5) {
-                    pageNum = i + 1;
-                } else if (currentPage <= 3) {
-                    pageNum = i + 1;
-                } else if (currentPage >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                } else {
-                    pageNum = currentPage - 2 + i;
-                }
-
-                return (
-                    <motion.button
-                        key={pageNum}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className={`pagination-btn ${currentPage === pageNum ? 'active' : ''}`}
-                        onClick={() => onPageChange(pageNum)}
-                    >
-                        {pageNum}
-                    </motion.button>
-                );
-            })}
-
-            <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="pagination-btn"
-                onClick={() => onPageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-            >
-                <ChevronRight size={18} />
-            </motion.button>
-        </div>
-    );
-};
+import EditProfileModal from '../components/account/EditProfileModal';
+import AddressCard from '../components/account/AddressCard';
+import NewAddressForm from '../components/account/NewAddressForm';
+import EditAddressForm from '../components/account/EditAddressForm';
+import OrderCard from '../components/account/OrderCard';
+import Pagination from '../components/account/Pagination';
+import ReviewCard from '../components/account/ReviewCard';
+import ChangePasswordModal from '../components/account/ChangePasswordModal';
 
 // Main Account Page Component
 const AccountPage = () => {
     const navigate = useNavigate();
-    const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+    const { user, isAuthenticated, logout, isLoading: authLoading } = useAuth();
 
     // Profile state
     const [profile, setProfile] = useState(null);
     const [isLoadingProfile, setIsLoadingProfile] = useState(true);
     const [showAddressForm, setShowAddressForm] = useState(false);
     const [isAddingAddress, setIsAddingAddress] = useState(false);
+    const [editingAddress, setEditingAddress] = useState(null);
+    const [isUpdatingAddress, setIsUpdatingAddress] = useState(false);
     const [deletingAddressId, setDeletingAddressId] = useState(null);
+    const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+    const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+    // Tab state
+    const [activeTab, setActiveTab] = useState('orders');
 
     // Orders state
     const [orders, setOrders] = useState([]);
     const [ordersPage, setOrdersPage] = useState(1);
     const [ordersTotalPages, setOrdersTotalPages] = useState(1);
     const [isLoadingOrders, setIsLoadingOrders] = useState(true);
+    const [cancellingOrderId, setCancellingOrderId] = useState(null);
+
+    // Reviews state
+    const [reviews, setReviews] = useState([]);
+    const [reviewsPage, setReviewsPage] = useState(1);
+    const [reviewsTotalPages, setReviewsTotalPages] = useState(1);
+    const [isLoadingReviews, setIsLoadingReviews] = useState(false);
+    const [editingReviewId, setEditingReviewId] = useState(null);
+    const [deletingReviewId, setDeletingReviewId] = useState(null);
+    const [savingReviewId, setSavingReviewId] = useState(null);
+    const [reviewsLoaded, setReviewsLoaded] = useState(false);
 
     // Error state
     const [error, setError] = useState('');
 
     // Fetch profile data
-    const loadProfile = useCallback(async () => {
+    const loadProfile = async () => {
         setIsLoadingProfile(true);
         const result = await fetchUserProfile();
         if (result.success && result.profile) {
@@ -486,10 +93,10 @@ const AccountPage = () => {
             setError(result.error || 'Failed to load profile');
         }
         setIsLoadingProfile(false);
-    }, []);
+    };
 
     // Fetch orders
-    const loadOrders = useCallback(async (page = 1) => {
+    const loadOrders = async (page = 1) => {
         setIsLoadingOrders(true);
         const result = await getMyOrders(page, 5);
         if (result.success && result.orders) {
@@ -500,7 +107,22 @@ const AccountPage = () => {
             setError(result.error || 'Failed to load orders');
         }
         setIsLoadingOrders(false);
-    }, []);
+    };
+
+    // Fetch my reviews
+    const loadMyReviews = async (page = 1) => {
+        setIsLoadingReviews(true);
+        try {
+            const data = await fetchMyReviews(page, 5);
+            setReviews(data.items || []);
+            setReviewsTotalPages(Math.ceil((data.totalCount || 0) / (data.pageSize || 5)));
+            setReviewsPage(data.page || 1);
+            setReviewsLoaded(true);
+        } catch {
+            setError('Failed to load your reviews');
+        }
+        setIsLoadingReviews(false);
+    };
 
     // Initial data load
     useEffect(() => {
@@ -508,7 +130,7 @@ const AccountPage = () => {
             loadProfile();
             loadOrders(1);
         }
-    }, [isAuthenticated, loadProfile, loadOrders]);
+    }, [isAuthenticated]);
 
     // Handle adding new address
     const handleAddAddress = async (addressData) => {
@@ -549,9 +171,145 @@ const AccountPage = () => {
         setDeletingAddressId(null);
     };
 
+    // Handle updating address
+    const handleUpdateAddress = async (addressId, addressData) => {
+        setIsUpdatingAddress(true);
+        setError('');
+
+        const result = await updateUserAddress(addressId, addressData);
+
+        if (result.success && result.address) {
+            setProfile(prev => ({
+                ...prev,
+                addresses: prev?.addresses?.map(a => a.id === addressId ? result.address : a) || []
+            }));
+            setEditingAddress(null);
+        } else {
+            setError(result.error || 'Failed to update address');
+        }
+
+        setIsUpdatingAddress(false);
+    };
+
+    // Handle updating profile
+    const handleUpdateProfile = async (profileData) => {
+        setIsUpdatingProfile(true);
+        setError('');
+
+        const result = await updateUserProfile(profileData);
+
+        if (result.success && result.profile) {
+            setProfile(result.profile);
+            setShowEditModal(false);
+        } else {
+            setError(result.error || 'Failed to update profile');
+        }
+
+        setIsUpdatingProfile(false);
+    };
+
+    // Handle change password
+    const handleChangePassword = async (passwordData) => {
+        setIsChangingPassword(true);
+        try {
+            await changePassword(passwordData);
+            setShowChangePasswordModal(false);
+            alert("Password changed successfully.");
+            setIsChangingPassword(false);
+            return { success: true };
+        } catch (err) {
+            setIsChangingPassword(false);
+            return { success: false, error: err.message };
+        }
+    };
+
+    // Handle delete account
+    const handleDeleteAccount = async () => {
+        setIsDeletingAccount(true);
+        const result = await deleteAccount();
+
+        if (result.success) {
+            logout();
+            navigate('/', { replace: true });
+        } else {
+            setError(result.error || 'Failed to delete account');
+            setShowDeleteConfirm(false);
+        }
+        setIsDeletingAccount(false);
+    };
+
+    // Handle cancel order
+    const handleCancelOrder = async (orderId) => {
+        setCancellingOrderId(orderId);
+        setError('');
+
+        const result = await cancelOrder(orderId);
+
+        if (result.success) {
+            // Refresh orders to show updated status
+            await loadOrders(ordersPage);
+        } else {
+            setError(result.error || 'Failed to cancel order');
+        }
+
+        setCancellingOrderId(null);
+    };
+
     // Handle page change for orders
     const handleOrdersPageChange = (page) => {
         loadOrders(page);
+    };
+
+    // Handle tab switch
+    const handleTabSwitch = (tab) => {
+        setActiveTab(tab);
+        if (tab === 'reviews' && !reviewsLoaded) {
+            loadMyReviews(1);
+        }
+    };
+
+    // Handle review page change
+    const handleReviewsPageChange = (page) => {
+        loadMyReviews(page);
+    };
+
+    // Handle edit review (open inline form)
+    const handleEditReview = (review) => {
+        setEditingReviewId(review.id);
+    };
+
+    // Handle cancel edit
+    const handleCancelEdit = () => {
+        setEditingReviewId(null);
+    };
+
+    // Handle save review
+    const handleSaveReview = async (id, { rating, comment }) => {
+        setSavingReviewId(id);
+        setError('');
+        try {
+            await updateReview(id, { rating, comment });
+            setReviews(prev =>
+                prev.map(r => r.id === id ? { ...r, rating, comment } : r)
+            );
+            setEditingReviewId(null);
+        } catch (err) {
+            setError(err.message || 'Failed to update review');
+        }
+        setSavingReviewId(null);
+    };
+
+    // Handle delete review
+    const handleDeleteReview = async (id) => {
+        setDeletingReviewId(id);
+        setError('');
+        try {
+            await deleteReview(id);
+            setReviews(prev => prev.filter(r => r.id !== id));
+        } catch (err) {
+            setError(err.message || 'Failed to delete review');
+        }
+        setDeletingReviewId(null);
     };
 
     // Redirect if not authenticated
@@ -699,31 +457,67 @@ const AccountPage = () => {
                                     <>
                                         {/* User Info */}
                                         <div className="mb-4 p-3" style={{ background: 'var(--vastra-beige)', borderRadius: '12px' }}>
-                                            <div className="d-flex align-items-center gap-3 mb-3">
-                                                <div
-                                                    className="d-flex align-items-center justify-content-center"
+                                            <div className="d-flex justify-content-between align-items-start mb-3">
+                                                <div className="d-flex align-items-center gap-3 flex-grow-1">
+                                                    <div
+                                                        className="d-flex align-items-center justify-content-center"
+                                                        style={{
+                                                            width: '60px',
+                                                            height: '60px',
+                                                            borderRadius: '50%',
+                                                            background: 'linear-gradient(135deg, var(--vastra-maroon), var(--vastra-deep-maroon))',
+                                                            color: '#fff',
+                                                            fontSize: '1.5rem',
+                                                            fontFamily: 'EB Garamond, serif',
+                                                            fontWeight: 600
+                                                        }}
+                                                    >
+                                                        {profile.firstName?.[0]?.toUpperCase() || 'U'}
+                                                    </div>
+                                                    <div>
+                                                        <h5 className="mb-1" style={{ color: 'var(--vastra-dark)', fontWeight: 600 }}>
+                                                            {profile.firstName} {profile.lastName}
+                                                        </h5>
+                                                        <p className="mb-1 d-flex align-items-center gap-1" style={{ color: 'var(--vastra-dark)', opacity: 0.7, fontSize: '0.9rem' }}>
+                                                            <Mail size={14} />
+                                                            {profile.email}
+                                                        </p>
+                                                        {profile.phoneNumber && (
+                                                            <p className="mb-0 d-flex align-items-center gap-1" style={{ color: 'var(--vastra-dark)', opacity: 0.7, fontSize: '0.9rem' }}>
+                                                                <Phone size={14} />
+                                                                {profile.phoneNumber}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <motion.button
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    className="btn btn-link p-2"
+                                                    onClick={() => setShowEditModal(true)}
+                                                    style={{ color: 'var(--vastra-maroon)' }}
+                                                    title="Edit profile"
+                                                >
+                                                    <Edit size={18} />
+                                                </motion.button>
+                                            </div>
+                                            <div className="mt-3 pt-3 d-flex justify-content-end" style={{ borderTop: '1px solid rgba(128, 0, 32, 0.1)' }}>
+                                                <motion.button
+                                                    whileHover={{ scale: 1.02 }}
+                                                    whileTap={{ scale: 0.98 }}
+                                                    className="btn btn-sm d-flex align-items-center gap-2"
+                                                    onClick={() => setShowChangePasswordModal(true)}
                                                     style={{
-                                                        width: '60px',
-                                                        height: '60px',
-                                                        borderRadius: '50%',
-                                                        background: 'linear-gradient(135deg, var(--vastra-maroon), var(--vastra-deep-maroon))',
-                                                        color: '#fff',
-                                                        fontSize: '1.5rem',
-                                                        fontFamily: 'EB Garamond, serif',
-                                                        fontWeight: 600
+                                                        backgroundColor: 'rgba(128, 0, 32, 0.05)',
+                                                        color: 'var(--vastra-maroon)',
+                                                        border: '1px solid rgba(128, 0, 32, 0.2)',
+                                                        borderRadius: '8px',
+                                                        fontWeight: 500
                                                     }}
                                                 >
-                                                    {profile.firstName?.[0]?.toUpperCase() || 'U'}
-                                                </div>
-                                                <div>
-                                                    <h5 className="mb-1" style={{ color: 'var(--vastra-dark)', fontWeight: 600 }}>
-                                                        {profile.firstName} {profile.lastName}
-                                                    </h5>
-                                                    <p className="mb-0 d-flex align-items-center gap-1" style={{ color: 'var(--vastra-dark)', opacity: 0.7, fontSize: '0.9rem' }}>
-                                                        <Mail size={14} />
-                                                        {profile.email}
-                                                    </p>
-                                                </div>
+                                                    <KeyRound size={14} />
+                                                    Change Password
+                                                </motion.button>
                                             </div>
                                         </div>
 
@@ -741,6 +535,7 @@ const AccountPage = () => {
                                                     <AddressCard
                                                         key={address.id}
                                                         address={address}
+                                                        onEdit={setEditingAddress}
                                                         onDelete={handleDeleteAddress}
                                                         isDeleting={deletingAddressId === address.id}
                                                     />
@@ -749,6 +544,17 @@ const AccountPage = () => {
                                                 <p className="text-center py-3" style={{ color: 'var(--vastra-dark)', opacity: 0.6 }}>
                                                     No addresses saved yet
                                                 </p>
+                                            )}
+                                        </AnimatePresence>
+
+                                        <AnimatePresence>
+                                            {editingAddress && (
+                                                <EditAddressForm
+                                                    address={editingAddress}
+                                                    onUpdateAddress={handleUpdateAddress}
+                                                    onCancel={() => setEditingAddress(null)}
+                                                    isLoading={isUpdatingAddress}
+                                                />
                                             )}
                                         </AnimatePresence>
 
@@ -762,7 +568,7 @@ const AccountPage = () => {
                                             )}
                                         </AnimatePresence>
 
-                                        {!showAddressForm && (
+                                        {!showAddressForm && !editingAddress && (
                                             <motion.button
                                                 whileHover={{ scale: 1.02 }}
                                                 whileTap={{ scale: 0.98 }}
@@ -779,6 +585,65 @@ const AccountPage = () => {
                                                 Add New Address
                                             </motion.button>
                                         )}
+
+                                        {/* Danger Zone */}
+                                        <div className="mt-5 pt-4" style={{ borderTop: '1px solid rgba(220, 53, 69, 0.2)' }}>
+                                            <h5 className="mb-3" style={{ color: '#dc3545', fontSize: '1rem', fontWeight: 600 }}>
+                                                Danger Zone
+                                            </h5>
+                                            <p style={{ fontSize: '0.9rem', color: 'var(--vastra-dark)', opacity: 0.7 }}>
+                                                Once you delete your account, there is no going back. Please be certain.
+                                            </p>
+                                            {!showDeleteConfirm ? (
+                                                <motion.button
+                                                    whileHover={{ scale: 1.02 }}
+                                                    whileTap={{ scale: 0.98 }}
+                                                    className="btn w-100"
+                                                    onClick={() => setShowDeleteConfirm(true)}
+                                                    style={{
+                                                        border: '1px solid #dc3545',
+                                                        color: '#dc3545',
+                                                        borderRadius: '12px',
+                                                        padding: '10px'
+                                                    }}
+                                                >
+                                                    Delete Account
+                                                </motion.button>
+                                            ) : (
+                                                <div className="p-3" style={{ background: 'rgba(220, 53, 69, 0.05)', borderRadius: '12px' }}>
+                                                    <p className="mb-3" style={{ fontSize: '0.9rem', color: '#dc3545', fontWeight: 500 }}>
+                                                        Are you absolutely sure? This action cannot be undone.
+                                                    </p>
+                                                    <div className="d-flex gap-2">
+                                                        <button
+                                                            className="btn btn-danger w-100"
+                                                            onClick={handleDeleteAccount}
+                                                            disabled={isDeletingAccount}
+                                                        >
+                                                            {isDeletingAccount ? 'Deleting...' : 'Yes, Delete'}
+                                                        </button>
+                                                        <button
+                                                            className="btn btn-outline-secondary w-100"
+                                                            onClick={() => setShowDeleteConfirm(false)}
+                                                            disabled={isDeletingAccount}
+                                                            style={{ border: '1px solid rgba(0,0,0,0.2)' }}
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <AnimatePresence>
+                                            {showChangePasswordModal && (
+                                                <ChangePasswordModal
+                                                    onChangePassword={handleChangePassword}
+                                                    onClose={() => setShowChangePasswordModal(false)}
+                                                    isLoading={isChangingPassword}
+                                                />
+                                            )}
+                                        </AnimatePresence>
                                     </>
                                 ) : (
                                     <p className="text-center py-4" style={{ color: 'var(--vastra-dark)', opacity: 0.7 }}>
@@ -788,7 +653,7 @@ const AccountPage = () => {
                             </motion.div>
                         </Col>
 
-                        {/* Order History Section */}
+                        {/* Orders & Reviews Tabbed Section */}
                         <Col lg={7}>
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
@@ -802,72 +667,214 @@ const AccountPage = () => {
                                     border: '1px solid rgba(128, 0, 32, 0.08)'
                                 }}
                             >
-                                <div className="d-flex align-items-center gap-2 mb-4">
-                                    <ShoppingBag size={22} style={{ color: 'var(--vastra-maroon)' }} />
-                                    <h4
-                                        className="mb-0"
+                                {/* Tab Navigation */}
+                                <div
+                                    className="d-flex gap-2 mb-4 p-1"
+                                    style={{
+                                        background: 'var(--vastra-beige)',
+                                        borderRadius: '12px',
+                                        display: 'inline-flex'
+                                    }}
+                                >
+                                    <motion.button
+                                        whileTap={{ scale: 0.97 }}
+                                        className="btn d-flex align-items-center gap-2"
+                                        onClick={() => handleTabSwitch('orders')}
                                         style={{
-                                            fontFamily: 'EB Garamond, serif',
-                                            color: 'var(--vastra-dark)',
-                                            fontSize: '1.3rem',
-                                            fontWeight: 600
+                                            borderRadius: '10px',
+                                            fontWeight: 600,
+                                            fontSize: '0.9rem',
+                                            padding: '8px 18px',
+                                            transition: 'all 0.25s ease',
+                                            background: activeTab === 'orders'
+                                                ? 'var(--vastra-maroon)'
+                                                : 'transparent',
+                                            color: activeTab === 'orders' ? '#fff' : 'var(--vastra-dark)',
+                                            border: 'none',
+                                            boxShadow: activeTab === 'orders'
+                                                ? '0 2px 10px rgba(128, 0, 32, 0.3)'
+                                                : 'none'
                                         }}
                                     >
-                                        Order History
-                                    </h4>
+                                        <ShoppingBag size={16} />
+                                        Orders
+                                    </motion.button>
+                                    <motion.button
+                                        whileTap={{ scale: 0.97 }}
+                                        className="btn d-flex align-items-center gap-2"
+                                        onClick={() => handleTabSwitch('reviews')}
+                                        style={{
+                                            borderRadius: '10px',
+                                            fontWeight: 600,
+                                            fontSize: '0.9rem',
+                                            padding: '8px 18px',
+                                            transition: 'all 0.25s ease',
+                                            background: activeTab === 'reviews'
+                                                ? 'var(--vastra-maroon)'
+                                                : 'transparent',
+                                            color: activeTab === 'reviews' ? '#fff' : 'var(--vastra-dark)',
+                                            border: 'none',
+                                            boxShadow: activeTab === 'reviews'
+                                                ? '0 2px 10px rgba(128, 0, 32, 0.3)'
+                                                : 'none'
+                                        }}
+                                    >
+                                        <Star size={16} />
+                                        My Reviews
+                                    </motion.button>
                                 </div>
 
-                                {isLoadingOrders ? (
-                                    <div className="text-center py-5">
-                                        <div className="spinner-border" style={{ color: 'var(--vastra-maroon)' }} />
-                                        <p className="mt-3 mb-0" style={{ color: 'var(--vastra-dark)', opacity: 0.7 }}>
-                                            Loading orders...
-                                        </p>
-                                    </div>
-                                ) : orders.length > 0 ? (
-                                    <>
-                                        {orders.map((order) => (
-                                            <OrderCard key={order.id} order={order} />
-                                        ))}
-                                        <Pagination
-                                            currentPage={ordersPage}
-                                            totalPages={ordersTotalPages}
-                                            onPageChange={handleOrdersPageChange}
-                                        />
-                                    </>
-                                ) : (
-                                    <motion.div
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        className="text-center py-5"
-                                    >
-                                        <div
-                                            className="d-inline-flex align-items-center justify-content-center mb-4"
-                                            style={{
-                                                width: '80px',
-                                                height: '80px',
-                                                borderRadius: '50%',
-                                                background: 'linear-gradient(135deg, rgba(128, 0, 32, 0.1) 0%, rgba(212, 175, 55, 0.1) 100%)'
-                                            }}
+                                {/* Orders Tab */}
+                                <AnimatePresence mode="wait">
+                                    {activeTab === 'orders' && (
+                                        <motion.div
+                                            key="orders"
+                                            initial={{ opacity: 0, y: 8 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -8 }}
+                                            transition={{ duration: 0.2 }}
                                         >
-                                            <Package size={36} style={{ color: 'var(--vastra-maroon)' }} />
-                                        </div>
-                                        <h5 className="mb-2" style={{ color: 'var(--vastra-dark)', fontWeight: 600 }}>
-                                            No Orders Yet
-                                        </h5>
-                                        <p className="mb-4" style={{ color: 'var(--vastra-dark)', opacity: 0.7 }}>
-                                            Start shopping to see your order history here
-                                        </p>
-                                        <Link to="/shop" className="btn btn-vastra-primary">
-                                            Start Shopping
-                                        </Link>
-                                    </motion.div>
-                                )}
+                                            {isLoadingOrders ? (
+                                                <div className="text-center py-5">
+                                                    <div className="spinner-border" style={{ color: 'var(--vastra-maroon)' }} />
+                                                    <p className="mt-3 mb-0" style={{ color: 'var(--vastra-dark)', opacity: 0.7 }}>
+                                                        Loading orders...
+                                                    </p>
+                                                </div>
+                                            ) : orders.length > 0 ? (
+                                                <>
+                                                    {orders.map((order) => (
+                                                        <OrderCard
+                                                            key={order.id}
+                                                            order={order}
+                                                            onCancel={handleCancelOrder}
+                                                            isCancelling={cancellingOrderId === order.id}
+                                                        />
+                                                    ))}
+                                                    <Pagination
+                                                        currentPage={ordersPage}
+                                                        totalPages={ordersTotalPages}
+                                                        onPageChange={handleOrdersPageChange}
+                                                    />
+                                                </>
+                                            ) : (
+                                                <motion.div
+                                                    initial={{ opacity: 0 }}
+                                                    animate={{ opacity: 1 }}
+                                                    className="text-center py-5"
+                                                >
+                                                    <div
+                                                        className="d-inline-flex align-items-center justify-content-center mb-4"
+                                                        style={{
+                                                            width: '80px',
+                                                            height: '80px',
+                                                            borderRadius: '50%',
+                                                            background: 'linear-gradient(135deg, rgba(128, 0, 32, 0.1) 0%, rgba(212, 175, 55, 0.1) 100%)'
+                                                        }}
+                                                    >
+                                                        <Package size={36} style={{ color: 'var(--vastra-maroon)' }} />
+                                                    </div>
+                                                    <h5 className="mb-2" style={{ color: 'var(--vastra-dark)', fontWeight: 600 }}>
+                                                        No Orders Yet
+                                                    </h5>
+                                                    <p className="mb-4" style={{ color: 'var(--vastra-dark)', opacity: 0.7 }}>
+                                                        Start shopping to see your order history here
+                                                    </p>
+                                                    <Link to="/shop" className="btn btn-vastra-primary">
+                                                        Start Shopping
+                                                    </Link>
+                                                </motion.div>
+                                            )}
+                                        </motion.div>
+                                    )}
+
+                                    {/* Reviews Tab */}
+                                    {activeTab === 'reviews' && (
+                                        <motion.div
+                                            key="reviews"
+                                            initial={{ opacity: 0, y: 8 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -8 }}
+                                            transition={{ duration: 0.2 }}
+                                        >
+                                            {isLoadingReviews ? (
+                                                <div className="text-center py-5">
+                                                    <div className="spinner-border" style={{ color: 'var(--vastra-maroon)' }} />
+                                                    <p className="mt-3 mb-0" style={{ color: 'var(--vastra-dark)', opacity: 0.7 }}>
+                                                        Loading your reviews...
+                                                    </p>
+                                                </div>
+                                            ) : reviews.length > 0 ? (
+                                                <>
+                                                    <AnimatePresence>
+                                                        {reviews.map((review) => (
+                                                            <ReviewCard
+                                                                key={review.id}
+                                                                review={review}
+                                                                onEdit={handleEditReview}
+                                                                onDelete={handleDeleteReview}
+                                                                onSave={handleSaveReview}
+                                                                onCancelEdit={handleCancelEdit}
+                                                                isEditing={editingReviewId === review.id}
+                                                                isDeleting={deletingReviewId === review.id}
+                                                                isSaving={savingReviewId === review.id}
+                                                            />
+                                                        ))}
+                                                    </AnimatePresence>
+                                                    <Pagination
+                                                        currentPage={reviewsPage}
+                                                        totalPages={reviewsTotalPages}
+                                                        onPageChange={handleReviewsPageChange}
+                                                    />
+                                                </>
+                                            ) : (
+                                                <motion.div
+                                                    initial={{ opacity: 0 }}
+                                                    animate={{ opacity: 1 }}
+                                                    className="text-center py-5"
+                                                >
+                                                    <div
+                                                        className="d-inline-flex align-items-center justify-content-center mb-4"
+                                                        style={{
+                                                            width: '80px',
+                                                            height: '80px',
+                                                            borderRadius: '50%',
+                                                            background: 'linear-gradient(135deg, rgba(128, 0, 32, 0.1) 0%, rgba(212, 175, 55, 0.1) 100%)'
+                                                        }}
+                                                    >
+                                                        <MessageSquare size={36} style={{ color: 'var(--vastra-maroon)' }} />
+                                                    </div>
+                                                    <h5 className="mb-2" style={{ color: 'var(--vastra-dark)', fontWeight: 600 }}>
+                                                        No Reviews Yet
+                                                    </h5>
+                                                    <p className="mb-4" style={{ color: 'var(--vastra-dark)', opacity: 0.7 }}>
+                                                        Purchase a product and share your experience!
+                                                    </p>
+                                                    <Link to="/shop" className="btn btn-vastra-primary">
+                                                        Browse Products
+                                                    </Link>
+                                                </motion.div>
+                                            )}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </motion.div>
                         </Col>
                     </Row>
                 </Container>
             </section>
+
+            {/* Edit Profile Modal */}
+            <AnimatePresence>
+                {showEditModal && (
+                    <EditProfileModal
+                        profile={profile}
+                        onUpdate={handleUpdateProfile}
+                        onClose={() => setShowEditModal(false)}
+                        isLoading={isUpdatingProfile}
+                    />
+                )}
+            </AnimatePresence>
 
             {/* Footer */}
             <Footer />

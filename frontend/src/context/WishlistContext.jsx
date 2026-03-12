@@ -1,15 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import {
-    getWishlist as fetchWishlist,
-    addToWishlist as apiAddToWishlist,
-    removeFromWishlist as apiRemoveFromWishlist,
-    clearWishlist as apiClearWishlist
-} from '../services/wishlistService';
+import { getWishlist, addToWishlist, removeFromWishlist, clearWishlist } from '../services/wishlistService';
 import { useAuth } from './AuthContext';
 
 const WishlistContext = createContext(null);
 
-// Wishlist Provider component
 export const WishlistProvider = ({ children }) => {
     const [wishlist, setWishlist] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -18,10 +12,9 @@ export const WishlistProvider = ({ children }) => {
 
     const { isAuthenticated, user } = useAuth();
 
-    // Calculate wishlist item count
-    const itemCount = wishlist?.length || 0;
+    const itemCount = wishlist.length;
 
-    // Fetch wishlist when user logs in
+    // fetch wishlist when user logs in or out
     useEffect(() => {
         if (isAuthenticated) {
             loadWishlist();
@@ -30,7 +23,7 @@ export const WishlistProvider = ({ children }) => {
         }
     }, [isAuthenticated, user]);
 
-    // Load wishlist from API
+    // load wishlist from API
     const loadWishlist = async () => {
         if (!isAuthenticated) return;
 
@@ -38,7 +31,7 @@ export const WishlistProvider = ({ children }) => {
         setError(null);
 
         try {
-            const result = await fetchWishlist();
+            const result = await getWishlist();
             if (result.success) {
                 setWishlist(result.wishlist || []);
             } else {
@@ -49,31 +42,38 @@ export const WishlistProvider = ({ children }) => {
         }
     };
 
-    // Show notification
-    const showNotification = (message, type = 'success') => {
+    // show a toast notification
+    const showNotification = (message, type) => {
+        if (type === undefined) type = 'success';
         setNotification({ message, type });
         setTimeout(() => setNotification(null), 3000);
     };
 
-    // Check if a product variant is in the wishlist
+    // check if a product variant is already in wishlist
     const isInWishlist = (productVariantId) => {
-        const item = wishlist.find(w => w.productVariantId === productVariantId);
+        let found = null;
+        for (let i = 0; i < wishlist.length; i++) {
+            if (wishlist[i].productVariantId === productVariantId) {
+                found = wishlist[i];
+                break;
+            }
+        }
         return {
-            inWishlist: !!item,
-            wishlistItemId: item?.id || null
+            inWishlist: found !== null,
+            wishlistItemId: found ? found.id : null
         };
     };
 
-    // Add item to wishlist
-    const addToWishlist = async (productVariantId) => {
+    // add item to wishlist
+    const addItem = async (productVariantId) => {
         setIsLoading(true);
         setError(null);
 
         try {
-            const result = await apiAddToWishlist(productVariantId);
+            const result = await addToWishlist(productVariantId);
 
             if (result.success) {
-                setWishlist(prev => [...prev, result.item]);
+                setWishlist([...wishlist, result.item]);
                 showNotification('Added to wishlist!', 'success');
                 return { success: true };
             }
@@ -90,16 +90,17 @@ export const WishlistProvider = ({ children }) => {
         }
     };
 
-    // Remove item from wishlist
-    const removeFromWishlist = async (wishlistItemId) => {
+    // remove item from wishlist
+    const removeItem = async (wishlistItemId) => {
         setIsLoading(true);
         setError(null);
 
         try {
-            const result = await apiRemoveFromWishlist(wishlistItemId);
+            const result = await removeFromWishlist(wishlistItemId);
 
             if (result.success) {
-                setWishlist(prev => prev.filter(item => item.id !== wishlistItemId));
+                const newList = wishlist.filter(item => item.id !== wishlistItemId);
+                setWishlist(newList);
                 showNotification('Removed from wishlist', 'success');
                 return { success: true };
             }
@@ -112,26 +113,26 @@ export const WishlistProvider = ({ children }) => {
         }
     };
 
-    // Toggle wishlist status for a product variant
+    // toggle wishlist for a product variant
     const toggleWishlist = async (productVariantId) => {
         const { inWishlist, wishlistItemId } = isInWishlist(productVariantId);
 
         if (inWishlist && wishlistItemId) {
-            const result = await removeFromWishlist(wishlistItemId);
+            const result = await removeItem(wishlistItemId);
             return { ...result, added: false };
         } else {
-            const result = await addToWishlist(productVariantId);
+            const result = await addItem(productVariantId);
             return { ...result, added: true };
         }
     };
 
-    // Clear entire wishlist
+    // clear entire wishlist
     const clearWishlistItems = async () => {
         setIsLoading(true);
         setError(null);
 
         try {
-            const result = await apiClearWishlist();
+            const result = await clearWishlist();
 
             if (result.success) {
                 setWishlist([]);
@@ -147,7 +148,7 @@ export const WishlistProvider = ({ children }) => {
         }
     };
 
-    // Dismiss notification
+    // dismiss notification
     const dismissNotification = () => {
         setNotification(null);
     };
@@ -161,8 +162,8 @@ export const WishlistProvider = ({ children }) => {
         notification,
         loadWishlist,
         isInWishlist,
-        addToWishlist,
-        removeFromWishlist,
+        addToWishlist: addItem,
+        removeFromWishlist: removeItem,
         toggleWishlist,
         clearWishlist: clearWishlistItems,
         dismissNotification
@@ -175,7 +176,7 @@ export const WishlistProvider = ({ children }) => {
     );
 };
 
-// Hook to use wishlist context
+// hook to use wishlist context
 export const useWishlist = () => {
     const context = useContext(WishlistContext);
     if (!context) {

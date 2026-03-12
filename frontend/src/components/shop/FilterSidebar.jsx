@@ -3,6 +3,23 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Filter, RotateCcw, ChevronDown } from 'lucide-react';
 import { VASTRA_COLORS, VASTRA_SIZES } from '../../utils/constants';
 
+const containerVariants = {
+    hidden: { opacity: 0, x: -30 },
+    visible: {
+        opacity: 1,
+        x: 0,
+        transition: {
+            duration: 0.6,
+            staggerChildren: 0.1
+        }
+    }
+};
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 }
+};
+
 const FilterSidebar = ({
     onFilterChange,
     filters,
@@ -15,7 +32,7 @@ const FilterSidebar = ({
     const [localMaxPrice, setLocalMaxPrice] = useState(filters.maxPrice || '');
 
     // Collapsible state for colors
-    const [isColorOpen, setIsColorOpen] = useState(false);
+    const [isColorOpen, setIsColorOpen] = useState(true);
 
     // Sync local state when filters change
     useEffect(() => {
@@ -68,23 +85,6 @@ const FilterSidebar = ({
         onFilterChange(type, newValues);
     };
 
-    // Animation variants
-    const containerVariants = {
-        hidden: { opacity: 0, x: -30 },
-        visible: {
-            opacity: 1,
-            x: 0,
-            transition: {
-                duration: 0.6,
-                staggerChildren: 0.1
-            }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 10 },
-        visible: { opacity: 1, y: 0 }
-    };
 
     const selectedColorCount = filters.colors?.length || 0;
 

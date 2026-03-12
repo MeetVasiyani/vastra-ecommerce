@@ -1,157 +1,137 @@
 // Cart Service for Vastra
+import axios from 'axios';
 import { getAuthHeaders, isAuthenticated } from './authService';
 
 const BACKEND_URL = 'http://localhost:5121';
 const API_BASE_URL = `${BACKEND_URL}/api`;
 
-// Get the current user's cart
-export const getCart = async () => {
+// get current user's cart
+export async function getCart() {
     if (!isAuthenticated()) {
         return { success: false, error: 'Not authenticated' };
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/Cart`, {
-            method: 'GET',
+        const response = await axios.get(`${API_BASE_URL}/Cart`, {
             headers: getAuthHeaders()
         });
 
-        if (response.ok) {
-            const cart = await response.json();
-            return { success: true, cart };
-        }
-
-        if (response.status === 401) {
-            return { success: false, error: 'Session expired' };
-        }
-
-        const errorData = await response.json().catch(() => ({}));
-        return { success: false, error: errorData.message || 'Failed to fetch cart' };
+        const cart = response.data;
+        return { success: true, cart };
     } catch (error) {
+        if (error.response && error.response.status === 401) {
+            return { success: false, error: 'Session expired', requiresAuth: true };
+        }
+        if (error.response) {
+            const errorData = error.response.data || {};
+            return { success: false, error: errorData.message || 'Failed to fetch cart' };
+        }
         console.error('Get cart error:', error);
         return { success: false, error: 'Network error. Please try again.' };
     }
-};
+}
 
-// Add item to cart
-export const addToCart = async (productVariantId, quantity = 1) => {
+// add item to cart
+export async function addToCart(productVariantId, quantity) {
+    if (quantity === undefined) quantity = 1;
+
     if (!isAuthenticated()) {
         return { success: false, error: 'Please login to add items to cart', requiresAuth: true };
     }
 
-    const requestBody = { productVariantId, quantity };
-    console.log('Cart API Request:', requestBody);
-
     try {
-        const response = await fetch(`${API_BASE_URL}/Cart/items`, {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify(requestBody)
+        const response = await axios.post(`${API_BASE_URL}/Cart/items`, { productVariantId, quantity }, {
+            headers: getAuthHeaders()
         });
 
-        console.log('Cart API Response status:', response.status);
-
-        if (response.ok) {
-            const cart = await response.json();
-            return { success: true, cart };
-        }
-
-        if (response.status === 401) {
+        const cart = response.data;
+        return { success: true, cart };
+    } catch (error) {
+        if (error.response && error.response.status === 401) {
             return { success: false, error: 'Session expired', requiresAuth: true };
         }
-
-        const errorText = await response.text();
-        console.error('Cart API Error:', errorText);
-        return { success: false, error: errorText || 'Failed to add item to cart' };
-    } catch (error) {
+        if (error.response) {
+            const errorText = typeof error.response.data === 'string' ? error.response.data : '';
+            return { success: false, error: errorText || 'Failed to add item to cart' };
+        }
         console.error('Add to cart error:', error);
         return { success: false, error: 'Network error. Please try again.' };
     }
-};
+}
 
-// Update cart item quantity
-export const updateCartItem = async (cartItemId, quantity) => {
+// update quantity of a cart item
+export async function updateCartItem(cartItemId, quantity) {
     if (!isAuthenticated()) {
         return { success: false, error: 'Not authenticated', requiresAuth: true };
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/Cart/items`, {
-            method: 'PUT',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ cartItemId, quantity })
+        const response = await axios.put(`${API_BASE_URL}/Cart/items`, { cartItemId, quantity }, {
+            headers: getAuthHeaders()
         });
 
-        if (response.ok) {
-            const cart = await response.json();
-            return { success: true, cart };
-        }
-
-        if (response.status === 401) {
+        const cart = response.data;
+        return { success: true, cart };
+    } catch (error) {
+        if (error.response && error.response.status === 401) {
             return { success: false, error: 'Session expired', requiresAuth: true };
         }
-
-        const errorText = await response.text();
-        return { success: false, error: errorText || 'Failed to update item' };
-    } catch (error) {
+        if (error.response) {
+            const errorText = typeof error.response.data === 'string' ? error.response.data : '';
+            return { success: false, error: errorText || 'Failed to update item' };
+        }
         console.error('Update cart item error:', error);
         return { success: false, error: 'Network error. Please try again.' };
     }
-};
+}
 
-// Remove item from cart
-export const removeFromCart = async (itemId) => {
+// remove a single item from cart
+export async function removeFromCart(itemId) {
     if (!isAuthenticated()) {
         return { success: false, error: 'Not authenticated', requiresAuth: true };
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/Cart/items/${itemId}`, {
-            method: 'DELETE',
+        await axios.delete(`${API_BASE_URL}/Cart/items/${itemId}`, {
             headers: getAuthHeaders()
         });
 
-        if (response.ok || response.status === 204) {
-            return { success: true };
-        }
-
-        if (response.status === 401) {
+        return { success: true };
+    } catch (error) {
+        if (error.response && error.response.status === 401) {
             return { success: false, error: 'Session expired', requiresAuth: true };
         }
-
-        return { success: false, error: 'Failed to remove item' };
-    } catch (error) {
+        if (error.response) {
+            return { success: false, error: 'Failed to remove item' };
+        }
         console.error('Remove from cart error:', error);
         return { success: false, error: 'Network error. Please try again.' };
     }
-};
+}
 
-// Clear all items from cart
-export const clearCart = async () => {
+// clear all items from cart
+export async function clearCart() {
     if (!isAuthenticated()) {
         return { success: false, error: 'Not authenticated', requiresAuth: true };
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/Cart`, {
-            method: 'DELETE',
+        await axios.delete(`${API_BASE_URL}/Cart`, {
             headers: getAuthHeaders()
         });
 
-        if (response.ok || response.status === 204) {
-            return { success: true };
-        }
-
-        if (response.status === 401) {
+        return { success: true };
+    } catch (error) {
+        if (error.response && error.response.status === 401) {
             return { success: false, error: 'Session expired', requiresAuth: true };
         }
-
-        return { success: false, error: 'Failed to clear cart' };
-    } catch (error) {
+        if (error.response) {
+            return { success: false, error: 'Failed to clear cart' };
+        }
         console.error('Clear cart error:', error);
         return { success: false, error: 'Network error. Please try again.' };
     }
-};
+}
 
 export default {
     getCart,

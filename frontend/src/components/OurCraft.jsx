@@ -6,33 +6,33 @@ import { Scissors } from 'lucide-react';
 // Import local image
 import ArtisanImg from '../assets/Indian artisan at work.jpg';
 
+const leftVariants = {
+    hidden: { opacity: 0, x: -50 },
+    visible: {
+        opacity: 1,
+        x: 0,
+        transition: {
+            duration: 0.8,
+            ease: [0.25, 0.46, 0.45, 0.94]
+        }
+    }
+};
+
+const rightVariants = {
+    hidden: { opacity: 0, x: 50 },
+    visible: {
+        opacity: 1,
+        x: 0,
+        transition: {
+            duration: 0.8,
+            ease: [0.25, 0.46, 0.45, 0.94]
+        }
+    }
+};
+
 const OurCraft = () => {
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true, margin: '-100px' });
-
-    const leftVariants = {
-        hidden: { opacity: 0, x: -50 },
-        visible: {
-            opacity: 1,
-            x: 0,
-            transition: {
-                duration: 0.8,
-                ease: [0.25, 0.46, 0.45, 0.94]
-            }
-        }
-    };
-
-    const rightVariants = {
-        hidden: { opacity: 0, x: 50 },
-        visible: {
-            opacity: 1,
-            x: 0,
-            transition: {
-                duration: 0.8,
-                ease: [0.25, 0.46, 0.45, 0.94]
-            }
-        }
-    };
 
     return (
         <section className="vastra-section bg-vastra-beige" ref={ref}>

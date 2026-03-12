@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Trash2, ShoppingBag, ArrowLeft, RefreshCw, Loader2 } from 'lucide-react';
@@ -16,8 +16,8 @@ const WishlistPage = () => {
     const { addToCart, isLoading: isCartLoading } = useCart();
     const { isAuthenticated } = useAuth();
 
-    const [removingId, setRemovingId] = React.useState(null);
-    const [addingToCartId, setAddingToCartId] = React.useState(null);
+    const [removingId, setRemovingId] = useState(null);
+    const [addingToCartId, setAddingToCartId] = useState(null);
 
     const handleRemoveItem = async (wishlistItemId) => {
         setRemovingId(wishlistItemId);
@@ -36,8 +36,8 @@ const WishlistPage = () => {
         setAddingToCartId(null);
 
         if (result.success) {
-            // Optionally remove from wishlist after adding to cart
-            // await removeFromWishlist(item.id);
+            // Remove from wishlist after adding to cart
+            await removeFromWishlist(item.id);
         }
     };
 
@@ -259,14 +259,6 @@ const WishlistPage = () => {
                                             borderRadius: '12px',
                                             overflow: 'hidden',
                                             transition: 'all 0.3s ease',
-                                        }}
-                                        onMouseEnter={(e) => {
-                                            e.currentTarget.style.boxShadow = '0 16px 40px rgba(128, 0, 32, 0.12)';
-                                            e.currentTarget.style.borderColor = 'var(--vastra-gold)';
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            e.currentTarget.style.boxShadow = 'none';
-                                            e.currentTarget.style.borderColor = 'rgba(128, 0, 32, 0.08)';
                                         }}
                                     >
                                         {/* Image */}

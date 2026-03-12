@@ -18,6 +18,26 @@ namespace EcommerceApplication.Controllers
             _context = context;
         }
 
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAllCoupons()
+        {
+            var coupons = await _context.Coupons
+                .Select(c => new CouponDto
+                {
+                    Id = c.Id,
+                    Code = c.Code,
+                    DiscountAmount = c.DiscountAmount,
+                    DiscountPercentage = c.DiscountPercentage,
+                    ExpirationDate = c.ExpirationDate,
+                    IsActive = c.IsActive,
+                    MinimumOrderAmount = c.MinimumOrderAmount
+                })
+                .ToListAsync();
+
+            return Ok(coupons);
+        }
+
         [HttpGet("active")]
         public async Task<IActionResult> GetActiveCoupons()
         {
@@ -135,6 +155,7 @@ namespace EcommerceApplication.Controllers
             coupon.DiscountPercentage = createCouponDto.DiscountPercentage;
             coupon.ExpirationDate = createCouponDto.ExpirationDate;
             coupon.MinimumOrderAmount = createCouponDto.MinimumOrderAmount;
+            coupon.IsActive = createCouponDto.IsActive; // was silently ignored before
 
             await _context.SaveChangesAsync();
             return NoContent();

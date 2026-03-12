@@ -30,6 +30,8 @@ namespace EcommerceApplication.DTOs.Coupon
 
         [Range(0, double.MaxValue, ErrorMessage = "Minimum order amount must be positive")]
         public decimal MinimumOrderAmount { get; set; }
+
+        public bool IsActive { get; set; } = true;
     }
 
     public class ValidateCouponDto

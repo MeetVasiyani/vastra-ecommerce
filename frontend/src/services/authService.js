@@ -1,42 +1,47 @@
 // Auth Service for Vastra
+import axios from 'axios';
+
 const BACKEND_URL = 'http://localhost:5121';
 const API_BASE_URL = `${BACKEND_URL}/api`;
 
-// Storage keys
+// keys used in storage
 const TOKEN_KEY = 'vastra_auth_token';
 const USER_KEY = 'vastra_user';
 const REMEMBER_KEY = 'vastra_remember';
 
-// Get storage based on remember preference
-const getStorage = () => {
-    const remember = localStorage.getItem(REMEMBER_KEY) === 'true';
-    return remember ? localStorage : sessionStorage;
-};
-
-// Store auth data
-const storeAuthData = (token, user, remember = true) => {
+// save token and user to storage
+function storeAuthData(token, user, remember) {
+    if (remember === undefined) remember = true;
     localStorage.setItem(REMEMBER_KEY, remember.toString());
-    const storage = remember ? localStorage : sessionStorage;
-    storage.setItem(TOKEN_KEY, token);
-    storage.setItem(USER_KEY, JSON.stringify(user));
-};
+    if (remember) {
+        sessionStorage.removeItem(TOKEN_KEY);
+        sessionStorage.removeItem(USER_KEY);
+        localStorage.setItem(TOKEN_KEY, token);
+        localStorage.setItem(USER_KEY, JSON.stringify(user));
+    } else {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
+        sessionStorage.setItem(TOKEN_KEY, token);
+        sessionStorage.setItem(USER_KEY, JSON.stringify(user));
+    }
+}
 
-// Clear auth data
-const clearAuthData = () => {
+// remove token and user from storage
+function clearAuthData() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     localStorage.removeItem(REMEMBER_KEY);
     sessionStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem(USER_KEY);
-};
+}
 
-// Get stored token
-export const getToken = () => {
+// get stored token
+export function getToken() {
     return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
-};
+}
 
-// Get stored user
-export const getStoredUser = () => {
+// get stored user object
+export function getStoredUser() {
     const userStr = localStorage.getItem(USER_KEY) || sessionStorage.getItem(USER_KEY);
     if (userStr) {
         try {
@@ -46,25 +51,24 @@ export const getStoredUser = () => {
         }
     }
     return null;
-};
+}
 
-// Check if user is authenticated
-export const isAuthenticated = () => {
+// check if user is logged in and token is not expired
+export function isAuthenticated() {
     const token = getToken();
     if (!token) return false;
 
-    // Check JWT expiry
     try {
         const payload = JSON.parse(atob(token.split('.')[1]));
-        const exp = payload.exp * 1000;
-        return Date.now() < exp;
+        const expTime = payload.exp * 1000;
+        return Date.now() < expTime;
     } catch {
         return false;
     }
-};
+}
 
-// Get auth headers for API requests
-export const getAuthHeaders = () => {
+// get auth headers for API requests
+export function getAuthHeaders() {
     const token = getToken();
     if (token) {
         return {
@@ -75,22 +79,19 @@ export const getAuthHeaders = () => {
     return {
         'Content-Type': 'application/json'
     };
-};
+}
 
-// Login
-export const login = async (email, password, remember = true) => {
+// login
+export async function login(email, password, remember) {
+    if (remember === undefined) remember = true;
     try {
-        const response = await fetch(`${API_BASE_URL}/Auth/login`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ email, password })
+        const response = await axios.post(`${API_BASE_URL}/Auth/login`, { email, password, rememberMe: remember }, {
+            headers: { 'Content-Type': 'application/json' }
         });
 
-        const data = await response.json();
+        const data = response.data;
 
-        if (response.ok && data.isSuccess) {
+        if (data.isSuccess) {
             const user = {
                 id: data.userId,
                 email: data.email,
@@ -105,28 +106,31 @@ export const login = async (email, password, remember = true) => {
             error: data.message || 'Invalid email or password'
         };
     } catch (error) {
+        if (error.response) {
+            const data = error.response.data;
+            return {
+                success: false,
+                error: data.message || 'Invalid email or password'
+            };
+        }
         console.error('Login error:', error);
         return {
             success: false,
             error: 'Network error. Please try again.'
         };
     }
-};
+}
 
-// Register
-export const register = async (userData) => {
+// register
+export async function register(userData) {
     try {
-        const response = await fetch(`${API_BASE_URL}/Auth/register`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(userData)
+        const response = await axios.post(`${API_BASE_URL}/Auth/register`, userData, {
+            headers: { 'Content-Type': 'application/json' }
         });
 
-        const data = await response.json();
+        const data = response.data;
 
-        if (response.ok && data.isSuccess) {
+        if (data.isSuccess) {
             const user = {
                 id: data.userId,
                 email: data.email,
@@ -141,104 +145,237 @@ export const register = async (userData) => {
             error: data.message || 'Registration failed. Please try again.'
         };
     } catch (error) {
+        if (error.response) {
+            const data = error.response.data;
+            return {
+                success: false,
+                error: data.message || 'Registration failed. Please try again.'
+            };
+        }
         console.error('Registration error:', error);
         return {
             success: false,
             error: 'Network error. Please try again.'
         };
     }
-};
+}
 
-// Logout
-export const logout = () => {
+// logout
+export function logout() {
     clearAuthData();
-};
+}
 
-// Fetch user profile
-export const fetchUserProfile = async () => {
+// get user profile from API
+export async function fetchUserProfile() {
     try {
-        const response = await fetch(`${API_BASE_URL}/User/profile`, {
-            method: 'GET',
+        const response = await axios.get(`${API_BASE_URL}/User/profile`, {
             headers: getAuthHeaders()
         });
 
-        if (response.ok) {
-            const profile = await response.json();
-            return { success: true, profile };
-        }
-
-        if (response.status === 401) {
+        const profile = response.data;
+        return { success: true, profile };
+    } catch (error) {
+        if (error.response && error.response.status === 401) {
             clearAuthData();
             return { success: false, error: 'Session expired' };
         }
-
-        return { success: false, error: 'Failed to fetch profile' };
-    } catch (error) {
+        if (error.response) {
+            return { success: false, error: 'Failed to fetch profile' };
+        }
         console.error('Profile fetch error:', error);
         return { success: false, error: 'Network error' };
     }
-};
+}
 
-// Add user address
-export const addUserAddress = async (addressData) => {
+// add a new address for the user
+export async function addUserAddress(addressData) {
     try {
-        const response = await fetch(`${API_BASE_URL}/User/addresses`, {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify(addressData)
-        });
-
-        if (response.ok) {
-            const address = await response.json();
-            return { success: true, address };
-        }
-
-        if (response.status === 401) {
-            clearAuthData();
-            return { success: false, error: 'Session expired' };
-        }
-
-        const errorText = await response.text();
-        return { success: false, error: errorText || 'Failed to add address' };
-    } catch (error) {
-        console.error('Add address error:', error);
-        return { success: false, error: 'Network error' };
-    }
-};
-
-// Delete user address
-export const deleteUserAddress = async (addressId) => {
-    try {
-        const response = await fetch(`${API_BASE_URL}/User/addresses/${addressId}`, {
-            method: 'DELETE',
+        const response = await axios.post(`${API_BASE_URL}/User/addresses`, addressData, {
             headers: getAuthHeaders()
         });
 
-        if (response.ok || response.status === 204) {
-            return { success: true };
-        }
-
-        if (response.status === 401) {
+        const address = response.data;
+        return { success: true, address };
+    } catch (error) {
+        if (error.response && error.response.status === 401) {
             clearAuthData();
             return { success: false, error: 'Session expired' };
         }
+        if (error.response) {
+            const errorText = typeof error.response.data === 'string' ? error.response.data : '';
+            return { success: false, error: errorText || 'Failed to add address' };
+        }
+        console.error('Add address error:', error);
+        return { success: false, error: 'Network error' };
+    }
+}
 
-        return { success: false, error: 'Failed to delete address' };
+// delete a user address by id
+export async function deleteUserAddress(addressId) {
+    try {
+        await axios.delete(`${API_BASE_URL}/User/addresses/${addressId}`, {
+            headers: getAuthHeaders()
+        });
+
+        return { success: true };
     } catch (error) {
+        if (error.response && error.response.status === 401) {
+            clearAuthData();
+            return { success: false, error: 'Session expired' };
+        }
+        if (error.response) {
+            return { success: false, error: 'Failed to delete address' };
+        }
         console.error('Delete address error:', error);
         return { success: false, error: 'Network error' };
     }
-};
+}
+
+// update a user address
+export async function updateUserAddress(addressId, addressData) {
+    try {
+        const response = await axios.put(`${API_BASE_URL}/User/addresses/${addressId}`, addressData, {
+            headers: getAuthHeaders()
+        });
+
+        const address = response.data;
+        return { success: true, address };
+    } catch (error) {
+        if (error.response && error.response.status === 401) {
+            clearAuthData();
+            return { success: false, error: 'Session expired' };
+        }
+        if (error.response) {
+            const errorText = typeof error.response.data === 'string' ? error.response.data : '';
+            return { success: false, error: errorText || 'Failed to update address' };
+        }
+        console.error('Update address error:', error);
+        return { success: false, error: 'Network error' };
+    }
+}
+
+// update user profile
+export async function updateUserProfile(profileData) {
+    try {
+        const response = await axios.put(`${API_BASE_URL}/User/profile`, profileData, {
+            headers: getAuthHeaders()
+        });
+
+        const profile = response.data;
+        return { success: true, profile };
+    } catch (error) {
+        if (error.response && error.response.status === 401) {
+            clearAuthData();
+            return { success: false, error: 'Session expired' };
+        }
+        if (error.response) {
+            const errorText = typeof error.response.data === 'string' ? error.response.data : '';
+            return { success: false, error: errorText || 'Failed to update profile' };
+        }
+        console.error('Update profile error:', error);
+        return { success: false, error: 'Network error' };
+    }
+}
+
+// delete user account
+export async function deleteAccount() {
+    try {
+        await axios.delete(`${API_BASE_URL}/User`, {
+            headers: getAuthHeaders()
+        });
+
+        clearAuthData();
+        return { success: true };
+    } catch (error) {
+        if (error.response && error.response.status === 401) {
+            clearAuthData();
+            return { success: false, error: 'Session expired' };
+        }
+        if (error.response) {
+            const data = error.response.data || {};
+            return { success: false, error: data.message || 'Failed to delete account' };
+        }
+        console.error('Delete account error:', error);
+        return { success: false, error: 'Network error' };
+    }
+}
+
+// send forgot password email
+export async function forgotPassword(email) {
+    try {
+        const response = await axios.post(`${API_BASE_URL}/Auth/forgot-password`, { email }, {
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        return response.data;
+    } catch (error) {
+        if (error.response) {
+            const data = error.response.data;
+            const err = new Error(data.message || 'Failed to send reset email');
+            err.response = { data };
+            throw err;
+        }
+        throw error;
+    }
+}
+
+// reset password with token
+export async function resetPassword(data) {
+    try {
+        const response = await axios.post(`${API_BASE_URL}/Auth/reset-password`, data, {
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        return response.data;
+    } catch (error) {
+        if (error.response) {
+            const responseData = error.response.data;
+            const err = new Error(responseData.message || 'Failed to reset password');
+            err.response = { data: responseData };
+            throw err;
+        }
+        throw error;
+    }
+}
+
+// change password for authenticated user
+export async function changePassword(data) {
+    try {
+        const response = await axios.post(`${API_BASE_URL}/Auth/change-password`, data, {
+            headers: getAuthHeaders()
+        });
+
+        return response.data;
+    } catch (error) {
+        if (error.response && error.response.status === 401) {
+            clearAuthData();
+            throw new Error('Session expired');
+        }
+        if (error.response) {
+            const responseData = error.response.data;
+            const err = new Error(responseData.message || 'Failed to change password');
+            err.response = { data: responseData };
+            throw err;
+        }
+        throw error;
+    }
+}
 
 export default {
     login,
     register,
     logout,
     getToken,
+    forgotPassword,
+    resetPassword,
+    changePassword,
     getStoredUser,
     isAuthenticated,
     getAuthHeaders,
     fetchUserProfile,
     addUserAddress,
-    deleteUserAddress
+    deleteUserAddress,
+    updateUserAddress,
+    updateUserProfile,
+    deleteAccount
 };

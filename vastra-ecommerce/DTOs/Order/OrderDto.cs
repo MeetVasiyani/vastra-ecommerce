@@ -8,6 +8,7 @@ namespace EcommerceApplication.DTOs.Order
         public decimal TotalAmount { get; set; }
         public List<OrderItemDto> Items { get; set; } = new();
         public string PaymentStatus { get; set; } = string.Empty;
+        public string? RazorpayOrderId { get; set; }
     }
 
     public class OrderItemDto

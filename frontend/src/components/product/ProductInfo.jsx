@@ -1,18 +1,20 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ShoppingBag, Heart, Check, Truck, Shield, RotateCcw, Loader2 } from 'lucide-react';
+import { ShoppingBag, Heart, Check, Truck, Shield, RotateCcw, Loader2, Tag } from 'lucide-react';
 import { formatPrice } from '../../services/api';
 import { getColorHex } from '../../utils/constants';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useWishlist } from '../../context/WishlistContext';
+import { useSale } from '../../context/SaleContext';
 
 const ProductInfo = ({ product }) => {
     const navigate = useNavigate();
     const { addToCart, isLoading: isCartLoading } = useCart();
     const { isAuthenticated } = useAuth();
     const { isInWishlist, toggleWishlist, isLoading: isWishlistLoading } = useWishlist();
+    const { getBestSaleForPrice } = useSale();
 
     const [selectedColor, setSelectedColor] = useState(null);
     const [selectedSize, setSelectedSize] = useState(null);
@@ -102,29 +104,79 @@ const ProductInfo = ({ product }) => {
 
             {/* Price */}
             <motion.div variants={itemVariants} className="mb-4">
-                <span
-                    style={{
-                        fontSize: '1.75rem',
-                        fontWeight: 600,
-                        color: 'var(--vastra-maroon)',
-                        fontFamily: 'EB Garamond, serif',
-                    }}
-                >
-                    {formatPrice(displayPrice)}
-                </span>
-                {selectedVariant?.stockQuantity > 0 && selectedVariant?.stockQuantity <= 5 && (
-                    <span
-                        className="ms-3 px-2 py-1"
-                        style={{
-                            fontSize: '0.8rem',
-                            background: 'rgba(128, 0, 32, 0.1)',
-                            color: 'var(--vastra-maroon)',
-                            borderRadius: '4px',
-                        }}
-                    >
-                        Only {selectedVariant.stockQuantity} left
-                    </span>
-                )}
+                {(() => {
+                    const sale = getBestSaleForPrice(displayPrice);
+                    if (sale) {
+                        return (
+                            <>
+                                <div className="d-flex align-items-baseline gap-3 flex-wrap">
+                                    <span
+                                        style={{
+                                            fontSize: '1.75rem',
+                                            fontWeight: 600,
+                                            color: 'var(--vastra-maroon)',
+                                            fontFamily: 'EB Garamond, serif',
+                                        }}
+                                    >
+                                        {formatPrice(sale.discountedPrice)}
+                                    </span>
+                                    <span className="price-original" style={{ fontSize: '1.2rem' }}>
+                                        {formatPrice(displayPrice)}
+                                    </span>
+                                </div>
+                                <div className="d-flex align-items-center gap-2 mt-2 flex-wrap">
+                                    <span className="savings-pill">
+                                        You save {formatPrice(sale.saving)}{sale.pct ? ` (${sale.pct}% off)` : ''}
+                                    </span>
+                                    <span className="coupon-hint">
+                                        <Tag size={13} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+                                        Coupon <strong>{sale.label}</strong>  auto-applied
+                                    </span>
+                                </div>
+                                {selectedVariant?.stockQuantity > 0 && selectedVariant?.stockQuantity <= 5 && (
+                                    <span
+                                        className="ms-0 mt-2 d-inline-block px-2 py-1"
+                                        style={{
+                                            fontSize: '0.8rem',
+                                            background: 'rgba(128, 0, 32, 0.1)',
+                                            color: 'var(--vastra-maroon)',
+                                            borderRadius: '4px',
+                                        }}
+                                    >
+                                        Only {selectedVariant.stockQuantity} left
+                                    </span>
+                                )}
+                            </>
+                        );
+                    }
+                    return (
+                        <>
+                            <span
+                                style={{
+                                    fontSize: '1.75rem',
+                                    fontWeight: 600,
+                                    color: 'var(--vastra-maroon)',
+                                    fontFamily: 'EB Garamond, serif',
+                                }}
+                            >
+                                {formatPrice(displayPrice)}
+                            </span>
+                            {selectedVariant?.stockQuantity > 0 && selectedVariant?.stockQuantity <= 5 && (
+                                <span
+                                    className="ms-3 px-2 py-1"
+                                    style={{
+                                        fontSize: '0.8rem',
+                                        background: 'rgba(128, 0, 32, 0.1)',
+                                        color: 'var(--vastra-maroon)',
+                                        borderRadius: '4px',
+                                    }}
+                                >
+                                    Only {selectedVariant.stockQuantity} left
+                                </span>
+                            )}
+                        </>
+                    );
+                })()}
             </motion.div>
 
             {/* Description */}

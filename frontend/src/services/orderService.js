@@ -1,4 +1,5 @@
 // Order Service for Vastra
+import axios from 'axios';
 import { getAuthHeaders, isAuthenticated } from './authService';
 
 const BACKEND_URL = 'http://localhost:5121';
@@ -20,28 +21,27 @@ export const createOrder = async (shippingAddress, paymentMethod = 'COD', coupon
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/Order`, {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify(payload)
+        const response = await axios.post(`${API_BASE_URL}/Order`, payload, {
+            headers: getAuthHeaders()
         });
 
-        if (response.ok) {
-            const order = await response.json();
-            return { success: true, order };
-        }
-
-        if (response.status === 401) {
+        const data = response.data;
+        // The backend returns { order: {...}, razorpayOrderId: "..." }
+        const order = data.order || data;
+        const razorpayOrderId = data.razorpayOrderId;
+        
+        return { success: true, order, razorpayOrderId };
+    } catch (error) {
+        if (error.response && error.response.status === 401) {
             return { success: false, error: 'Session expired. Please login again.', requiresAuth: true };
         }
-
-        if (response.status === 400) {
-            const errorText = await response.text();
+        if (error.response && error.response.status === 400) {
+            const errorText = typeof error.response.data === 'string' ? error.response.data : '';
             return { success: false, error: errorText || 'Invalid order data' };
         }
-
-        return { success: false, error: 'Failed to place order. Please try again.' };
-    } catch (error) {
+        if (error.response) {
+            return { success: false, error: 'Failed to place order. Please try again.' };
+        }
         console.error('Create order error:', error);
         return { success: false, error: 'Network error. Please check your connection.' };
     }
@@ -54,22 +54,20 @@ export const getMyOrders = async (page = 1, pageSize = 10) => {
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/Order?page=${page}&pageSize=${pageSize}`, {
-            method: 'GET',
-            headers: getAuthHeaders()
+        const response = await axios.get(`${API_BASE_URL}/Order`, {
+            headers: getAuthHeaders(),
+            params: { page, pageSize }
         });
 
-        if (response.ok) {
-            const data = await response.json();
-            return { success: true, orders: data };
-        }
-
-        if (response.status === 401) {
+        const data = response.data;
+        return { success: true, orders: data };
+    } catch (error) {
+        if (error.response && error.response.status === 401) {
             return { success: false, error: 'Session expired', requiresAuth: true };
         }
-
-        return { success: false, error: 'Failed to fetch orders' };
-    } catch (error) {
+        if (error.response) {
+            return { success: false, error: 'Failed to fetch orders' };
+        }
         console.error('Get orders error:', error);
         return { success: false, error: 'Network error' };
     }
@@ -82,27 +80,55 @@ export const getOrderById = async (id) => {
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/Order/${id}`, {
-            method: 'GET',
+        const response = await axios.get(`${API_BASE_URL}/Order/${id}`, {
             headers: getAuthHeaders()
         });
 
-        if (response.ok) {
-            const order = await response.json();
-            return { success: true, order };
-        }
-
-        if (response.status === 401) {
+        const order = response.data;
+        return { success: true, order };
+    } catch (error) {
+        if (error.response && error.response.status === 401) {
             return { success: false, error: 'Session expired', requiresAuth: true };
         }
-
-        if (response.status === 404) {
+        if (error.response && error.response.status === 404) {
             return { success: false, error: 'Order not found' };
         }
-
-        return { success: false, error: 'Failed to fetch order' };
-    } catch (error) {
+        if (error.response) {
+            return { success: false, error: 'Failed to fetch order' };
+        }
         console.error('Get order error:', error);
+        return { success: false, error: 'Network error' };
+    }
+};
+
+// Cancel an order
+export const cancelOrder = async (orderId) => {
+    if (!isAuthenticated()) {
+        return { success: false, error: 'Not authenticated', requiresAuth: true };
+    }
+
+    try {
+        const response = await axios.post(`${API_BASE_URL}/Order/${orderId}/cancel`, null, {
+            headers: getAuthHeaders()
+        });
+
+        const order = response.data;
+        return { success: true, order };
+    } catch (error) {
+        if (error.response && error.response.status === 401) {
+            return { success: false, error: 'Session expired', requiresAuth: true };
+        }
+        if (error.response && error.response.status === 404) {
+            return { success: false, error: 'Order not found' };
+        }
+        if (error.response && error.response.status === 400) {
+            const errorText = typeof error.response.data === 'string' ? error.response.data : '';
+            return { success: false, error: errorText || 'Cannot cancel this order' };
+        }
+        if (error.response) {
+            return { success: false, error: 'Failed to cancel order' };
+        }
+        console.error('Cancel order error:', error);
         return { success: false, error: 'Network error' };
     }
 };
@@ -110,5 +136,6 @@ export const getOrderById = async (id) => {
 export default {
     createOrder,
     getMyOrders,
-    getOrderById
+    getOrderById,
+    cancelOrder
 };

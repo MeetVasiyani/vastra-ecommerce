@@ -1,37 +1,50 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import {
-    getCart as fetchCart,
-    addToCart as apiAddToCart,
-    updateCartItem as apiUpdateCartItem,
-    removeFromCart as apiRemoveFromCart,
-    clearCart as apiClearCart
-} from '../services/cartService';
+import { getCart, addToCart, updateCartItem, removeFromCart, clearCart } from '../services/cartService';
+import { validateCoupon } from '../services/couponService';
 import { useAuth } from './AuthContext';
 
 const CartContext = createContext(null);
 
-// Cart Provider component
 export const CartProvider = ({ children }) => {
     const [cart, setCart] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const [notification, setNotification] = useState(null);
+    const [appliedCoupon, setAppliedCoupon] = useState(null);
+    const [isCouponLoading, setIsCouponLoading] = useState(false);
 
-    const { isAuthenticated, user } = useAuth();
+    const { isAuthenticated, user, logout } = useAuth();
 
-    // Calculate cart item count
-    const itemCount = cart?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
+    // how many items are in the cart
+    let itemCount = 0;
+    if (cart && cart.items) {
+        for (let i = 0; i < cart.items.length; i++) {
+            itemCount += cart.items[i].quantity;
+        }
+    }
 
-    // Fetch cart when user logs in
+    const discountAmount = appliedCoupon ? appliedCoupon.discountAmount : 0;
+    const totalAmount = cart ? cart.totalAmount : 0;
+    const finalTotal = Math.max(0, totalAmount - discountAmount);
+
+    // fetch cart when user logs in or out
     useEffect(() => {
         if (isAuthenticated) {
             loadCart();
         } else {
             setCart(null);
+            setAppliedCoupon(null);
         }
     }, [isAuthenticated, user]);
 
-    // Load cart from API
+    // re-validate coupon when cart total changes
+    useEffect(() => {
+        if (appliedCoupon && cart && cart.totalAmount) {
+            applyCoupon(appliedCoupon.code, true);
+        }
+    }, [cart && cart.totalAmount]);
+
+    // load cart from API
     const loadCart = async () => {
         if (!isAuthenticated) return;
 
@@ -39,10 +52,14 @@ export const CartProvider = ({ children }) => {
         setError(null);
 
         try {
-            const result = await fetchCart();
+            const result = await getCart();
             if (result.success) {
                 setCart(result.cart);
             } else {
+                if (result.requiresAuth) {
+                    logout();
+                    return;
+                }
                 setError(result.error);
             }
         } finally {
@@ -50,19 +67,21 @@ export const CartProvider = ({ children }) => {
         }
     };
 
-    // Show notification
-    const showNotification = (message, type = 'success') => {
+    // show a toast notification for a few seconds
+    const showNotification = (message, type) => {
+        if (type === undefined) type = 'success';
         setNotification({ message, type });
         setTimeout(() => setNotification(null), 3000);
     };
 
-    // Add item to cart
-    const addToCart = async (productVariantId, quantity = 1) => {
+    // add item to cart
+    const addItemToCart = async (productVariantId, quantity) => {
+        if (quantity === undefined) quantity = 1;
         setIsLoading(true);
         setError(null);
 
         try {
-            const result = await apiAddToCart(productVariantId, quantity);
+            const result = await addToCart(productVariantId, quantity);
 
             if (result.success) {
                 setCart(result.cart);
@@ -71,6 +90,7 @@ export const CartProvider = ({ children }) => {
             }
 
             if (result.requiresAuth) {
+                logout();
                 return { success: false, requiresAuth: true, error: result.error };
             }
 
@@ -82,45 +102,22 @@ export const CartProvider = ({ children }) => {
         }
     };
 
-    // Update cart item quantity
-    const updateCartItem = async (cartItemId, quantity) => {
+    // update quantity of an item already in cart
+    const updateItem = async (cartItemId, quantity) => {
         setIsLoading(true);
         setError(null);
 
         try {
-            const result = await apiUpdateCartItem(cartItemId, quantity);
+            const result = await updateCartItem(cartItemId, quantity);
 
             if (result.success) {
                 setCart(result.cart);
                 return { success: true };
             }
 
-            setError(result.error);
-            showNotification(result.error, 'error');
-            return { success: false, error: result.error };
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    // Remove item from cart
-    const removeFromCart = async (itemId) => {
-        setIsLoading(true);
-        setError(null);
-
-        try {
-            const result = await apiRemoveFromCart(itemId);
-
-            if (result.success) {
-                setCart(prev => ({
-                    ...prev,
-                    items: prev.items.filter(item => item.id !== itemId),
-                    totalAmount: prev.items
-                        .filter(item => item.id !== itemId)
-                        .reduce((total, item) => total + (item.price * item.quantity), 0)
-                }));
-                showNotification('Item removed from cart', 'success');
-                return { success: true };
+            if (result.requiresAuth) {
+                logout();
+                return { success: false, requiresAuth: true, error: result.error };
             }
 
             setError(result.error);
@@ -131,22 +128,56 @@ export const CartProvider = ({ children }) => {
         }
     };
 
-    // Clear entire cart
+    // remove a single item from cart
+    const removeItem = async (itemId) => {
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            const result = await removeFromCart(itemId);
+
+            if (result.success) {
+                // rebuild cart items without the removed item
+                const newItems = cart.items.filter(item => item.id !== itemId);
+                let newTotal = 0;
+                for (let i = 0; i < newItems.length; i++) {
+                    newTotal += newItems[i].price * newItems[i].quantity;
+                }
+                setCart({ ...cart, items: newItems, totalAmount: newTotal });
+                showNotification('Item removed from cart', 'success');
+                return { success: true };
+            }
+
+            if (result.requiresAuth) {
+                logout();
+                return { success: false, requiresAuth: true, error: result.error };
+            }
+
+            setError(result.error);
+            showNotification(result.error, 'error');
+            return { success: false, error: result.error };
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // clear all items from cart
     const clearCartItems = async () => {
         setIsLoading(true);
         setError(null);
 
         try {
-            const result = await apiClearCart();
+            const result = await clearCart();
 
             if (result.success) {
-                setCart(prev => ({
-                    ...prev,
-                    items: [],
-                    totalAmount: 0
-                }));
+                setCart({ ...cart, items: [], totalAmount: 0 });
                 showNotification('Cart cleared', 'success');
                 return { success: true };
+            }
+
+            if (result.requiresAuth) {
+                logout();
+                return { success: false, requiresAuth: true, error: result.error };
             }
 
             setError(result.error);
@@ -157,24 +188,79 @@ export const CartProvider = ({ children }) => {
         }
     };
 
-    // Dismiss notification
+    // apply a coupon code
+    const applyCoupon = async (code, silent) => {
+        if (silent === undefined) silent = false;
+
+        if (!isAuthenticated) {
+            if (!silent) showNotification('Please login to apply coupons', 'error');
+            return { success: false, error: 'Not authenticated' };
+        }
+
+        if (!cart || !cart.totalAmount || cart.totalAmount <= 0) {
+            if (!silent) showNotification('Your cart is empty', 'error');
+            return { success: false, error: 'Cart is empty' };
+        }
+
+        setIsCouponLoading(true);
+        setError(null);
+
+        try {
+            const result = await validateCoupon(code, cart.totalAmount);
+
+            if (result.success && result.coupon) {
+                setAppliedCoupon(result.coupon);
+                if (!silent) showNotification('Coupon applied successfully!', 'success');
+                return { success: true, coupon: result.coupon };
+            }
+
+            if (result.requiresAuth) {
+                logout();
+                return { success: false, requiresAuth: true, error: result.error };
+            }
+
+            setAppliedCoupon(null);
+            if (!silent) showNotification(result.error || 'Invalid coupon', 'error');
+            return { success: false, error: result.error };
+        } catch (err) {
+            setAppliedCoupon(null);
+            if (!silent) showNotification('Failed to apply coupon', 'error');
+            return { success: false, error: 'Failed to apply coupon' };
+        } finally {
+            setIsCouponLoading(false);
+        }
+    };
+
+    // remove coupon
+    const removeCoupon = () => {
+        setAppliedCoupon(null);
+        showNotification('Coupon removed', 'success');
+    };
+
+    // dismiss the notification banner
     const dismissNotification = () => {
         setNotification(null);
     };
 
     const value = {
         cart,
-        items: cart?.items || [],
+        items: cart ? cart.items : [],
         itemCount,
-        totalAmount: cart?.totalAmount || 0,
+        totalAmount: cart ? cart.totalAmount : 0,
+        discountAmount,
+        finalTotal,
+        appliedCoupon,
+        isCouponLoading,
         isLoading,
         error,
         notification,
         loadCart,
-        addToCart,
-        updateCartItem,
-        removeFromCart,
+        addToCart: addItemToCart,
+        updateCartItem: updateItem,
+        removeFromCart: removeItem,
         clearCart: clearCartItems,
+        applyCoupon,
+        removeCoupon,
         dismissNotification
     };
 
@@ -185,7 +271,7 @@ export const CartProvider = ({ children }) => {
     );
 };
 
-// Hook to use cart context
+// hook to use cart context
 export const useCart = () => {
     const context = useContext(CartContext);
     if (!context) {

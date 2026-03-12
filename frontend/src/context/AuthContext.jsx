@@ -10,39 +10,39 @@ import {
 
 const AuthContext = createContext(null);
 
-// Auth Provider component
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Check if user is already logged in on mount
+    // check if user is already logged in when app starts
     useEffect(() => {
-        const initAuth = async () => {
+        async function initAuth() {
             try {
                 if (checkAuth()) {
                     const storedUser = getStoredUser();
                     if (storedUser) {
                         setUser(storedUser);
-                        // Get fresh profile data
-                        const { success, profile } = await fetchUserProfile();
-                        if (success && profile) {
-                            setUser(prev => ({ ...prev, ...profile }));
+                        // get fresh profile data
+                        const result = await fetchUserProfile();
+                        if (result.success && result.profile) {
+                            setUser({ ...storedUser, ...result.profile });
                         }
                     }
                 }
             } catch (err) {
-                console.error('Auth initialization error:', err);
+                console.error('Auth init error:', err);
             } finally {
                 setIsLoading(false);
             }
-        };
+        }
 
         initAuth();
     }, []);
 
-    // Login function
-    const login = async (email, password, remember = true) => {
+    // login
+    const login = async (email, password, remember) => {
+        if (remember === undefined) remember = true;
         setError(null);
         setIsLoading(true);
         try {
@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    // Register function
+    // register
     const register = async (userData) => {
         setError(null);
         setIsLoading(true);
@@ -75,14 +75,14 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    // Logout function
+    // logout
     const logout = () => {
         authLogout();
         setUser(null);
         setError(null);
     };
 
-    // Clear errors
+    // clear errors
     const clearError = () => {
         setError(null);
     };
@@ -105,7 +105,7 @@ export const AuthProvider = ({ children }) => {
     );
 };
 
-// Hook to use auth context
+// hook to use auth context
 export const useAuth = () => {
     const context = useContext(AuthContext);
     if (!context) {

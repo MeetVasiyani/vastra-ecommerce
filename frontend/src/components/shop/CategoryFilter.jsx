@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import './CategoryFilter.css';
 
 const CategoryFilter = ({ categories, selectedCategory, onCategoryChange }) => {
     // Separate parents and children
@@ -87,34 +88,6 @@ const CategoryFilter = ({ categories, selectedCategory, onCategoryChange }) => {
                     </motion.div>
                 )}
             </AnimatePresence>
-
-            <style jsx>{`
-                .parent-tab-btn {
-                    background: transparent;
-                    border: none;
-                    border-bottom: 2px solid transparent;
-                    padding: 0.5rem 1rem;
-                    font-family: 'EB Garamond', serif;
-                    font-size: 1.25rem;
-                    color: var(--vastra-dark);
-                    opacity: 0.6;
-                    transition: all 0.3s ease;
-                }
-                .parent-tab-btn:hover {
-                    opacity: 1;
-                    color: var(--vastra-maroon);
-                }
-                .parent-tab-btn.active {
-                    opacity: 1;
-                    color: var(--vastra-maroon);
-                    border-bottom-color: var(--vastra-maroon);
-                    font-weight: 600;
-                }
-                .category-filter-btn {
-                    font-size: 0.95rem;
-                    padding: 8px 20px;
-                }
-            `}</style>
         </div>
     );
 };

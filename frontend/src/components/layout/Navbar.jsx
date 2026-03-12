@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, LogOut, ShoppingBag, Heart, Menu, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
+import { isAdmin } from '../../services/adminService';
 
 const Navbar = () => {
     const [isScrolled, setIsScrolled] = useState(false);
@@ -16,6 +17,8 @@ const Navbar = () => {
     const { itemCount } = useCart();
     const { itemCount: wishlistCount } = useWishlist();
     const navigate = useNavigate();
+    const location = useLocation(); // Initialize useLocation
+    const userIsAdmin = isAdmin(); // Check admin status
 
     useEffect(() => {
         const handleScroll = () => {
@@ -254,6 +257,26 @@ const Navbar = () => {
                                             </p>
                                         </div>
                                         <div className="py-2">
+                                            {userIsAdmin && (
+                                                <Link
+                                                    to="/admin"
+                                                    className="d-flex align-items-center gap-2 w-100 px-4 py-2 text-decoration-none"
+                                                    style={{
+                                                        color: 'var(--vastra-gold)',
+                                                        fontWeight: 600,
+                                                        transition: 'background 0.2s ease'
+                                                    }}
+                                                    onClick={() => setIsUserMenuOpen(false)}
+                                                    onMouseEnter={(e) => {
+                                                        e.currentTarget.style.background = 'rgba(128, 0, 32, 0.05)';
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        e.currentTarget.style.background = 'transparent';
+                                                    }}
+                                                >
+                                                    <span>👑 Admin Panel</span>
+                                                </Link>
+                                            )}
                                             <Link
                                                 to="/account"
                                                 className="d-flex align-items-center gap-2 w-100 px-4 py-2 text-decoration-none"
@@ -299,6 +322,7 @@ const Navbar = () => {
                         <div className="d-flex align-items-center gap-3">
                             <Link
                                 to="/login"
+                                state={{ from: location }} // Pass location state
                                 className="text-decoration-none"
                                 style={{
                                     color: 'var(--vastra-maroon)',
@@ -425,6 +449,19 @@ const Navbar = () => {
                                         >
                                             Signed in as {user?.email}
                                         </div>
+                                        {userIsAdmin && (
+                                            <Link
+                                                to="/admin"
+                                                className="d-flex align-items-center gap-2 text-decoration-none py-2"
+                                                style={{
+                                                    color: 'var(--vastra-gold)',
+                                                    fontWeight: 600
+                                                }}
+                                                onClick={() => setIsMobileMenuOpen(false)}
+                                            >
+                                                <span>👑 Admin Panel</span>
+                                            </Link>
+                                        )}
                                         <Link
                                             to="/account"
                                             className="d-flex align-items-center gap-2 text-decoration-none py-2"
@@ -457,6 +494,7 @@ const Navbar = () => {
                                     <div className="d-flex flex-column gap-2 pt-2">
                                         <Link
                                             to="/login"
+                                            state={{ from: location }} // Pass location state
                                             className="btn btn-vastra-outline w-100"
                                             onClick={() => setIsMobileMenuOpen(false)}
                                         >

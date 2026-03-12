@@ -1,4 +1,5 @@
 // Wishlist Service for Vastra
+import axios from 'axios';
 import { getAuthHeaders, isAuthenticated } from './authService';
 
 const BACKEND_URL = 'http://localhost:5121';
@@ -11,23 +12,20 @@ export const getWishlist = async () => {
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/Wishlist`, {
-            method: 'GET',
+        const response = await axios.get(`${API_BASE_URL}/Wishlist`, {
             headers: getAuthHeaders()
         });
 
-        if (response.ok) {
-            const wishlist = await response.json();
-            return { success: true, wishlist };
-        }
-
-        if (response.status === 401) {
+        const wishlist = response.data;
+        return { success: true, wishlist };
+    } catch (error) {
+        if (error.response && error.response.status === 401) {
             return { success: false, error: 'Session expired', requiresAuth: true };
         }
-
-        const errorData = await response.json().catch(() => ({}));
-        return { success: false, error: errorData.message || 'Failed to fetch wishlist' };
-    } catch (error) {
+        if (error.response) {
+            const errorData = error.response.data || {};
+            return { success: false, error: errorData.message || 'Failed to fetch wishlist' };
+        }
         console.error('Get wishlist error:', error);
         return { success: false, error: 'Network error. Please try again.' };
     }
@@ -40,24 +38,20 @@ export const addToWishlist = async (productVariantId) => {
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/Wishlist`, {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ productVariantId })
+        const response = await axios.post(`${API_BASE_URL}/Wishlist`, { productVariantId }, {
+            headers: getAuthHeaders()
         });
 
-        if (response.ok || response.status === 201) {
-            const item = await response.json();
-            return { success: true, item };
-        }
-
-        if (response.status === 401) {
+        const item = response.data;
+        return { success: true, item };
+    } catch (error) {
+        if (error.response && error.response.status === 401) {
             return { success: false, error: 'Session expired', requiresAuth: true };
         }
-
-        const errorText = await response.text();
-        return { success: false, error: errorText || 'Failed to add item to wishlist' };
-    } catch (error) {
+        if (error.response) {
+            const errorText = typeof error.response.data === 'string' ? error.response.data : '';
+            return { success: false, error: errorText || 'Failed to add item to wishlist' };
+        }
         console.error('Add to wishlist error:', error);
         return { success: false, error: 'Network error. Please try again.' };
     }
@@ -70,48 +64,41 @@ export const removeFromWishlist = async (wishlistItemId) => {
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/Wishlist/${wishlistItemId}`, {
-            method: 'DELETE',
+        await axios.delete(`${API_BASE_URL}/Wishlist/${wishlistItemId}`, {
             headers: getAuthHeaders()
         });
 
-        if (response.ok || response.status === 204) {
-            return { success: true };
-        }
-
-        if (response.status === 401) {
+        return { success: true };
+    } catch (error) {
+        if (error.response && error.response.status === 401) {
             return { success: false, error: 'Session expired', requiresAuth: true };
         }
-
-        return { success: false, error: 'Failed to remove item from wishlist' };
-    } catch (error) {
+        if (error.response) {
+            return { success: false, error: 'Failed to remove item from wishlist' };
+        }
         console.error('Remove from wishlist error:', error);
         return { success: false, error: 'Network error. Please try again.' };
     }
 };
 
-// Clear all items from wishlist
 export const clearWishlist = async () => {
     if (!isAuthenticated()) {
         return { success: false, error: 'Not authenticated', requiresAuth: true };
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/Wishlist`, {
-            method: 'DELETE',
+        await axios.delete(`${API_BASE_URL}/Wishlist`, {
             headers: getAuthHeaders()
         });
 
-        if (response.ok || response.status === 204) {
-            return { success: true };
-        }
-
-        if (response.status === 401) {
+        return { success: true };
+    } catch (error) {
+        if (error.response && error.response.status === 401) {
             return { success: false, error: 'Session expired', requiresAuth: true };
         }
-
-        return { success: false, error: 'Failed to clear wishlist' };
-    } catch (error) {
+        if (error.response) {
+            return { success: false, error: 'Failed to clear wishlist' };
+        }
         console.error('Clear wishlist error:', error);
         return { success: false, error: 'Network error. Please try again.' };
     }

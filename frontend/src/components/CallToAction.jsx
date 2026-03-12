@@ -111,16 +111,6 @@ const CallToAction = () => {
                                 fontSize: '1.2rem',
                                 padding: '16px 50px'
                             }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = 'transparent';
-                                e.currentTarget.style.color = 'var(--vastra-ivory)';
-                                e.currentTarget.style.borderColor = 'var(--vastra-ivory)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = 'var(--vastra-ivory)';
-                                e.currentTarget.style.color = 'var(--vastra-maroon)';
-                                e.currentTarget.style.borderColor = 'var(--vastra-ivory)';
-                            }}
                         >
                             Shop Now
                             <motion.span

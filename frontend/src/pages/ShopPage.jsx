@@ -89,7 +89,6 @@ const ShopPage = () => {
 
     // Clear all filters
     const handleClearFilters = () => {
-        setSelectedCategory(null);
         setSearchQuery('');
         setFilters({
             minPrice: null,
@@ -207,7 +206,7 @@ const ShopPage = () => {
                             {/* Empty State */}
                             {!isLoading && !error && products.length === 0 && (
                                 <EmptyState
-                                    hasFilters={selectedCategory !== null || searchQuery !== '' || filters.minPrice !== null || filters.maxPrice !== null || filters.colors.length > 0 || filters.sizes.length > 0}
+                                    hasFilters={searchQuery !== '' || filters.minPrice !== null || filters.maxPrice !== null || filters.colors.length > 0 || filters.sizes.length > 0}
                                     onClearFilters={handleClearFilters}
                                 />
                             )}

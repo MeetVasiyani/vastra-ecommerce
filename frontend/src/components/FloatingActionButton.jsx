@@ -55,12 +55,6 @@ const FloatingActionButton = () => {
                         zIndex: 1000,
                         transition: 'box-shadow 0.3s ease'
                     }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.boxShadow = '0 12px 32px rgba(128, 0, 32, 0.4)';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.boxShadow = '0 8px 24px rgba(128, 0, 32, 0.3)';
-                    }}
                 >
                     <ShoppingBag size={24} />
                 </motion.button>

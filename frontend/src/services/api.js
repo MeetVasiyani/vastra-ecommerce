@@ -1,4 +1,6 @@
 // API Service for Vastra
+import axios from 'axios';
+
 const BACKEND_URL = 'http://localhost:5121';
 const API_BASE_URL = `${BACKEND_URL}/api`;
 
@@ -6,14 +8,12 @@ const API_BASE_URL = `${BACKEND_URL}/api`;
 export const getImageUrl = (path) => {
     if (!path) return null;
 
-    const version = "1.0.1";
+    const version = import.meta.env.VITE_BUILD_VERSION || new Date().toISOString().slice(0, 10);
 
-    // If already a full URL, return it
     if (path.startsWith('http://') || path.startsWith('https://')) {
         return path;
     }
 
-    // Add backend URL to relative paths
     const url = `${BACKEND_URL}${path.startsWith('/') ? '' : '/'}${path}`;
     return `${url}?v=${version}`;
 };
@@ -60,50 +60,57 @@ export const fetchProducts = async (options = {}) => {
         params.append('sizes', sizes.join(','));
     }
 
-    const response = await fetch(`${API_BASE_URL}/Product?${params}`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
+    try {
+        const response = await axios.get(`${API_BASE_URL}/Product`, {
+            params,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
 
-    if (!response.ok) {
-        throw new Error(`Failed to fetch products: ${response.statusText}`);
+        return response.data;
+    } catch (error) {
+        if (error.response) {
+            throw new Error(`Failed to fetch products: ${error.response.statusText}`);
+        }
+        throw error;
     }
-
-    return response.json();
 };
 
 // Fetch single product by ID
 export const fetchProductById = async (id) => {
-    const response = await fetch(`${API_BASE_URL}/Product/${id}`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
+    try {
+        const response = await axios.get(`${API_BASE_URL}/Product/${id}`, {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
 
-    if (!response.ok) {
-        throw new Error(`Failed to fetch product: ${response.statusText}`);
+        return response.data;
+    } catch (error) {
+        if (error.response) {
+            throw new Error(`Failed to fetch product: ${error.response.statusText}`);
+        }
+        throw error;
     }
-
-    return response.json();
 };
 
 // Fetch all categories
 export const fetchCategories = async () => {
-    const response = await fetch(`${API_BASE_URL}/Category`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
+    try {
+        const response = await axios.get(`${API_BASE_URL}/Category`, {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
 
-    if (!response.ok) {
-        throw new Error(`Failed to fetch categories: ${response.statusText}`);
+        return response.data;
+    } catch (error) {
+        if (error.response) {
+            throw new Error(`Failed to fetch categories: ${error.response.statusText}`);
+        }
+        throw error;
     }
-
-    return response.json();
 };
 
 // Format price in Indian Rupees
@@ -116,10 +123,34 @@ export const formatPrice = (price) => {
     }).format(price);
 };
 
+import { getAuthHeaders } from './authService';
+
+// Verify payment with Razorpay
+export const verifyPayment = async (verificationData) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/Payment/Verify`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(verificationData)
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || 'Payment verification failed');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error("Error verifying payment:", error);
+        throw error;
+    }
+};
+
 export default {
     fetchProducts,
     fetchProductById,
     fetchCategories,
     formatPrice,
     getImageUrl,
+    verifyPayment,
 };

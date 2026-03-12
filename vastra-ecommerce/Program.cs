@@ -54,6 +54,10 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Configure Email Settings
+builder.Services.Configure<EcommerceApplication.Settings.EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddTransient<EcommerceApplication.Services.IEmailService, EcommerceApplication.Services.EmailService>();
+
 // Configure Identity
 builder.Services.AddIdentity<User, IdentityRole>(options =>
 {

@@ -14,6 +14,8 @@ namespace EcommerceApplication.DTOs.Product
         public CategoryDto Category { get; set; } = null!;
         public List<ProductImageDto> Images { get; set; } = new();
         public List<ProductVariantDto> Variants { get; set; } = new();
+        public double AverageRating { get; set; }
+        public int ReviewCount { get; set; }
     }
 
     public class CreateProductDto

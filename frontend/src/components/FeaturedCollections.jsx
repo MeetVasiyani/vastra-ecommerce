@@ -48,31 +48,31 @@ const collections = [
     }
 ];
 
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.15
+        }
+    }
+};
+
+const cardVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: {
+            duration: 0.6,
+            ease: [0.25, 0.46, 0.45, 0.94]
+        }
+    }
+};
+
 const FeaturedCollections = () => {
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true, margin: '-100px' });
-
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.15
-            }
-        }
-    };
-
-    const cardVariants = {
-        hidden: { opacity: 0, y: 50 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: {
-                duration: 0.6,
-                ease: [0.25, 0.46, 0.45, 0.94]
-            }
-        }
-    };
 
     return (
         <section className="vastra-section bg-vastra-ivory" ref={ref}>
@@ -146,12 +146,6 @@ const FeaturedCollections = () => {
                                                         objectFit: 'cover',
                                                         transition: 'transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
                                                     }}
-                                                    onMouseEnter={(e) => {
-                                                        e.currentTarget.style.transform = 'scale(1.08)';
-                                                    }}
-                                                    onMouseLeave={(e) => {
-                                                        e.currentTarget.style.transform = 'scale(1)';
-                                                    }}
                                                 />
 
                                                 {/* Overlay */}
@@ -170,12 +164,6 @@ const FeaturedCollections = () => {
                                                         flexDirection: 'column',
                                                         justifyContent: 'flex-end',
                                                         padding: '2rem'
-                                                    }}
-                                                    onMouseEnter={(e) => {
-                                                        e.currentTarget.style.opacity = 1;
-                                                    }}
-                                                    onMouseLeave={(e) => {
-                                                        e.currentTarget.style.opacity = 0;
                                                     }}
                                                 >
                                                     <h4 className="fw-bold mb-2" style={{ color: 'var(--vastra-ivory)' }}>
@@ -223,7 +211,7 @@ const FeaturedCollections = () => {
                     </Row>
                 </motion.div>
             </Container>
-        </section>
+        </section >
     );
 };
 

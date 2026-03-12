@@ -194,5 +194,66 @@ namespace EcommerceApplication.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("admin/all")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAllReviewsAdmin([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] int? rating = null)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1 || pageSize > 100) pageSize = 10;
+
+            var query = _context.Reviews
+                .Include(r => r.User)
+                .Include(r => r.Product)
+                .AsQueryable();
+
+            if (rating.HasValue && rating.Value >= 1 && rating.Value <= 5)
+            {
+                query = query.Where(r => r.Rating == rating.Value);
+            }
+
+            var totalCount = await query.CountAsync();
+
+            var reviews = await query
+                .OrderByDescending(r => r.Date)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(r => new ReviewDto
+                {
+                    Id = r.Id,
+                    Rating = r.Rating,
+                    Comment = r.Comment,
+                    Date = r.Date,
+                    ProductId = r.ProductId,
+                    ProductName = r.Product.Name,
+                    UserId = r.UserId,
+                    UserName = r.User.FirstName + " " + r.User.LastName
+                })
+                .ToListAsync();
+
+            var result = new PagedResult<ReviewDto>
+            {
+                Items = reviews,
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize
+            };
+
+            return Ok(result);
+        }
+
+        [HttpDelete("admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteReviewAdmin(int id)
+        {
+            var review = await _context.Reviews.FindAsync(id);
+
+            if (review == null) return NotFound("Review not found");
+
+            _context.Reviews.Remove(review);
+            await _context.SaveChangesAsync();
+            
+            return NoContent();
+        }
     }
 }

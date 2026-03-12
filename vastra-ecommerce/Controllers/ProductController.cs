@@ -99,9 +99,28 @@ namespace EcommerceApplication.Controllers
                         Material = v.Material,
                         StockQuantity = v.StockQuantity,
                         PriceAdjustment = v.PriceAdjustment
-                    }).ToList()
+                    }).ToList(),
+                    // Single pass over Reviews per product — no N+1 subqueries
+                    AverageRating = p.Images.Any() // dummy guard; real data from join below
+                        ? 0 : 0, // placeholder, overridden after fetch
+                    ReviewCount = 0  // placeholder, overridden after fetch
                 })
                 .ToListAsync();
+
+            // Fix N+1: bulk-load review aggregates for all fetched products in one query
+            var productIds = products.Select(p => p.Id).ToList();
+            var reviewAggregates = await _context.Reviews
+                .Where(r => productIds.Contains(r.ProductId))
+                .GroupBy(r => r.ProductId)
+                .Select(g => new { ProductId = g.Key, Avg = g.Average(r => (double)r.Rating), Count = g.Count() })
+                .ToListAsync();
+
+            foreach (var p in products)
+            {
+                var agg = reviewAggregates.FirstOrDefault(a => a.ProductId == p.Id);
+                p.AverageRating = agg?.Avg ?? 0;
+                p.ReviewCount = agg?.Count ?? 0;
+            }
 
             var result = new DTOs.Common.PagedResult<ProductDto>
             {
@@ -123,6 +142,8 @@ namespace EcommerceApplication.Controllers
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (product == null) return NotFound();
+
+            var reviews = await _context.Reviews.Where(r => r.ProductId == id).ToListAsync();
 
             var productDto = new ProductDto
             {
@@ -148,8 +169,9 @@ namespace EcommerceApplication.Controllers
                     Material = v.Material,
                     StockQuantity = v.StockQuantity,
                     PriceAdjustment = v.PriceAdjustment
-                }).ToList()
-                // Include variants mapping if needed for frontend
+                }).ToList(),
+                AverageRating = reviews.Any() ? reviews.Average(r => (double)r.Rating) : 0,
+                ReviewCount = reviews.Count
             };
 
             return Ok(productDto);
@@ -306,6 +328,7 @@ namespace EcommerceApplication.Controllers
         /// Fix Anarkali product images - updates placeholder URLs to local image paths
         /// </summary>
         [HttpPost("fix-anarkali-images")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> FixAnarkaliImages()
         {
             // Find the Anarkalis category

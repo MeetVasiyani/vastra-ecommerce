@@ -26,6 +26,7 @@ namespace EcommerceApplication.Controllers
         public async Task<IActionResult> GetCart()
         {
              var cart = await GetOrCreateCart(GetUserId(), includeDetails: true);
+             if (cart == null) return Unauthorized("User session invalid. Please log in again.");
              return Ok(await MapToDto(cart));
         }
 
@@ -38,6 +39,7 @@ namespace EcommerceApplication.Controllers
             {
                 var userId = GetUserId();
                 var cart = await GetOrCreateCart(userId);
+                if (cart == null) return Unauthorized("User session invalid. Please log in again.");
 
                 var existingItem = cart.Items.FirstOrDefault(i => i.ProductVariantId == addToCartDto.ProductVariantId);
 
@@ -93,6 +95,7 @@ namespace EcommerceApplication.Controllers
 
             var userId = GetUserId();
             var cart = await GetOrCreateCart(userId);
+            if (cart == null) return Unauthorized("User session invalid. Please log in again.");
             var item = cart.Items.FirstOrDefault(i => i.Id == updateCartItemDto.CartItemId);
 
             if (item == null) return NotFound("Cart item not found");
@@ -118,6 +121,7 @@ namespace EcommerceApplication.Controllers
         {
             var userId = GetUserId();
             var cart = await GetOrCreateCart(userId);
+            if (cart == null) return Unauthorized("User session invalid. Please log in again.");
             var item = cart.Items.FirstOrDefault(i => i.Id == itemId);
             if (item != null)
             {
@@ -132,6 +136,7 @@ namespace EcommerceApplication.Controllers
         {
             var userId = GetUserId();
             var cart = await GetOrCreateCart(userId);
+            if (cart == null) return Unauthorized("User session invalid. Please log in again.");
             if (cart.Items.Any())
             {
                 _context.CartItems.RemoveRange(cart.Items);
@@ -140,7 +145,7 @@ namespace EcommerceApplication.Controllers
             return NoContent();
         }
 
-        private async Task<Cart> GetOrCreateCart(string userId, bool includeDetails = false)
+        private async Task<Cart?> GetOrCreateCart(string userId, bool includeDetails = false)
         {
             IQueryable<Cart> query = _context.Carts;
 
@@ -165,7 +170,7 @@ namespace EcommerceApplication.Controllers
                 var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
                 if (!userExists)
                 {
-                     throw new Exception("User account not found. The user associated with this token implies a stale session. Please log out and log in again.");
+                     return null;
                 }
 
                 cart = new Cart { UserId = userId };

@@ -9,6 +9,7 @@ import ProductHeader from '../components/product/ProductHeader';
 import ProductImageGallery from '../components/product/ProductImageGallery';
 import ProductInfo from '../components/product/ProductInfo';
 import RelatedProducts from '../components/product/RelatedProducts';
+import ReviewSection from '../components/product/ReviewSection';
 import { fetchProductById } from '../services/api';
 
 // Loading Skeleton
@@ -241,6 +242,11 @@ const ProductDetailPage = () => {
                     categoryId={product?.category?.id}
                     currentProductId={product?.id}
                 />
+            )}
+
+            {/* Reviews Section */}
+            {!isLoading && product && (
+                <ReviewSection productId={product.id} />
             )}
 
             {/* Footer */}

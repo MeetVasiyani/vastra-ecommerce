@@ -13,11 +13,10 @@ namespace EcommerceApplication.Data
             var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-            // DESTRUCTIVE: Clear the database
-            Console.WriteLine("DEBUG: Clearing Database...");
-            await context.Database.EnsureDeletedAsync();
-            await context.Database.EnsureCreatedAsync();
-            Console.WriteLine("DEBUG: Database Created.");
+            // DESTRUCTIVE: Clear the database - REMOVED
+            // await context.Database.EnsureDeletedAsync();
+            await context.Database.EnsureCreatedAsync(); // Ensure DB exists
+            Console.WriteLine("DEBUG: Database Ensured.");
 
             await RoleSeeder.SeedRolesAndAdminAsync(serviceProvider);
             Console.WriteLine("DEBUG: Roles Seeded.");
@@ -35,6 +34,12 @@ namespace EcommerceApplication.Data
 
         private static async Task SeedCategoriesAsync(AppDbContext context)
         {
+            if (await context.Categories.AnyAsync())
+            {
+                Console.WriteLine("DEBUG: Categories already exist. Skipping.");
+                return;
+            }
+
             var categories = new List<Category>
             {
                 new Category { Name = "Men", Description = "Traditional and contemporary clothing for men", ImageUrl = "/images/products/Kurta Sets/Kurta Sets - 1.png" },
@@ -74,6 +79,12 @@ namespace EcommerceApplication.Data
 
         private static async Task SeedProductsFromJsonAsync(AppDbContext context)
         {
+            if (await context.Products.AnyAsync())
+            {
+                Console.WriteLine("DEBUG: Products already exist. Skipping.");
+                return;
+            }
+
             string jsonPath = "products_seed.json";
             if (!File.Exists(jsonPath))
             {
@@ -204,6 +215,12 @@ namespace EcommerceApplication.Data
 
         private static async Task SeedCouponsAsync(AppDbContext context)
         {
+            if (await context.Coupons.AnyAsync())
+            {
+                Console.WriteLine("DEBUG: Coupons already exist. Skipping.");
+                return;
+            }
+
             context.Coupons.AddRange(
                 new Coupon { Code = "WELCOME10", DiscountPercentage = 10, ExpirationDate = DateTime.UtcNow.AddMonths(1), IsActive = true },
                 new Coupon { Code = "FESTIVE500", DiscountAmount = 500, MinimumOrderAmount = 3000, ExpirationDate = DateTime.UtcNow.AddMonths(2), IsActive = true },
