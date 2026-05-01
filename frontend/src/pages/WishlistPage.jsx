@@ -7,6 +7,7 @@ import Footer from '../components/layout/Footer';
 import { useWishlist } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useSale } from '../context/SaleContext';
 import { formatPrice, getImageUrl } from '../services/api';
 import { getColorHex } from '../utils/constants';
 
@@ -15,6 +16,7 @@ const WishlistPage = () => {
     const { wishlist, itemCount, isLoading, error, removeFromWishlist, loadWishlist } = useWishlist();
     const { addToCart, isLoading: isCartLoading } = useCart();
     const { isAuthenticated } = useAuth();
+    const { getBestSaleForPrice } = useSale();
 
     const [removingId, setRemovingId] = useState(null);
     const [addingToCartId, setAddingToCartId] = useState(null);
@@ -358,17 +360,47 @@ const WishlistPage = () => {
                                             </div>
 
                                             {/* Price */}
-                                            <p
-                                                className="mb-3"
-                                                style={{
-                                                    fontSize: '1.15rem',
-                                                    fontWeight: 600,
-                                                    color: 'var(--vastra-maroon)',
-                                                    fontFamily: 'EB Garamond, serif',
-                                                }}
-                                            >
-                                                {formatPrice(item.price)}
-                                            </p>
+                                            {(() => {
+                                                const sale = getBestSaleForPrice(item.price);
+                                                if (sale) {
+                                                    return (
+                                                        <div className="mb-3 d-flex flex-column">
+                                                            <span className="price-original">
+                                                                {formatPrice(item.price)}
+                                                            </span>
+                                                            <div className="d-flex align-items-center gap-2">
+                                                                <span
+                                                                    style={{
+                                                                        fontSize: '1.15rem',
+                                                                        fontWeight: 600,
+                                                                        color: 'var(--vastra-maroon)',
+                                                                        fontFamily: 'EB Garamond, serif',
+                                                                    }}
+                                                                >
+                                                                    {formatPrice(sale.discountedPrice)}
+                                                                </span>
+                                                                <span className="sale-badge-inline">
+                                                                    {sale.pct ? `-${sale.pct}%` : 'SALE'}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }
+
+                                                return (
+                                                    <p
+                                                        className="mb-3"
+                                                        style={{
+                                                            fontSize: '1.15rem',
+                                                            fontWeight: 600,
+                                                            color: 'var(--vastra-maroon)',
+                                                            fontFamily: 'EB Garamond, serif',
+                                                        }}
+                                                    >
+                                                        {formatPrice(item.price)}
+                                                    </p>
+                                                );
+                                            })()}
 
                                             {/* Add to Cart Button */}
                                             <motion.button

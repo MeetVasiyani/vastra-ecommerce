@@ -86,9 +86,17 @@ const AdminCouponsPage = () => {
 
     const handleChange = (e) => {
         const { name, value, type } = e.target;
+        let finalValue = value;
+        
+        if (type === 'number') {
+            finalValue = parseFloat(value) || 0;
+        } else if (name === 'code') {
+            finalValue = value.toUpperCase();
+        }
+        
         setForm(prev => ({
             ...prev,
-            [name]: type === 'number' ? parseFloat(value) || 0 : value
+            [name]: finalValue
         }));
     };
 

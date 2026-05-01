@@ -320,7 +320,7 @@ const ProductCard = ({ product }) => {
                                     {formatPrice(sale.discountedPrice)}
                                 </span>
                                 <span className="sale-badge-inline">
-                                    {sale.pct ? `–${sale.pct}%` : 'SALE'}
+                                    {sale.pct ? `-${sale.pct}%` : 'SALE'}
                                 </span>
                             </div>
                         </div>

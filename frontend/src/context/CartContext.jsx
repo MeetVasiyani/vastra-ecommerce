@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { getCart, addToCart, updateCartItem, removeFromCart, clearCart } from '../services/cartService';
-import { validateCoupon } from '../services/couponService';
+import { validateCoupon, getActiveCoupons } from '../services/couponService';
 import { useAuth } from './AuthContext';
 
 const CartContext = createContext(null);
@@ -12,6 +12,7 @@ export const CartProvider = ({ children }) => {
     const [notification, setNotification] = useState(null);
     const [appliedCoupon, setAppliedCoupon] = useState(null);
     const [isCouponLoading, setIsCouponLoading] = useState(false);
+    const lastAutoAppliedTotal = useRef(null);
 
     const { isAuthenticated, user, logout } = useAuth();
 
@@ -43,6 +44,58 @@ export const CartProvider = ({ children }) => {
             applyCoupon(appliedCoupon.code, true);
         }
     }, [cart && cart.totalAmount]);
+
+    // auto-apply best sitewide coupon (minimum order amount = 0) when no coupon is applied
+    useEffect(() => {
+        const autoApplySitewideCoupon = async () => {
+            if (!isAuthenticated) return;
+            if (appliedCoupon) return;
+            if (!cart || !cart.totalAmount || cart.totalAmount <= 0) return;
+            if (isCouponLoading) return;
+            if (lastAutoAppliedTotal.current === cart.totalAmount) return;
+
+            lastAutoAppliedTotal.current = cart.totalAmount;
+
+            const couponsResult = await getActiveCoupons();
+            if (!couponsResult.success || !couponsResult.coupons) return;
+
+            const sitewideCoupons = couponsResult.coupons.filter(
+                (c) => Number(c.minimumOrderAmount) === 0
+            );
+
+            if (sitewideCoupons.length === 0) return;
+
+            const orderTotal = Number(cart.totalAmount);
+            let bestCoupon = null;
+            let bestDiscount = 0;
+
+            for (let i = 0; i < sitewideCoupons.length; i++) {
+                const coupon = sitewideCoupons[i];
+                const pct = Number(coupon.discountPercentage) || 0;
+                const amt = Number(coupon.discountAmount) || 0;
+                let discount = 0;
+
+                if (pct > 0) {
+                    discount = (orderTotal * pct) / 100;
+                } else if (amt > 0) {
+                    discount = amt;
+                }
+
+                discount = Math.min(discount, orderTotal);
+
+                if (discount > bestDiscount) {
+                    bestDiscount = discount;
+                    bestCoupon = coupon;
+                }
+            }
+
+            if (!bestCoupon || bestDiscount <= 0) return;
+
+            await applyCoupon(bestCoupon.code, true);
+        };
+
+        autoApplySitewideCoupon();
+    }, [isAuthenticated, cart && cart.totalAmount, appliedCoupon, isCouponLoading]);
 
     // load cart from API
     const loadCart = async () => {

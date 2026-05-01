@@ -32,6 +32,19 @@ function getErrorMessage(data, fallback) {
     if (typeof data === 'string' && data) return data;
     if (data && data.error) return data.error;
     if (data && data.message) return data.message;
+    
+    // Handle ASP.NET Core validation errors
+    if (data && data.errors) {
+        const errorKeys = Object.keys(data.errors);
+        if (errorKeys.length > 0) {
+            const firstError = data.errors[errorKeys[0]];
+            if (Array.isArray(firstError) && firstError.length > 0) {
+                return firstError[0];
+            }
+            return firstError;
+        }
+    }
+    
     return fallback;
 }
 
