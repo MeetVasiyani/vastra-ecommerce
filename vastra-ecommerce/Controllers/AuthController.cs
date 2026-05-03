@@ -186,14 +186,7 @@ namespace EcommerceApplication.Controllers
             var subject = "Reset your password";
             var message = $"Please reset your password by clicking here: <a href='{resetLink}'>link</a>";
 
-            try
-            {
-                await _emailService.SendEmailAsync(user.Email!, subject, message);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { Message = $"Could not send email: {ex.Message}" });
-            }
+            await _emailService.SendEmailAsync(user.Email!, subject, message);
 
             return Ok(new { Message = "If an account with that email exists, a password reset link has been sent." });
         }

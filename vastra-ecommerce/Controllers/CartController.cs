@@ -35,57 +35,49 @@ namespace EcommerceApplication.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            try
+            var userId = GetUserId();
+            var cart = await GetOrCreateCart(userId);
+            if (cart == null) return Unauthorized("User session invalid. Please log in again.");
+
+            var existingItem = cart.Items.FirstOrDefault(i => i.ProductVariantId == addToCartDto.ProductVariantId);
+
+            // Get variant to check stock
+            var variant = await _context.ProductVariants.FindAsync(addToCartDto.ProductVariantId);
+            if (variant == null) return NotFound("Variant not found");
+
+            // Calculate total quantity (existing + new)
+            var totalQuantity = addToCartDto.Quantity;
+            if (existingItem != null)
             {
-                var userId = GetUserId();
-                var cart = await GetOrCreateCart(userId);
-                if (cart == null) return Unauthorized("User session invalid. Please log in again.");
-
-                var existingItem = cart.Items.FirstOrDefault(i => i.ProductVariantId == addToCartDto.ProductVariantId);
-
-                // Get variant to check stock
-                var variant = await _context.ProductVariants.FindAsync(addToCartDto.ProductVariantId);
-                if (variant == null) return NotFound("Variant not found");
-
-                // Calculate total quantity (existing + new)
-                var totalQuantity = addToCartDto.Quantity;
-                if (existingItem != null)
-                {
-                    totalQuantity += existingItem.Quantity;
-                }
-
-                // Validate stock availability
-                if (totalQuantity > variant.StockQuantity)
-                {
-                    return BadRequest($"Insufficient stock. Only {variant.StockQuantity} items available.");
-                }
-
-                if (existingItem != null)
-                {
-                    existingItem.Quantity += addToCartDto.Quantity;
-                }
-                else
-                {
-                    var newItem = new CartItem
-                    {
-                        CartId = cart.Id,
-                        ProductVariantId = addToCartDto.ProductVariantId,
-                        Quantity = addToCartDto.Quantity
-                    };
-                    _context.CartItems.Add(newItem);
-                }
-
-                await _context.SaveChangesAsync();
-                
-                // Refresh cart to get full data for DTO
-                var updatedCart = await GetOrCreateCart(userId, includeDetails: true);
-                return Ok(await MapToDto(updatedCart));
+                totalQuantity += existingItem.Quantity;
             }
-            catch (Exception ex)
+
+            // Validate stock availability
+            if (totalQuantity > variant.StockQuantity)
             {
-                var innerMessage = ex.InnerException?.Message ?? "";
-                return BadRequest($"{ex.Message} | Inner: {innerMessage}");
+                return BadRequest($"Insufficient stock. Only {variant.StockQuantity} items available.");
             }
+
+            if (existingItem != null)
+            {
+                existingItem.Quantity += addToCartDto.Quantity;
+            }
+            else
+            {
+                var newItem = new CartItem
+                {
+                    CartId = cart.Id,
+                    ProductVariantId = addToCartDto.ProductVariantId,
+                    Quantity = addToCartDto.Quantity
+                };
+                _context.CartItems.Add(newItem);
+            }
+
+            await _context.SaveChangesAsync();
+
+            // Refresh cart to get full data for DTO
+            var updatedCart = await GetOrCreateCart(userId, includeDetails: true);
+            return Ok(await MapToDto(updatedCart));
         }
 
         [HttpPut("items")]

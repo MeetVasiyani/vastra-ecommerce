@@ -86,47 +86,41 @@ namespace EcommerceApplication.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            try
+            // Check if code already exists
+            var existingCoupon = await _context.Coupons
+                .FirstOrDefaultAsync(c => c.Code == createCouponDto.Code);
+
+            if (existingCoupon != null)
             {
-                // Check if code already exists
-                var existingCoupon = await _context.Coupons
-                    .FirstOrDefaultAsync(c => c.Code == createCouponDto.Code);
-
-                if (existingCoupon != null)
-                {
-                    return BadRequest("A coupon with this code already exists");
-                }
-
-                var coupon = new Coupon
-                {
-                    Code = createCouponDto.Code.ToUpper(),
-                    DiscountAmount = createCouponDto.DiscountAmount,
-                    DiscountPercentage = createCouponDto.DiscountPercentage,
-                    ExpirationDate = createCouponDto.ExpirationDate,
-                    MinimumOrderAmount = createCouponDto.MinimumOrderAmount,
-                    IsActive = true
-                };
-
-                _context.Coupons.Add(coupon);
-                await _context.SaveChangesAsync();
-
-                var couponDto = new CouponDto
-                {
-                    Id = coupon.Id,
-                    Code = coupon.Code,
-                    DiscountAmount = coupon.DiscountAmount,
-                    DiscountPercentage = coupon.DiscountPercentage,
-                    ExpirationDate = coupon.ExpirationDate,
-                    IsActive = coupon.IsActive,
-                    MinimumOrderAmount = coupon.MinimumOrderAmount
-                };
-
-                return CreatedAtAction(nameof(GetById), new { id = coupon.Id }, couponDto);
+                return BadRequest("A coupon with this code already exists");
             }
-            catch (Exception ex)
+
+
+            var coupon = new Coupon
             {
-                return BadRequest(new { error = ex.Message });
-            }
+                Code = createCouponDto.Code.ToUpper(),
+                DiscountAmount = createCouponDto.DiscountAmount,
+                DiscountPercentage = createCouponDto.DiscountPercentage,
+                ExpirationDate = createCouponDto.ExpirationDate,
+                MinimumOrderAmount = createCouponDto.MinimumOrderAmount,
+                IsActive = true
+            };
+
+            _context.Coupons.Add(coupon);
+            await _context.SaveChangesAsync();
+
+            var couponDto = new CouponDto
+            {
+                Id = coupon.Id,
+                Code = coupon.Code,
+                DiscountAmount = coupon.DiscountAmount,
+                DiscountPercentage = coupon.DiscountPercentage,
+                ExpirationDate = coupon.ExpirationDate,
+                IsActive = coupon.IsActive,
+                MinimumOrderAmount = coupon.MinimumOrderAmount
+            };
+
+            return CreatedAtAction(nameof(GetById), new { id = coupon.Id }, couponDto);
         }
 
         [HttpPut("{id}")]

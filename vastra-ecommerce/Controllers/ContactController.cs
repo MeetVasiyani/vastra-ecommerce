@@ -29,12 +29,10 @@ namespace EcommerceApplication.Controllers
                 });
             }
 
-            try
-            {
-                // Email to admin/support team
-                var adminEmail = "support@vastra.com"; // This should be configured in appsettings.json
-                var subject = $"New Contact Form Submission: {contactDto.Subject}";
-                var message = $@"
+            // Email to admin/support team
+            var adminEmail = "support@vastra.com"; // This should be configured in appsettings.json
+            var subject = $"New Contact Form Submission: {contactDto.Subject}";
+            var message = $@"
                     <html>
                     <body style='font-family: Arial, sans-serif;'>
                         <h2 style='color: #800020;'>New Contact Form Submission</h2>
@@ -54,11 +52,11 @@ namespace EcommerceApplication.Controllers
                     </html>
                 ";
 
-                await _emailService.SendEmailAsync(adminEmail, subject, message);
+            await _emailService.SendEmailAsync(adminEmail, subject, message);
 
-                // Confirmation email to user
-                var userSubject = "Thank you for contacting Vastra";
-                var userMessage = $@"
+            // Confirmation email to user
+            var userSubject = "Thank you for contacting Vastra";
+            var userMessage = $@"
                     <html>
                     <body style='font-family: Arial, sans-serif;'>
                         <h2 style='color: #800020;'>Thank you for contacting us!</h2>
@@ -78,25 +76,15 @@ namespace EcommerceApplication.Controllers
                     </html>
                 ";
 
-                await _emailService.SendEmailAsync(contactDto.Email, userSubject, userMessage);
+            await _emailService.SendEmailAsync(contactDto.Email, userSubject, userMessage);
 
-                _logger.LogInformation($"Contact form submitted by {contactDto.Email}");
+            _logger.LogInformation($"Contact form submitted by {contactDto.Email}");
 
-                return Ok(new ContactResponseDto
-                {
-                    IsSuccess = true,
-                    Message = "Thank you for contacting us! We'll get back to you soon."
-                });
-            }
-            catch (Exception ex)
+            return Ok(new ContactResponseDto
             {
-                _logger.LogError($"Error processing contact form: {ex.Message}");
-                return StatusCode(500, new ContactResponseDto
-                {
-                    IsSuccess = false,
-                    Message = "We're sorry, but there was an error processing your request. Please try again later or contact us directly."
-                });
-            }
+                IsSuccess = true,
+                Message = "Thank you for contacting us! We'll get back to you soon."
+            });
         }
     }
 }

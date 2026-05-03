@@ -183,73 +183,67 @@ namespace EcommerceApplication.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            try
+            var product = new Product
             {
-                var product = new Product
-                {
-                    Name = createProductDto.Name,
-                    Description = createProductDto.Description,
-                    BasePrice = createProductDto.BasePrice,
-                    IsActive = createProductDto.IsActive,
-                    CategoryId = createProductDto.CategoryId,
-                    CreatedDate = DateTime.UtcNow
-                };
+                Name = createProductDto.Name,
+                Description = createProductDto.Description,
+                BasePrice = createProductDto.BasePrice,
+                IsActive = createProductDto.IsActive,
+                CategoryId = createProductDto.CategoryId,
+                CreatedDate = DateTime.UtcNow
+            };
 
-                // Add to context but don't save yet
-                _context.Products.Add(product);
-                
-                if (createProductDto.ImageUrls != null)
-                {
-                    var firstUrl = createProductDto.ImageUrls.FirstOrDefault();
-                    foreach (var url in createProductDto.ImageUrls)
-                    {
-                        // Navigation property approach is better but Product property for collection might be null or we need to init it.
-                        // Assuming Product model has a collection for Images.
-                        // Ideally: product.Images.Add(...) 
-                        // But checking model I see I am using _context.ProductImages.Add
-                        // For this to work in one save, I should add to the navigation property if possible, 
-                        // OR rely on EF Core Fixup by setting the navigation property on the child if I add valid entity instance to context?
-                        // If I set ProductId = product.Id (which is 0 or temp), EF needs to know the relationship.
-                        // Best way: use navigation property on the Product entity.
-                        // product.Images = new List<ProductImage>(); 
-                        // But I don't see Product model directly, let's assume it has collection or just add to context manually with object reference.
-                        
-                        // We will create the ProductImage and set the Product navigation property (not just ID).
-                        _context.ProductImages.Add(new ProductImage
-                        {
-                            ImageUrl = url,
-                            Product = product, // Link by reference
-                            IsMainImage = url == firstUrl
-                        });
-                    }
-                }
 
-                if (createProductDto.Variants != null)
-                {
-                    foreach (var variantDto in createProductDto.Variants)
-                    {
-                         _context.ProductVariants.Add(new ProductVariant
-                        {
-                            SKU = variantDto.SKU,
-                            Size = variantDto.Size,
-                            Color = variantDto.Color,
-                            Material = variantDto.Material,
-                            StockQuantity = variantDto.StockQuantity,
-                            PriceAdjustment = variantDto.PriceAdjustment,
-                            Product = product // Link by reference
-                        });
-                    }
-                }
-
-                await _context.SaveChangesAsync();
-
-                // Re-fetch to return mapped DTO or simplified Return
-                return CreatedAtAction(nameof(GetById), new { id = product.Id }, createProductDto);
-            }
-            catch (Exception ex)
+            // Add to context but don't save yet
+            _context.Products.Add(product);
+            
+            if (createProductDto.ImageUrls != null)
             {
-                return BadRequest(new { error = ex.Message });
+                var firstUrl = createProductDto.ImageUrls.FirstOrDefault();
+                foreach (var url in createProductDto.ImageUrls)
+                {
+                    // Navigation property approach is better but Product property for collection might be null or we need to init it.
+                    // Assuming Product model has a collection for Images.
+                    // Ideally: product.Images.Add(...) 
+                    // But checking model I see I am using _context.ProductImages.Add
+                    // For this to work in one save, I should add to the navigation property if possible, 
+                    // OR rely on EF Core Fixup by setting the navigation property on the child if I add valid entity instance to context?
+                    // If I set ProductId = product.Id (which is 0 or temp), EF needs to know the relationship.
+                    // Best way: use navigation property on the Product entity.
+                    // product.Images = new List<ProductImage>(); 
+                    // But I don't see Product model directly, let's assume it has collection or just add to context manually with object reference.
+                    
+                    // We will create the ProductImage and set the Product navigation property (not just ID).
+                    _context.ProductImages.Add(new ProductImage
+                    {
+                        ImageUrl = url,
+                        Product = product, // Link by reference
+                        IsMainImage = url == firstUrl
+                    });
+                }
             }
+
+            if (createProductDto.Variants != null)
+            {
+                foreach (var variantDto in createProductDto.Variants)
+                {
+                     _context.ProductVariants.Add(new ProductVariant
+                    {
+                        SKU = variantDto.SKU,
+                        Size = variantDto.Size,
+                        Color = variantDto.Color,
+                        Material = variantDto.Material,
+                        StockQuantity = variantDto.StockQuantity,
+                        PriceAdjustment = variantDto.PriceAdjustment,
+                        Product = product // Link by reference
+                    });
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            // Re-fetch to return mapped DTO or simplified Return
+            return CreatedAtAction(nameof(GetById), new { id = product.Id }, createProductDto);
         }
 
         [HttpPut("{id}")]

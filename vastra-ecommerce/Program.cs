@@ -1,4 +1,5 @@
 using EcommerceApplication.Data;
+using EcommerceApplication.Middleware;
 using EcommerceApplication.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -103,6 +104,8 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionMiddleware>();
 
 // Seed roles and admin user
 using (var scope = app.Services.CreateScope())

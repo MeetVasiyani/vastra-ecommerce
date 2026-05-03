@@ -39,52 +39,45 @@ namespace EcommerceApplication.Controllers
                 return StatusCode(500, "Razorpay secret not configured.");
             }
 
-            try
+            // Razorpay's signature verification logic
+            string payload = dto.RazorpayOrderId + "|" + dto.RazorpayPaymentId;
+            string generatedSignature = GetHmacSha256(payload, secret);
+
+            if (generatedSignature == dto.RazorpaySignature)
             {
-                // Razorpay's signature verification logic
-                string payload = dto.RazorpayOrderId + "|" + dto.RazorpayPaymentId;
-                string generatedSignature = GetHmacSha256(payload, secret);
+                // Payment is verified
+                // Find the payment record in our DB using the Razorpay Order ID
+                var payment = await _context.Payments
+                    .Include(p => p.Order)
+                    .FirstOrDefaultAsync(p => p.TransactionId == dto.RazorpayOrderId);
 
-                if (generatedSignature == dto.RazorpaySignature)
+                if (payment == null)
                 {
-                    // Payment is verified
-                    // Find the payment record in our DB using the Razorpay Order ID
-                    var payment = await _context.Payments
-                        .Include(p => p.Order)
-                        .FirstOrDefaultAsync(p => p.TransactionId == dto.RazorpayOrderId);
-
-                    if (payment == null)
-                    {
-                        return NotFound("Payment record not found.");
-                    }
-
-                    // Update local payment
-                    payment.PaymentStatus = "Completed";
-                    
-                    // Clear the user's cart
-                    var cart = await _context.Carts
-                        .Include(c => c.Items)
-                        .FirstOrDefaultAsync(c => c.UserId == payment.Order.UserId);
-
-                    if (cart != null && cart.Items.Any())
-                    {
-                        _context.CartItems.RemoveRange(cart.Items);
-                    }
-
-                    // Note: Order.Status remains. The Admin can change it to "Processing" or "Shipped" 
-
-                    await _context.SaveChangesAsync();
-                    
-                    return Ok(new { success = true, message = "Payment verified successfully" });
+                    return NotFound("Payment record not found.");
                 }
-                else
+
+                // Update local payment
+                payment.PaymentStatus = "Completed";
+                
+                // Clear the user's cart
+                var cart = await _context.Carts
+                    .Include(c => c.Items)
+                    .FirstOrDefaultAsync(c => c.UserId == payment.Order.UserId);
+
+                if (cart != null && cart.Items.Any())
                 {
-                    return BadRequest(new { success = false, message = "Invalid payment signature" });
+                    _context.CartItems.RemoveRange(cart.Items);
                 }
+
+                // Note: Order.Status remains. The Admin can change it to "Processing" or "Shipped" 
+
+                await _context.SaveChangesAsync();
+                
+                return Ok(new { success = true, message = "Payment verified successfully" });
             }
-            catch (Exception ex)
+            else
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return BadRequest(new { success = false, message = "Invalid payment signature" });
             }
         }
 

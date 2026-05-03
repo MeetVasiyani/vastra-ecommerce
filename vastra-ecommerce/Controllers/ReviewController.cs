@@ -67,56 +67,49 @@ namespace EcommerceApplication.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            try
+            var userId = GetUserId();
+
+            // Check if product exists
+            var productExists = await _context.Products.AnyAsync(p => p.Id == createReviewDto.ProductId);
+            if (!productExists) return NotFound("Product not found");
+
+            // Check if user already reviewed this product
+            var existingReview = await _context.Reviews
+                .FirstOrDefaultAsync(r => r.UserId == userId && r.ProductId == createReviewDto.ProductId);
+
+            if (existingReview != null)
             {
-                var userId = GetUserId();
-
-                // Check if product exists
-                var productExists = await _context.Products.AnyAsync(p => p.Id == createReviewDto.ProductId);
-                if (!productExists) return NotFound("Product not found");
-
-                // Check if user already reviewed this product
-                var existingReview = await _context.Reviews
-                    .FirstOrDefaultAsync(r => r.UserId == userId && r.ProductId == createReviewDto.ProductId);
-
-                if (existingReview != null)
-                {
-                    return BadRequest("You have already reviewed this product. Please update your existing review.");
-                }
-
-                var review = new Review
-                {
-                    Rating = createReviewDto.Rating,
-                    Comment = createReviewDto.Comment,
-                    ProductId = createReviewDto.ProductId,
-                    UserId = userId,
-                    Date = DateTime.UtcNow
-                };
-
-                _context.Reviews.Add(review);
-                await _context.SaveChangesAsync();
-
-                // Fetch user details for response
-                var user = await _context.Users.FindAsync(userId);
-
-                var reviewDto = new ReviewDto
-                {
-                    Id = review.Id,
-                    Rating = review.Rating,
-                    Comment = review.Comment,
-                    Date = review.Date,
-                    ProductId = review.ProductId,
-                    UserId = review.UserId,
-                    UserName = user != null ? $"{user.FirstName} {user.LastName}" : "Unknown"
-                };
-
-                return CreatedAtAction(nameof(GetProductReviews), 
-                    new { productId = review.ProductId }, reviewDto);
+                return BadRequest("You have already reviewed this product. Please update your existing review.");
             }
-            catch (Exception ex)
+
+            var review = new Review
             {
-                return BadRequest(new { error = ex.Message });
-            }
+                Rating = createReviewDto.Rating,
+                Comment = createReviewDto.Comment,
+                ProductId = createReviewDto.ProductId,
+                UserId = userId,
+                Date = DateTime.UtcNow
+            };
+
+            _context.Reviews.Add(review);
+            await _context.SaveChangesAsync();
+
+            // Fetch user details for response
+            var user = await _context.Users.FindAsync(userId);
+
+            var reviewDto = new ReviewDto
+            {
+                Id = review.Id,
+                Rating = review.Rating,
+                Comment = review.Comment,
+                Date = review.Date,
+                ProductId = review.ProductId,
+                UserId = review.UserId,
+                UserName = user != null ? $"{user.FirstName} {user.LastName}" : "Unknown"
+            };
+
+            return CreatedAtAction(nameof(GetProductReviews), 
+                new { productId = review.ProductId }, reviewDto);
         }
 
         [HttpPut("{id}")]

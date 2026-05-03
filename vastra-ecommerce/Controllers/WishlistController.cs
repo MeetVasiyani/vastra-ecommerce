@@ -64,62 +64,55 @@ namespace EcommerceApplication.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            try
+            var userId = GetUserId();
+
+            // Check if variant exists
+            var variant = await _context.ProductVariants
+                .Include(v => v.Product)
+                .ThenInclude(p => p.Images)
+                .FirstOrDefaultAsync(v => v.Id == addToWishlistDto.ProductVariantId);
+
+            if (variant == null) return NotFound("Product variant not found");
+
+            // Check if already in wishlist
+            var existingItem = await _context.Wishlists
+                .FirstOrDefaultAsync(w => w.UserId == userId && w.ProductVariantId == addToWishlistDto.ProductVariantId);
+
+            if (existingItem != null)
             {
-                var userId = GetUserId();
-
-                // Check if variant exists
-                var variant = await _context.ProductVariants
-                    .Include(v => v.Product)
-                    .ThenInclude(p => p.Images)
-                    .FirstOrDefaultAsync(v => v.Id == addToWishlistDto.ProductVariantId);
-
-                if (variant == null) return NotFound("Product variant not found");
-
-                // Check if already in wishlist
-                var existingItem = await _context.Wishlists
-                    .FirstOrDefaultAsync(w => w.UserId == userId && w.ProductVariantId == addToWishlistDto.ProductVariantId);
-
-                if (existingItem != null)
-                {
-                    return BadRequest("This item is already in your wishlist");
-                }
-
-                var wishlistItem = new Wishlist
-                {
-                    UserId = userId,
-                    ProductVariantId = addToWishlistDto.ProductVariantId,
-                    DateAdded = DateTime.UtcNow
-                };
-
-                _context.Wishlists.Add(wishlistItem);
-                await _context.SaveChangesAsync();
-
-                // Return the created item
-                var product = variant.Product;
-                var mainImage = product.Images?.FirstOrDefault(i => i.IsMainImage)?.ImageUrl 
-                    ?? product.Images?.FirstOrDefault()?.ImageUrl ?? "";
-
-                var wishlistDto = new WishlistDto
-                {
-                    Id = wishlistItem.Id,
-                    ProductId = product.Id,
-                    ProductName = product.Name,
-                    ProductVariantId = variant.Id,
-                    VariantSku = variant.SKU,
-                    Size = variant.Size,
-                    Color = variant.Color,
-                    Price = product.BasePrice + variant.PriceAdjustment,
-                    ImageUrl = mainImage,
-                    DateAdded = wishlistItem.DateAdded
-                };
-
-                return CreatedAtAction(nameof(GetWishlist), wishlistDto);
+                return BadRequest("This item is already in your wishlist");
             }
-            catch (Exception ex)
+
+            var wishlistItem = new Wishlist
             {
-                return BadRequest(new { error = ex.Message });
-            }
+                UserId = userId,
+                ProductVariantId = addToWishlistDto.ProductVariantId,
+                DateAdded = DateTime.UtcNow
+            };
+
+            _context.Wishlists.Add(wishlistItem);
+            await _context.SaveChangesAsync();
+
+            // Return the created item
+            var product = variant.Product;
+            var mainImage = product.Images?.FirstOrDefault(i => i.IsMainImage)?.ImageUrl 
+                ?? product.Images?.FirstOrDefault()?.ImageUrl ?? "";
+
+            var wishlistDto = new WishlistDto
+            {
+                Id = wishlistItem.Id,
+                ProductId = product.Id,
+                ProductName = product.Name,
+                ProductVariantId = variant.Id,
+                VariantSku = variant.SKU,
+                Size = variant.Size,
+                Color = variant.Color,
+                Price = product.BasePrice + variant.PriceAdjustment,
+                ImageUrl = mainImage,
+                DateAdded = wishlistItem.DateAdded
+            };
+
+            return CreatedAtAction(nameof(GetWishlist), wishlistDto);
         }
 
         [HttpDelete("{id}")]
