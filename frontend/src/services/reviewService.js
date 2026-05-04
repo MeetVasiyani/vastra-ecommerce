@@ -1,11 +1,9 @@
-// Review Service for Vastra
 import axios from 'axios';
 import { getAuthHeaders } from './authService';
 
 const BACKEND_URL = 'http://localhost:5121';
 const API_BASE_URL = `${BACKEND_URL}/api`;
 
-// Fetch reviews for a product (public, no auth required)
 export const fetchProductReviews = async (productId, page = 1, pageSize = 10) => {
     const params = new URLSearchParams({
         page: page.toString(),
@@ -29,7 +27,6 @@ export const fetchProductReviews = async (productId, page = 1, pageSize = 10) =>
     }
 };
 
-// Create a new review (authenticated)
 export const createReview = async (reviewData) => {
     try {
         const response = await axios.post(`${API_BASE_URL}/Review`, reviewData, {
@@ -46,7 +43,6 @@ export const createReview = async (reviewData) => {
     }
 };
 
-// Update an existing review (authenticated)
 export const updateReview = async (id, reviewData) => {
     try {
         const response = await axios.put(`${API_BASE_URL}/Review/${id}`, reviewData, {
@@ -63,7 +59,6 @@ export const updateReview = async (id, reviewData) => {
     }
 };
 
-// Fetch reviews written by the logged-in user
 export const fetchMyReviews = async (page = 1, pageSize = 10) => {
     const params = new URLSearchParams({
         page: page.toString(),
@@ -85,7 +80,6 @@ export const fetchMyReviews = async (page = 1, pageSize = 10) => {
     }
 };
 
-// Delete a review (authenticated)
 export const deleteReview = async (id) => {
     try {
         const response = await axios.delete(`${API_BASE_URL}/Review/${id}`, {

@@ -23,7 +23,6 @@ const EditProfileModal = ({ profile, onUpdate, onClose, isLoading }) => {
         const newErrors = {};
         if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
         if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
-        // Phone number is optional, but if provided, do basic validation
         if (formData.phoneNumber && !/^[0-9+\-\s()]*$/.test(formData.phoneNumber)) {
             newErrors.phoneNumber = 'Invalid phone number format';
         }

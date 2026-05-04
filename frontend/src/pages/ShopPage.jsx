@@ -14,7 +14,6 @@ import SearchInput from '../components/shop/SearchInput';
 import { fetchProducts, fetchCategories } from '../services/api';
 
 const ShopPage = () => {
-    // State
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState(null);
@@ -32,10 +31,8 @@ const ShopPage = () => {
 
     const pageSize = 12;
 
-    // Helper to reset page and load
     const resetPaginationAndLoad = () => setCurrentPage(1);
 
-    // Load categories on mount
     useEffect(() => {
         const loadCategories = async () => {
             try {
@@ -49,7 +46,6 @@ const ShopPage = () => {
         loadCategories();
     }, []);
 
-    // Load products when filters change
     useEffect(() => {
         loadProducts();
     }, [currentPage, selectedCategory, filters, searchQuery]);
@@ -78,38 +74,32 @@ const ShopPage = () => {
         }
     };
 
-    // Handle category change
     const handleCategoryChange = (categoryId) => {
         setSelectedCategory(categoryId);
         resetPaginationAndLoad();
     };
 
-    // Handle page change
     const handlePageChange = (page) => {
         setCurrentPage(page);
         window.scrollTo({ top: 400, behavior: 'smooth' });
     };
 
-    // Clear all filters
     const handleClearFilters = () => {
         setSearchQuery('');
         setFilters({ minPrice: null, maxPrice: null, colors: [], sizes: [] });
         resetPaginationAndLoad();
     };
 
-    // Handle search input
     const handleSearchChange = (value) => {
         setSearchQuery(value);
         resetPaginationAndLoad();
     };
 
-    // Clear search
     const handleSearchClear = () => {
         setSearchQuery('');
         resetPaginationAndLoad();
     };
 
-    // Handle filter change
     const handleFilterChange = (name, value) => {
         setFilters(prev => ({ ...prev, [name]: value }));
         resetPaginationAndLoad();
@@ -117,13 +107,10 @@ const ShopPage = () => {
 
     return (
         <div className="shop-page">
-            {/* Navigation */}
             <Navbar />
 
-            {/* Header Banner */}
             <ShopHeader />
 
-            {/* Main Content */}
             <section
                 className="shop-content vastra-section bg-vastra-ivory position-relative"
                 style={{
@@ -132,7 +119,6 @@ const ShopPage = () => {
                 }}
             >
                 <Container>
-                    {/* Category Filter */}
                     <CategoryFilter
                         categories={categories}
                         selectedCategory={selectedCategory}
@@ -140,7 +126,6 @@ const ShopPage = () => {
                     />
 
                     <div className="row">
-                        {/* Sidebar */}
                         <div className="col-lg-3 d-none d-lg-block">
                             <FilterSidebar
                                 filters={filters}
@@ -149,9 +134,7 @@ const ShopPage = () => {
                             />
                         </div>
 
-                        {/* Main Content */}
                         <div className="col-lg-9">
-                            {/* Search Input */}
                             <SearchInput
                                 value={searchQuery}
                                 onChange={handleSearchChange}
@@ -159,7 +142,6 @@ const ShopPage = () => {
                                 placeholder="Search for sarees, kurtas, lehengas..."
                             />
 
-                            {/* Error State */}
                             {error && (
                                 <motion.div
                                     className="alert text-center mb-4"
@@ -183,10 +165,8 @@ const ShopPage = () => {
                                 </motion.div>
                             )}
 
-                            {/* Loading State */}
                             {isLoading && <ProductSkeleton count={pageSize} />}
 
-                            {/* Products Grid */}
                             {!isLoading && !error && products.length > 0 && (
                                 <>
                                     <ProductGrid products={products} />
@@ -198,7 +178,6 @@ const ShopPage = () => {
                                 </>
                             )}
 
-                            {/* Empty State */}
                             {!isLoading && !error && products.length === 0 && (
                                 <EmptyState
                                     hasFilters={searchQuery !== '' || filters.minPrice !== null || filters.maxPrice !== null || filters.colors.length > 0 || filters.sizes.length > 0}
@@ -210,7 +189,6 @@ const ShopPage = () => {
                 </Container>
             </section>
 
-            {/* Footer */}
             <Footer />
         </div>
     );

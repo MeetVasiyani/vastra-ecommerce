@@ -17,21 +17,17 @@ const ProductCard = ({ product }) => {
     const { addToCart } = useCart();
     const { getBestSaleForPrice } = useSale();
 
-    // Compute sale info for this product's base price
     const sale = getBestSaleForPrice(product.basePrice);
 
-    // Get default variant
     const defaultVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
     const wishlistStatus = defaultVariant ? isInWishlist(defaultVariant.id) : { inWishlist: false };
     const inWishlist = wishlistStatus.inWishlist;
 
-    // View product details
     const handleViewProduct = (e) => {
         e.stopPropagation();
         navigate(`/product/${product.id}`);
     };
 
-    // Add to cart or go to product page
     const handleAddToCart = async (e) => {
         e.stopPropagation();
         if (product.variants?.length === 1) {
@@ -41,7 +37,6 @@ const ProductCard = ({ product }) => {
         }
     };
 
-    // Toggle wishlist
     const handleWishlistClick = async (e) => {
         e.stopPropagation();
         if (defaultVariant) {
@@ -49,17 +44,14 @@ const ProductCard = ({ product }) => {
         }
     };
 
-    // Go to product page
     const handleCardClick = () => {
         navigate(`/product/${product.id}`);
     };
 
-    // Get main image
     const rawImageUrl = product.images?.find((img) => img.isMainImage)?.imageUrl
         || product.images?.[0]?.imageUrl;
     const mainImage = getImageUrl(rawImageUrl) || 'https://via.placeholder.com/400x500?text=Vastra';
 
-    // Get unique colors from variants
     const uniqueColors = [];
     if (product.variants) {
         product.variants.forEach(v => {

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { getAllReviewsAsAdmin, deleteReviewAsAdmin } from '../../services/adminService';
-// import './AdminUsersPage.css'; // Re-use the existing admin table styles
 
 const AdminReviewsPage = () => {
     const [reviews, setReviews] = useState([]);
@@ -37,7 +36,7 @@ const AdminReviewsPage = () => {
 
     const handleRatingChange = (e) => {
         setRatingFilter(e.target.value);
-        setCurrentPage(1); // Reset to first page when filter changes
+        setCurrentPage(1);
     };
 
     const handleDelete = async (reviewId) => {
@@ -49,7 +48,6 @@ const AdminReviewsPage = () => {
         const result = await deleteReviewAsAdmin(reviewId);
         if (result.success) {
             setMessage({ type: 'success', text: 'Review deleted successfully.' });
-            // Reload the current page to reflect deletion
             await loadReviews(currentPage, ratingFilter);
         } else {
             setMessage({ type: 'error', text: result.error || 'Failed to delete review.' });

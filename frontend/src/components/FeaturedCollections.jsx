@@ -5,13 +5,11 @@ import { useInView } from 'framer-motion';
 import { useRef } from 'react';
 import { Card, CardBody } from './ui/Card';
 
-// Import local images
 import SareeImg from '../assets/Saree.jpg';
 import KurtaImg from '../assets/Kurta.png';
 import LehengaImg from '../assets/Lehenga.png';
 import HandloomImg from '../assets/Handloom.jpg';
 
-// Import custom icons
 import SareeIcon from '../assets/icons/saree-icon.png';
 import KurtaIcon from '../assets/icons/kurta-icon.png';
 import LehengaIcon from '../assets/icons/lehenga-icon.png';

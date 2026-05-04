@@ -33,7 +33,6 @@ const ReviewSection = ({ productId }) => {
         }
     };
 
-    // Load all reviews to compute distribution
     const loadRatingDistribution = async () => {
         try {
             const data = await fetchProductReviews(productId, 1, 100);
@@ -69,7 +68,6 @@ const ReviewSection = ({ productId }) => {
 
     const handleEditReview = (review) => {
         setEditingReview(review);
-        // Scroll to form
         const formEl = document.querySelector('.review-form');
         if (formEl) formEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };

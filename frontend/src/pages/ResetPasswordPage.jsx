@@ -93,7 +93,6 @@ const ResetPasswordPage = () => {
         return (
             <AuthLayout>
 
-                {/* Error Card */}
                 <div
                     className="p-4 p-md-5 text-center"
                     style={{
@@ -137,7 +136,6 @@ const ResetPasswordPage = () => {
     return (
         <AuthLayout subtitle="Set your new password">
 
-            {/* Reset Password Card */}
             <div
                 className="p-4 p-md-5"
                 style={{
@@ -172,7 +170,6 @@ const ResetPasswordPage = () => {
                     Enter your new password below.
                 </p>
 
-                {/* Success Alert */}
                 {message && (
                     <div
                         className="alert mb-4 text-center"
@@ -187,7 +184,6 @@ const ResetPasswordPage = () => {
                     </div>
                 )}
 
-                {/* Error Alert */}
                 {error && (
                     <div
                         className="alert mb-4 text-center"
@@ -204,7 +200,6 @@ const ResetPasswordPage = () => {
 
                 {!isSuccess && (
                     <form onSubmit={handleSubmit}>
-                        {/* New Password Field */}
                         <div className="mb-4">
                             <label
                                 htmlFor="newPassword"
@@ -244,7 +239,6 @@ const ResetPasswordPage = () => {
                             </div>
                         </div>
 
-                        {/* Confirm Password Field */}
                         <div className="mb-4">
                             <label
                                 htmlFor="confirmPassword"
@@ -289,7 +283,6 @@ const ResetPasswordPage = () => {
                             )}
                         </div>
 
-                        {/* Submit Button */}
                         <button
                             type="submit"
                             className="btn btn-vastra-primary w-100"
@@ -316,7 +309,6 @@ const ResetPasswordPage = () => {
                     </form>
                 )}
 
-                {/* Back to Login Link */}
                 <div className="text-center mt-4">
                     <Link
                         to="/login"

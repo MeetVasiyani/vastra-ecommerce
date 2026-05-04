@@ -2,7 +2,6 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Star } from 'lucide-react';
 
-// Star display helper
 export const StarDisplay = ({ rating, size = 16 }) => (
     <div className="d-flex gap-1 align-items-center">
         {[1, 2, 3, 4, 5].map((star) => (
@@ -16,7 +15,6 @@ export const StarDisplay = ({ rating, size = 16 }) => (
     </div>
 );
 
-// Interactive star selector for editing
 export const StarSelector = ({ rating, onRatingChange }) => (
     <div className="d-flex gap-1">
         {[1, 2, 3, 4, 5].map((star) => (

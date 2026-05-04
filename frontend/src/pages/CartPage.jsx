@@ -8,7 +8,6 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { formatPrice, getImageUrl } from '../services/api';
 
-// Empty Cart Component
 const EmptyCart = () => (
     <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -241,7 +240,6 @@ const CartItem = ({ item, onUpdateQuantity, onRemove, isUpdating }) => {
     );
 };
 
-// Cart Summary Component
 const CartSummary = ({ totalAmount, itemCount, onProceedToCheckout }) => {
     const { applyCoupon, removeCoupon, appliedCoupon, discountAmount, finalTotal, isCouponLoading } = useCart();
     const [couponCode, setCouponCode] = useState('');
@@ -498,7 +496,6 @@ const CartSummary = ({ totalAmount, itemCount, onProceedToCheckout }) => {
     );
 };
 
-// Main Cart Page Component
 const CartPage = () => {
     const navigate = useNavigate();
     const { isAuthenticated } = useAuth();
@@ -511,7 +508,6 @@ const CartPage = () => {
         removeFromCart
     } = useCart();
 
-    // Redirect to login if not authenticated
     useEffect(() => {
         if (!isAuthenticated) {
             navigate('/login', { state: { from: '/cart' } });
@@ -532,7 +528,7 @@ const CartPage = () => {
     };
 
     if (!isAuthenticated) {
-        return null; // Will redirect
+        return null;
     }
 
     return (

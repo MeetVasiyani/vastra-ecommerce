@@ -1,7 +1,14 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import {Heart,Trash2,ShoppingBag,ArrowLeft,RefreshCw,Loader2,} from "lucide-react";
+import {
+  Heart,
+  Trash2,
+  ShoppingBag,
+  ArrowLeft,
+  RefreshCw,
+  Loader2,
+} from "lucide-react";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import { useWishlist } from "../context/WishlistContext";
@@ -45,7 +52,6 @@ const WishlistPage = () => {
     setAddingToCartId(null);
 
     if (result.success) {
-      // Remove from wishlist after adding to cart
       await removeFromWishlist(item.id);
     }
   };
@@ -54,7 +60,6 @@ const WishlistPage = () => {
     navigate(`/product/${productId}`);
   };
 
-  // Loading state
   if (isLoading && wishlist.length === 0) {
     return (
       <>
@@ -93,7 +98,6 @@ const WishlistPage = () => {
     );
   }
 
-  // Error state
   if (error && wishlist.length === 0) {
     return (
       <>
@@ -158,7 +162,6 @@ const WishlistPage = () => {
     );
   }
 
-  // Empty state
   if (wishlist.length === 0) {
     return (
       <>
@@ -235,7 +238,6 @@ const WishlistPage = () => {
           background: "var(--vastra-ivory)",
         }}
       >
-        {/* Header Section */}
         <div
           className="py-5"
           style={{
@@ -304,7 +306,6 @@ const WishlistPage = () => {
           </div>
         </div>
 
-        {/* Wishlist Items Grid */}
         <div className="container py-5">
           <div className="row g-4">
             <AnimatePresence>
@@ -327,7 +328,6 @@ const WishlistPage = () => {
                       transition: "all 0.3s ease",
                     }}
                   >
-                    {/* Image */}
                     <div
                       className="position-relative"
                       style={{ cursor: "pointer" }}
@@ -346,7 +346,6 @@ const WishlistPage = () => {
                         }}
                       />
 
-                      {/* Remove Button */}
                       <motion.button
                         className="position-absolute border-0 d-flex align-items-center justify-content-center"
                         style={{
@@ -384,7 +383,6 @@ const WishlistPage = () => {
                       </motion.button>
                     </div>
 
-                    {/* Content */}
                     <div className="p-3">
                       <h3
                         className="mb-2"
@@ -402,7 +400,6 @@ const WishlistPage = () => {
                         {item.productName}
                       </h3>
 
-                      {/* Variant Info */}
                       <div className="d-flex align-items-center gap-2 mb-2">
                         {item.color && (
                           <div className="d-flex align-items-center gap-1">
@@ -454,7 +451,6 @@ const WishlistPage = () => {
                         )}
                       </div>
 
-                      {/* Price */}
                       {(() => {
                         const sale = getBestSaleForPrice(item.price);
                         if (sale) {
@@ -497,7 +493,6 @@ const WishlistPage = () => {
                         );
                       })()}
 
-                      {/* Add to Cart Button */}
                       <motion.button
                         className="btn btn-vastra-primary w-100 d-flex align-items-center justify-content-center gap-2"
                         style={{ padding: "10px 20px", fontSize: "0.9rem" }}
@@ -535,7 +530,6 @@ const WishlistPage = () => {
       </main>
       <Footer />
 
-      {/* Spin animation keyframes */}
       <style>{`
                 @keyframes spin {
                     from { transform: rotate(0deg); }

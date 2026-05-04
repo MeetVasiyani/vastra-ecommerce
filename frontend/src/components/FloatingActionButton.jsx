@@ -7,7 +7,6 @@ const FloatingActionButton = () => {
 
     useEffect(() => {
         const toggleVisibility = () => {
-            // Show button after scrolling past hero section (approx 100vh)
             if (window.pageYOffset > window.innerHeight) {
                 setIsVisible(true);
             } else {
@@ -20,7 +19,6 @@ const FloatingActionButton = () => {
     }, []);
 
     const handleClick = () => {
-        // Placeholder for shop action - can be linked to collections or shop page
         console.log('Navigate to shop');
     };
 

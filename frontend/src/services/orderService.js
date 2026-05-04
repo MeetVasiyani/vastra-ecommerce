@@ -1,11 +1,9 @@
-// Order Service for Vastra
 import axios from 'axios';
 import { getAuthHeaders, isAuthenticated } from './authService';
 
 const BACKEND_URL = 'http://localhost:5121';
 const API_BASE_URL = `${BACKEND_URL}/api`;
 
-// Create a new order from the current cart
 export const createOrder = async (shippingAddress, paymentMethod = 'COD', couponId = null) => {
     if (!isAuthenticated()) {
         return { success: false, error: 'Please login to place an order', requiresAuth: true };
@@ -26,7 +24,6 @@ export const createOrder = async (shippingAddress, paymentMethod = 'COD', coupon
         });
 
         const data = response.data;
-        // The backend returns { order: {...}, razorpayOrderId: "..." }
         const order = data.order || data;
         const razorpayOrderId = data.razorpayOrderId;
         
@@ -47,7 +44,6 @@ export const createOrder = async (shippingAddress, paymentMethod = 'COD', coupon
     }
 };
 
-// Get all orders for current user
 export const getMyOrders = async (page = 1, pageSize = 10) => {
     if (!isAuthenticated()) {
         return { success: false, error: 'Not authenticated', requiresAuth: true };
@@ -73,7 +69,6 @@ export const getMyOrders = async (page = 1, pageSize = 10) => {
     }
 };
 
-// Get a single order by ID
 export const getOrderById = async (id) => {
     if (!isAuthenticated()) {
         return { success: false, error: 'Not authenticated', requiresAuth: true };
@@ -101,7 +96,6 @@ export const getOrderById = async (id) => {
     }
 };
 
-// Cancel an order
 export const cancelOrder = async (orderId) => {
     if (!isAuthenticated()) {
         return { success: false, error: 'Not authenticated', requiresAuth: true };

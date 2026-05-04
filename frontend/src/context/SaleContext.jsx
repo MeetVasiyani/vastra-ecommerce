@@ -23,7 +23,6 @@ export const SaleProvider = ({ children }) => {
 
         loadSaleCoupons();
 
-        // also reload when the tab gets focus
         window.addEventListener('focus', loadSaleCoupons);
         return () => window.removeEventListener('focus', loadSaleCoupons);
     }, [location.pathname]);
@@ -43,7 +42,6 @@ export const SaleProvider = ({ children }) => {
                 saving = coupon.discountAmount;
             }
 
-            // saving cannot exceed the price
             saving = Math.min(saving, price);
 
             if (!best || saving > best.saving) {

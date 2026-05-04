@@ -3,11 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import './CategoryFilter.css';
 
 const CategoryFilter = ({ categories, selectedCategory, onCategoryChange }) => {
-    // Separate parents and children
     const parents = categories.filter(c => !c.parentCategoryId);
     const children = categories.filter(c => c.parentCategoryId);
 
-    // Track active parent tab
     const [activeParentId, setActiveParentId] = useState(null);
 
     useEffect(() => {
@@ -30,7 +28,6 @@ const CategoryFilter = ({ categories, selectedCategory, onCategoryChange }) => {
 
     const activeChildren = children.filter(c => c.parentCategoryId === activeParentId);
 
-    // Animation variants
     const containerVariants = {
         hidden: { opacity: 0, y: -10 },
         visible: { opacity: 1, y: 0, transition: { duration: 0.4, staggerChildren: 0.05 } }

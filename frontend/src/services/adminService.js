@@ -1,11 +1,9 @@
-// Admin Service for Vastra
 import axios from 'axios';
 import { getAuthHeaders, getToken, isAuthenticated } from './authService';
 
 const BACKEND_URL = 'http://localhost:5121';
 const API_BASE_URL = `${BACKEND_URL}/api`;
 
-// check if logged in user is admin by reading JWT
 export function isAdmin() {
     if (!isAuthenticated()) return false;
 
@@ -27,13 +25,11 @@ export function isAdmin() {
     }
 }
 
-// helper to get error message from API response
 function getErrorMessage(data, fallback) {
     if (typeof data === 'string' && data) return data;
     if (data && data.error) return data.error;
     if (data && data.message) return data.message;
     
-    // Handle ASP.NET Core validation errors
     if (data && data.errors) {
         const errorKeys = Object.keys(data.errors);
         if (errorKeys.length > 0) {
@@ -48,7 +44,6 @@ function getErrorMessage(data, fallback) {
     return fallback;
 }
 
-// create a new product
 export async function createProduct(productData) {
     try {
         const response = await axios.post(`${API_BASE_URL}/Product`, productData, {
@@ -63,7 +58,6 @@ export async function createProduct(productData) {
     }
 }
 
-// update an existing product
 export async function updateProduct(id, productData) {
     try {
         await axios.put(`${API_BASE_URL}/Product/${id}`, productData, {
@@ -78,7 +72,6 @@ export async function updateProduct(id, productData) {
     }
 }
 
-// delete a product by id
 export async function deleteProduct(id) {
     try {
         await axios.delete(`${API_BASE_URL}/Product/${id}`, {
@@ -93,7 +86,6 @@ export async function deleteProduct(id) {
     }
 }
 
-// create a new category
 export async function createCategory(categoryData) {
     try {
         const response = await axios.post(`${API_BASE_URL}/Category`, categoryData, {
@@ -108,7 +100,6 @@ export async function createCategory(categoryData) {
     }
 }
 
-// update a category
 export async function updateCategory(id, categoryData) {
     try {
         await axios.put(`${API_BASE_URL}/Category/${id}`, categoryData, {
@@ -123,7 +114,6 @@ export async function updateCategory(id, categoryData) {
     }
 }
 
-// delete a category
 export async function deleteCategory(id) {
     try {
         await axios.delete(`${API_BASE_URL}/Category/${id}`, {
@@ -138,7 +128,6 @@ export async function deleteCategory(id) {
     }
 }
 
-// get all coupons (admin)
 export async function getAllCoupons() {
     try {
         const response = await axios.get(`${API_BASE_URL}/Coupon`, {
@@ -153,7 +142,6 @@ export async function getAllCoupons() {
     }
 }
 
-// get a single coupon by id
 export async function getCouponById(id) {
     try {
         const response = await axios.get(`${API_BASE_URL}/Coupon/${id}`, {
@@ -168,7 +156,6 @@ export async function getCouponById(id) {
     }
 }
 
-// create a coupon
 export async function createCoupon(couponData) {
     try {
         const response = await axios.post(`${API_BASE_URL}/Coupon`, couponData, {
@@ -183,7 +170,6 @@ export async function createCoupon(couponData) {
     }
 }
 
-// update a coupon
 export async function updateCoupon(id, couponData) {
     try {
         await axios.put(`${API_BASE_URL}/Coupon/${id}`, couponData, {
@@ -198,7 +184,6 @@ export async function updateCoupon(id, couponData) {
     }
 }
 
-// delete a coupon
 export async function deleteCoupon(id) {
     try {
         await axios.delete(`${API_BASE_URL}/Coupon/${id}`, {
@@ -213,7 +198,6 @@ export async function deleteCoupon(id) {
     }
 }
 
-// get order stats for dashboard (admin)
 export async function getOrderStats() {
     try {
         const response = await axios.get(`${API_BASE_URL}/Order/Admin/Stats`, {
@@ -228,7 +212,6 @@ export async function getOrderStats() {
     }
 }
 
-// get all orders (admin)
 export async function getAllOrders(page, pageSize, status) {
     if (page === undefined) page = 1;
     if (pageSize === undefined) pageSize = 10;
@@ -254,7 +237,6 @@ export async function getAllOrders(page, pageSize, status) {
     }
 }
 
-// update order status
 export async function updateOrderStatus(id, status) {
     try {
         const response = await axios.put(
@@ -271,7 +253,6 @@ export async function updateOrderStatus(id, status) {
     }
 }
 
-// get all users (admin)
 export async function getAllUsers() {
     try {
         const response = await axios.get(`${API_BASE_URL}/Auth/Users`, {
@@ -286,7 +267,6 @@ export async function getAllUsers() {
     }
 }
 
-// promote a user to admin
 export async function promoteUserToAdmin(id) {
     try {
         const response = await axios.post(`${API_BASE_URL}/Auth/Users/${id}/promote`, {}, {
@@ -301,7 +281,6 @@ export async function promoteUserToAdmin(id) {
     }
 }
 
-// toggle user active/inactive status
 export async function toggleUserStatus(id) {
     try {
         const response = await axios.post(`${API_BASE_URL}/Auth/Users/${id}/toggle-status`, {}, {
@@ -316,7 +295,6 @@ export async function toggleUserStatus(id) {
     }
 }
 
-// admin reset a user's password
 export async function resetUserPassword(id, newPassword) {
     try {
         const response = await axios.post(`${API_BASE_URL}/Auth/Users/${id}/reset-password`, { newPassword }, {
@@ -331,7 +309,6 @@ export async function resetUserPassword(id, newPassword) {
     }
 }
 
-// get all reviews (admin)
 export async function getAllReviewsAsAdmin(page, pageSize, rating) {
     if (page === undefined) page = 1;
     if (pageSize === undefined) pageSize = 10;
@@ -357,7 +334,6 @@ export async function getAllReviewsAsAdmin(page, pageSize, rating) {
     }
 }
 
-// delete a review (admin)
 export async function deleteReviewAsAdmin(id) {
     try {
         await axios.delete(`${API_BASE_URL}/Review/admin/${id}`, {

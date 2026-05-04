@@ -3,7 +3,6 @@ import { Container, Row, Col } from 'react-bootstrap';
 import { motion, useInView } from 'framer-motion';
 import { Scissors } from 'lucide-react';
 
-// Import local image
 import ArtisanImg from '../assets/Indian artisan at work.jpg';
 
 const leftVariants = {

@@ -35,7 +35,6 @@ const AdminOrdersPage = () => {
         const result = await updateOrderStatus(id, newStatus);
 
         if (result.success) {
-            // Optimistic update or reload
             loadOrders();
         } else {
             alert(result.error);

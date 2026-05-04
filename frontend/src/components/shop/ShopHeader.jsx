@@ -10,7 +10,7 @@ const ShopHeader = () => {
             className="shop-header position-relative d-flex align-items-center"
             style={{
                 minHeight: '45vh',
-                paddingTop: '80px', // Account for fixed navbar
+                paddingTop: '80px',
                 background: 'linear-gradient(135deg, #FFFFF0 0%, #F5F5DC 50%, #E8D7A8 100%)',
                 overflow: 'hidden',
             }}

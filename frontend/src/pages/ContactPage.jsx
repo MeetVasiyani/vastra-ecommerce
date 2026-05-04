@@ -64,7 +64,7 @@ const ContactPage = () => {
             [name]: value
         }));
 
-        // Clear error for this field
+
         if (errors[name]) {
             setErrors(prev => ({
                 ...prev,
@@ -92,7 +92,6 @@ const ContactPage = () => {
                     message: result.message || 'Thank you for contacting us! We\'ll get back to you soon.'
                 });
 
-                // Reset form
                 setFormData({
                     name: '',
                     email: '',

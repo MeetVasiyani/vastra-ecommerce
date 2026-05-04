@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { getAllUsers, promoteUserToAdmin, toggleUserStatus, resetUserPassword } from '../../services/adminService';
-// import './AdminUsersPage.css'; // Add a little css if needed or just inline it, assuming standard styles
 
 const AdminUsersPage = () => {
     const [users, setUsers] = useState([]);

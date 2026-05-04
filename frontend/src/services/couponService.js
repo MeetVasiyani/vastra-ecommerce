@@ -1,11 +1,9 @@
-// Coupon Service for Vastra
 import axios from 'axios';
 import { getAuthHeaders, isAuthenticated } from './authService';
 
 const BACKEND_URL = 'http://localhost:5121';
 const API_BASE_URL = `${BACKEND_URL}/api`;
 
-// Validate a coupon code
 export const validateCoupon = async (code, orderAmount) => {
     if (!isAuthenticated()) {
         return { success: false, error: 'Please login to apply coupons', requiresAuth: true };
@@ -62,7 +60,6 @@ export const validateCoupon = async (code, orderAmount) => {
     }
 };
 
-// Get all active coupons (for future use)
 export const getActiveCoupons = async () => {
     try {
         const response = await axios.get(`${API_BASE_URL}/Coupon/active`);

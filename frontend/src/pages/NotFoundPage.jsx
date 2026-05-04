@@ -11,7 +11,6 @@ const NotFoundPage = () => {
         <div className="not-found-page">
             <Navbar />
 
-            {/* Main Content */}
             <section
                 style={{
                     background: 'linear-gradient(135deg, var(--vastra-ivory) 0%, var(--vastra-beige) 100%)',
@@ -30,7 +29,6 @@ const NotFoundPage = () => {
                         transition={{ duration: 0.6 }}
                         className="text-center"
                     >
-                        {/* 404 Number */}
                         <motion.h1
                             initial={{ scale: 0.8, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
@@ -64,7 +62,6 @@ const NotFoundPage = () => {
                             }}
                         />
 
-                        {/* Title */}
                         <motion.h2
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -80,7 +77,6 @@ const NotFoundPage = () => {
                             Page Not Found
                         </motion.h2>
 
-                        {/* Description */}
                         <motion.p
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -98,7 +94,6 @@ const NotFoundPage = () => {
                             Let's get you back to exploring our exquisite collection.
                         </motion.p>
 
-                        {/* Action Buttons */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -141,7 +136,6 @@ const NotFoundPage = () => {
                             </Link>
                         </motion.div>
 
-                        {/* Go Back Link */}
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}

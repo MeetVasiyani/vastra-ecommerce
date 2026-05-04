@@ -12,7 +12,6 @@ import RelatedProducts from '../components/product/RelatedProducts';
 import ReviewSection from '../components/product/ReviewSection';
 import { fetchProductById } from '../services/api';
 
-// Helper to render skeleton placeholder
 const SkeletonBox = ({ width = '100%', height = '40px', borderRadius = '8px', className = '' }) => (
     <div
         className={`skeleton-shimmer ${className}`}
@@ -25,7 +24,6 @@ const SkeletonBox = ({ width = '100%', height = '40px', borderRadius = '8px', cl
     />
 );
 
-// Loading Skeleton Component
 const ProductDetailSkeleton = () => (
     <div className="product-detail-skeleton">
         <Container className="py-5">
@@ -85,12 +83,10 @@ const ProductDetailPage = () => {
 
         if (id) {
             loadProduct();
-            // Scroll to top when product changes
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }, [id]);
 
-    // Error state
     if (error) {
         return (
             <div className="product-detail-error">
@@ -127,16 +123,13 @@ const ProductDetailPage = () => {
 
     return (
         <div className="product-detail-page">
-            {/* Navigation */}
             <Navbar />
 
-            {/* Header with Breadcrumb */}
             <ProductHeader
                 productName={product?.name || 'Loading...'}
                 categoryName={product?.category?.name}
             />
 
-            {/* Main Content */}
             <section
                 className="product-detail-content vastra-section bg-vastra-ivory"
                 style={{
@@ -149,7 +142,6 @@ const ProductDetailPage = () => {
                 ) : (
                     <Container>
                         <Row className="g-5">
-                            {/* Image Gallery */}
                             <Col lg={6}>
                                 <motion.div
                                     initial={{ opacity: 0, x: -30 }}
@@ -160,7 +152,6 @@ const ProductDetailPage = () => {
                                 </motion.div>
                             </Col>
 
-                            {/* Product Info */}
                             <Col lg={6}>
                                 <motion.div
                                     initial={{ opacity: 0, x: 30 }}
@@ -175,7 +166,6 @@ const ProductDetailPage = () => {
                 )}
             </section>
 
-            {/* Related Products */}
             {!isLoading && product && (
                 <RelatedProducts
                     categoryId={product?.category?.id}
@@ -183,12 +173,10 @@ const ProductDetailPage = () => {
                 />
             )}
 
-            {/* Reviews Section */}
             {!isLoading && product && (
                 <ReviewSection productId={product.id} />
             )}
 
-            {/* Footer */}
             <Footer />
         </div>
     );

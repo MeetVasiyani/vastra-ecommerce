@@ -27,20 +27,16 @@ const FilterSidebar = ({
     colors = VASTRA_COLORS,
     sizes = VASTRA_SIZES
 }) => {
-    // Local state for price inputs
     const [localMinPrice, setLocalMinPrice] = useState(filters.minPrice || '');
     const [localMaxPrice, setLocalMaxPrice] = useState(filters.maxPrice || '');
 
-    // Collapsible state for colors
     const [isColorOpen, setIsColorOpen] = useState(true);
 
-    // Sync local state when filters change
     useEffect(() => {
         setLocalMinPrice(filters.minPrice || '');
         setLocalMaxPrice(filters.maxPrice || '');
     }, [filters.minPrice, filters.maxPrice]);
 
-    // Price handlers
     const handleMinPriceChange = (e) => {
         setLocalMinPrice(e.target.value);
     };
@@ -71,9 +67,9 @@ const FilterSidebar = ({
                 handleMaxPriceBlur();
             }
         }
+        onFilterChange(type, newValues);
     };
 
-    // Toggle color/size filter
     const handleCheckboxChange = (type, value) => {
         const currentValues = filters[type] || [];
         let newValues;

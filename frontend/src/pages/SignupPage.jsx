@@ -20,15 +20,12 @@ const SignupPage = () => {
     const { register, isLoading, error, isAuthenticated, clearError } = useAuth();
     const navigate = useNavigate();
 
-    // Redirect if already authenticated
     useEffect(() => {
         if (isAuthenticated) {
             navigate('/', { replace: true });
         }
     }, [isAuthenticated, navigate]);
 
-
-    // Calculate password strength
     useEffect(() => {
         const { password } = formData;
         if (!password) {
@@ -73,7 +70,6 @@ const SignupPage = () => {
         setFormError('');
         clearError();
 
-        // Validation
         if (!formData.firstName.trim()) {
             setFormError('Please enter your first name');
             return;

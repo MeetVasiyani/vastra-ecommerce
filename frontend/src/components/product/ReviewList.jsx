@@ -33,7 +33,6 @@ const ReviewList = ({ reviews, totalCount, onLoadMore, hasMore, isLoading, onRev
         });
     };
 
-    // Get initials from name
     const getInitials = (name) => {
         if (!name) return '?';
         const parts = name.trim().split(' ');

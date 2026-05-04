@@ -20,12 +20,10 @@ import Pagination from "../components/account/Pagination";
 import ReviewCard from "../components/account/ReviewCard";
 import ChangePasswordModal from "../components/account/ChangePasswordModal";
 
-// Main Account Page Component
 const AccountPage = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, logout, isLoading: authLoading } = useAuth();
 
-  // Profile state
   const [profile, setProfile] = useState(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [showAddressForm, setShowAddressForm] = useState(false);
@@ -40,17 +38,14 @@ const AccountPage = () => {
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
-  // Tab state
   const [activeTab, setActiveTab] = useState("orders");
 
-  // Orders state
   const [orders, setOrders] = useState([]);
   const [ordersPage, setOrdersPage] = useState(1);
   const [ordersTotalPages, setOrdersTotalPages] = useState(1);
   const [isLoadingOrders, setIsLoadingOrders] = useState(true);
   const [cancellingOrderId, setCancellingOrderId] = useState(null);
 
-  // Reviews state
   const [reviews, setReviews] = useState([]);
   const [reviewsPage, setReviewsPage] = useState(1);
   const [reviewsTotalPages, setReviewsTotalPages] = useState(1);
@@ -60,10 +55,8 @@ const AccountPage = () => {
   const [savingReviewId, setSavingReviewId] = useState(null);
   const [reviewsLoaded, setReviewsLoaded] = useState(false);
 
-  // Error state
   const [error, setError] = useState("");
 
-  // Fetch profile data
   const loadProfile = async () => {
     setIsLoadingProfile(true);
     const result = await fetchUserProfile();
@@ -75,7 +68,6 @@ const AccountPage = () => {
     setIsLoadingProfile(false);
   };
 
-  // Fetch orders
   const loadOrders = async (page = 1) => {
     setIsLoadingOrders(true);
     const result = await getMyOrders(page, 5);
@@ -93,7 +85,6 @@ const AccountPage = () => {
     setIsLoadingOrders(false);
   };
 
-  // Fetch my reviews
   const loadMyReviews = async (page = 1) => {
     setIsLoadingReviews(true);
     try {
@@ -110,7 +101,6 @@ const AccountPage = () => {
     setIsLoadingReviews(false);
   };
 
-  // Initial data load
   useEffect(() => {
     if (isAuthenticated) {
       loadProfile();
@@ -118,7 +108,6 @@ const AccountPage = () => {
     }
   }, [isAuthenticated]);
 
-  // Handle adding new address
   const handleAddAddress = async (addressData) => {
     setIsAddingAddress(true);
     setError("");
@@ -138,7 +127,6 @@ const AccountPage = () => {
     setIsAddingAddress(false);
   };
 
-  // Handle deleting address
   const handleDeleteAddress = async (addressId) => {
     setDeletingAddressId(addressId);
     setError("");
@@ -157,7 +145,6 @@ const AccountPage = () => {
     setDeletingAddressId(null);
   };
 
-  // Handle updating address
   const handleUpdateAddress = async (addressId, addressData) => {
     setIsUpdatingAddress(true);
     setError("");
@@ -180,7 +167,6 @@ const AccountPage = () => {
     setIsUpdatingAddress(false);
   };
 
-  // Handle updating profile
   const handleUpdateProfile = async (profileData) => {
     setIsUpdatingProfile(true);
     setError("");
@@ -197,7 +183,6 @@ const AccountPage = () => {
     setIsUpdatingProfile(false);
   };
 
-  // Handle change password
   const handleChangePassword = async (passwordData) => {
     setIsChangingPassword(true);
     try {
@@ -212,7 +197,6 @@ const AccountPage = () => {
     }
   };
 
-  // Handle delete account
   const handleDeleteAccount = async () => {
     setIsDeletingAccount(true);
     const result = await deleteAccount();
@@ -227,7 +211,6 @@ const AccountPage = () => {
     setIsDeletingAccount(false);
   };
 
-  // Handle cancel order
   const handleCancelOrder = async (orderId) => {
     setCancellingOrderId(orderId);
     setError("");
@@ -235,7 +218,6 @@ const AccountPage = () => {
     const result = await cancelOrder(orderId);
 
     if (result.success) {
-      // Refresh orders to show updated status
       await loadOrders(ordersPage);
     } else {
       setError(result.error || "Failed to cancel order");
@@ -244,12 +226,10 @@ const AccountPage = () => {
     setCancellingOrderId(null);
   };
 
-  // Handle page change for orders
   const handleOrdersPageChange = (page) => {
     loadOrders(page);
   };
 
-  // Handle tab switch
   const handleTabSwitch = (tab) => {
     setActiveTab(tab);
     if (tab === "reviews" && !reviewsLoaded) {
@@ -257,22 +237,18 @@ const AccountPage = () => {
     }
   };
 
-  // Handle review page change
   const handleReviewsPageChange = (page) => {
     loadMyReviews(page);
   };
 
-  // Handle edit review (open inline form)
   const handleEditReview = (review) => {
     setEditingReviewId(review.id);
   };
 
-  // Handle cancel edit
   const handleCancelEdit = () => {
     setEditingReviewId(null);
   };
 
-  // Handle save review
   const handleSaveReview = async (id, { rating, comment }) => {
     setSavingReviewId(id);
     setError("");
@@ -288,7 +264,6 @@ const AccountPage = () => {
     setSavingReviewId(null);
   };
 
-  // Handle delete review
   const handleDeleteReview = async (id) => {
     setDeletingReviewId(id);
     setError("");
@@ -301,13 +276,11 @@ const AccountPage = () => {
     setDeletingReviewId(null);
   };
 
-  // Redirect if not authenticated
   if (!authLoading && !isAuthenticated) {
     navigate("/login", { state: { from: "/account" } });
     return null;
   }
 
-  // Loading state
   if (authLoading) {
     return (
       <div

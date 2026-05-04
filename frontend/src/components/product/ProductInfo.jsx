@@ -23,14 +23,12 @@ const ProductInfo = ({ product }) => {
     const [isAddingToCart, setIsAddingToCart] = useState(false);
     const [cartFeedback, setCartFeedback] = useState(null);
 
-    // Extract unique colors and sizes from variants
     const { colors, sizes, selectedVariant } = useMemo(() => {
         if (!product?.variants) return { colors: [], sizes: [], selectedVariant: null };
 
         const uniqueColors = [...new Set(product.variants.map(v => v.color).filter(Boolean))];
         const uniqueSizes = [...new Set(product.variants.map(v => v.size).filter(Boolean))];
 
-        // Find selected variant
         let variant = null;
         if (selectedColor && selectedSize) {
             variant = product.variants.find(
@@ -41,7 +39,6 @@ const ProductInfo = ({ product }) => {
         return { colors: uniqueColors, sizes: uniqueSizes, selectedVariant: variant };
     }, [product?.variants, selectedColor, selectedSize]);
 
-    // Set default selections
     React.useEffect(() => {
         if (colors.length > 0 && !selectedColor) {
             setSelectedColor(colors[0]);
@@ -51,7 +48,6 @@ const ProductInfo = ({ product }) => {
         }
     }, [colors, sizes, selectedColor, selectedSize]);
 
-    // Calculate price with variant adjustment
     const displayPrice = useMemo(() => {
         const basePrice = product?.basePrice || 0;
         const adjustment = selectedVariant?.priceAdjustment || 0;

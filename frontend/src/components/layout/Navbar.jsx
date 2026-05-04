@@ -7,7 +7,6 @@ import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { isAdmin } from '../../services/adminService';
 
-// Badge component for cart/wishlist counts
 const NavBadge = ({ count }) => {
     if (count <= 0) return null;
     return (
@@ -306,7 +305,7 @@ const Navbar = () => {
                         <div className="d-flex align-items-center gap-3">
                             <Link
                                 to="/login"
-                                state={{ from: location }} // Pass location state
+                                state={{ from: location }}
                                 className="text-decoration-none"
                                 style={{
                                     color: 'var(--vastra-maroon)',
@@ -478,7 +477,7 @@ const Navbar = () => {
                                     <div className="d-flex flex-column gap-2 pt-2">
                                         <Link
                                             to="/login"
-                                            state={{ from: location }} // Pass location state
+                                            state={{ from: location }}
                                             className="btn btn-vastra-outline w-100"
                                             onClick={() => setIsMobileMenuOpen(false)}
                                         >

@@ -1,4 +1,3 @@
-// API Service for Vastra
 import axios from 'axios';
 import { getAuthHeaders } from './authService';
 
@@ -7,7 +6,6 @@ const API_BASE_URL = `${BACKEND_URL}/api`;
 
 const DEFAULT_HEADERS = { 'Content-Type': 'application/json' };
 
-// Get full image URL from relative path
 export const getImageUrl = (path) => {
     if (!path) return null;
     if (path.startsWith('http://') || path.startsWith('https://')) return path;
@@ -17,7 +15,6 @@ export const getImageUrl = (path) => {
     return `${url}?v=${version}`;
 };
 
-// Helper to build query parameters  
 const buildParams = (obj) => {
     const params = new URLSearchParams();
     Object.entries(obj).forEach(([key, value]) => {
@@ -31,7 +28,6 @@ const buildParams = (obj) => {
     return params;
 };
 
-// Fetch products with filters
 export const fetchProducts = async (options = {}) => {
     const {
         page = 1,
@@ -56,7 +52,7 @@ export const fetchProducts = async (options = {}) => {
     }
 };
 
-// Fetch single product by ID
+
 export const fetchProductById = async (id) => {
     try {
         const response = await axios.get(`${API_BASE_URL}/Product/${id}`, { headers: DEFAULT_HEADERS });
@@ -66,7 +62,6 @@ export const fetchProductById = async (id) => {
     }
 };
 
-// Fetch all categories
 export const fetchCategories = async () => {
     try {
         const response = await axios.get(`${API_BASE_URL}/Category`, { headers: DEFAULT_HEADERS });
@@ -76,7 +71,6 @@ export const fetchCategories = async () => {
     }
 };
 
-// Format price in Indian Rupees
 export const formatPrice = (price) => {
     return new Intl.NumberFormat('en-IN', {
         style: 'currency',
@@ -86,7 +80,6 @@ export const formatPrice = (price) => {
     }).format(price);
 };
 
-// Verify payment with Razorpay
 export const verifyPayment = async (verificationData) => {
     try {
         const response = await fetch(`${API_BASE_URL}/Payment/Verify`, {

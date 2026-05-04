@@ -1,15 +1,12 @@
-// Auth Service for Vastra
 import axios from 'axios';
 
 const BACKEND_URL = 'http://localhost:5121';
 const API_BASE_URL = `${BACKEND_URL}/api`;
 
-// keys used in storage
 const TOKEN_KEY = 'vastra_auth_token';
 const USER_KEY = 'vastra_user';
 const REMEMBER_KEY = 'vastra_remember';
 
-// Helper to handle API errors consistently
 const handleApiError = (error, fallbackMsg = 'Something went wrong', clearOnUnauthorized = true) => {
     if (error.response?.status === 401 && clearOnUnauthorized) {
         clearAuthData();
@@ -25,7 +22,6 @@ const handleApiError = (error, fallbackMsg = 'Something went wrong', clearOnUnau
     return 'Network error. Please try again.';
 };
 
-// save token and user to storage
 function storeAuthData(token, user, remember) {
     const shouldRemember = remember !== false;
     localStorage.setItem(REMEMBER_KEY, shouldRemember.toString());
@@ -39,7 +35,6 @@ function storeAuthData(token, user, remember) {
     otherStorage.removeItem(USER_KEY);
 }
 
-// remove token and user from storage
 function clearAuthData() {
     [localStorage, sessionStorage].forEach(storage => {
         storage.removeItem(TOKEN_KEY);
@@ -48,12 +43,10 @@ function clearAuthData() {
     });
 }
 
-// get stored token
 export function getToken() {
     return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
 }
 
-// get stored user object
 export function getStoredUser() {
     const userStr = localStorage.getItem(USER_KEY) || sessionStorage.getItem(USER_KEY);
     if (!userStr) return null;
@@ -64,7 +57,6 @@ export function getStoredUser() {
     }
 }
 
-// check if user is logged in and token is not expired
 export function isAuthenticated() {
     const token = getToken();
     if (!token) return false;
@@ -77,7 +69,6 @@ export function isAuthenticated() {
     }
 }
 
-// get auth headers for API requests
 export function getAuthHeaders() {
     const token = getToken();
     return {
@@ -86,7 +77,6 @@ export function getAuthHeaders() {
     };
 }
 
-// login
 export async function login(email, password, remember = true) {
     try {
         const response = await axios.post(`${API_BASE_URL}/Auth/login`, { email, password, rememberMe: remember }, {
@@ -115,7 +105,6 @@ export async function login(email, password, remember = true) {
     }
 }
 
-// register
 export async function register(userData) {
     try {
         const response = await axios.post(`${API_BASE_URL}/Auth/register`, userData, {
@@ -144,12 +133,10 @@ export async function register(userData) {
     }
 }
 
-// logout
 export function logout() {
     clearAuthData();
 }
 
-// get user profile from API
 export async function fetchUserProfile() {
     try {
         const response = await axios.get(`${API_BASE_URL}/User/profile`, {
@@ -164,7 +151,6 @@ export async function fetchUserProfile() {
     }
 }
 
-// add a new address for the user
 export async function addUserAddress(addressData) {
     try {
         const response = await axios.post(`${API_BASE_URL}/User/addresses`, addressData, {
@@ -179,7 +165,6 @@ export async function addUserAddress(addressData) {
     }
 }
 
-// delete a user address by id
 export async function deleteUserAddress(addressId) {
     try {
         await axios.delete(`${API_BASE_URL}/User/addresses/${addressId}`, {
@@ -200,7 +185,6 @@ export async function deleteUserAddress(addressId) {
     }
 }
 
-// update a user address
 export async function updateUserAddress(addressId, addressData) {
     try {
         const response = await axios.put(`${API_BASE_URL}/User/addresses/${addressId}`, addressData, {
@@ -223,7 +207,6 @@ export async function updateUserAddress(addressId, addressData) {
     }
 }
 
-// update user profile
 export async function updateUserProfile(profileData) {
     try {
         const response = await axios.put(`${API_BASE_URL}/User/profile`, profileData, {
@@ -246,7 +229,6 @@ export async function updateUserProfile(profileData) {
     }
 }
 
-// delete user account
 export async function deleteAccount() {
     try {
         await axios.delete(`${API_BASE_URL}/User`, {
@@ -269,7 +251,6 @@ export async function deleteAccount() {
     }
 }
 
-// send forgot password email
 export async function forgotPassword(email) {
     try {
         const response = await axios.post(`${API_BASE_URL}/Auth/forgot-password`, { email }, {
@@ -288,7 +269,6 @@ export async function forgotPassword(email) {
     }
 }
 
-// reset password with token
 export async function resetPassword(data) {
     try {
         const response = await axios.post(`${API_BASE_URL}/Auth/reset-password`, data, {
@@ -307,7 +287,6 @@ export async function resetPassword(data) {
     }
 }
 
-// change password for authenticated user
 export async function changePassword(data) {
     try {
         const response = await axios.post(`${API_BASE_URL}/Auth/change-password`, data, {

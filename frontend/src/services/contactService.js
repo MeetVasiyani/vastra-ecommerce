@@ -1,4 +1,3 @@
-// Contact Service for Vastra
 import axios from 'axios';
 
 const BACKEND_URL = 'http://localhost:5121';

@@ -36,15 +36,12 @@ const AdminProductFormPage = () => {
     useEffect(() => {
         const loadData = async () => {
             try {
-                // Load categories
                 const categoriesData = await fetchCategories();
                 setCategories(categoriesData || []);
 
-                // If editing, load product details
                 if (isEditMode) {
                     const product = await fetchProductById(id);
 
-                    // Transform product data to form format
                     setForm({
                         name: product.name,
                         description: product.description || '',
@@ -85,7 +82,6 @@ const AdminProductFormPage = () => {
         }));
     };
 
-    // Image Handlers
     const handleImageChange = (index, value) => {
         const newImages = [...form.imageUrls];
         newImages[index] = value;
@@ -102,7 +98,6 @@ const AdminProductFormPage = () => {
         setForm(prev => ({ ...prev, imageUrls: newImages }));
     };
 
-    // Variant Handlers
     const handleVariantChange = (index, field, value) => {
         const newVariants = [...form.variants];
         newVariants[index] = { ...newVariants[index], [field]: value };
@@ -122,7 +117,6 @@ const AdminProductFormPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Basic Validation
         if (!form.name || !form.basePrice || !form.categoryId) {
             setError('Please fill in all required fields (Name, Price, Category)');
             window.scrollTo(0, 0);
@@ -132,7 +126,6 @@ const AdminProductFormPage = () => {
         setSaving(true);
         setError('');
 
-        // Clean up data before sending
         const payload = {
             ...form,
             basePrice: parseFloat(form.basePrice),

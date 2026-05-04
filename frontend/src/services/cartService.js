@@ -1,11 +1,9 @@
-// Cart Service for Vastra
 import axios from 'axios';
 import { getAuthHeaders, isAuthenticated } from './authService';
 
 const BACKEND_URL = 'http://localhost:5121';
 const API_BASE_URL = `${BACKEND_URL}/api`;
 
-// get current user's cart
 export async function getCart() {
     if (!isAuthenticated()) {
         return { success: false, error: 'Not authenticated' };
@@ -31,7 +29,6 @@ export async function getCart() {
     }
 }
 
-// add item to cart
 export async function addToCart(productVariantId, quantity) {
     if (quantity === undefined) quantity = 1;
 
@@ -59,7 +56,6 @@ export async function addToCart(productVariantId, quantity) {
     }
 }
 
-// update quantity of a cart item
 export async function updateCartItem(cartItemId, quantity) {
     if (!isAuthenticated()) {
         return { success: false, error: 'Not authenticated', requiresAuth: true };
@@ -85,7 +81,6 @@ export async function updateCartItem(cartItemId, quantity) {
     }
 }
 
-// remove a single item from cart
 export async function removeFromCart(itemId) {
     if (!isAuthenticated()) {
         return { success: false, error: 'Not authenticated', requiresAuth: true };
@@ -109,7 +104,6 @@ export async function removeFromCart(itemId) {
     }
 }
 
-// clear all items from cart
 export async function clearCart() {
     if (!isAuthenticated()) {
         return { success: false, error: 'Not authenticated', requiresAuth: true };

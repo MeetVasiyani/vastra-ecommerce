@@ -1,11 +1,9 @@
-// Wishlist Service for Vastra
 import axios from 'axios';
 import { getAuthHeaders, isAuthenticated } from './authService';
 
 const BACKEND_URL = 'http://localhost:5121';
 const API_BASE_URL = `${BACKEND_URL}/api`;
 
-// Get the current user's wishlist
 export const getWishlist = async () => {
     if (!isAuthenticated()) {
         return { success: false, error: 'Not authenticated', requiresAuth: true };
@@ -31,7 +29,6 @@ export const getWishlist = async () => {
     }
 };
 
-// Add item to wishlist
 export const addToWishlist = async (productVariantId) => {
     if (!isAuthenticated()) {
         return { success: false, error: 'Please login to add items to wishlist', requiresAuth: true };
@@ -57,7 +54,6 @@ export const addToWishlist = async (productVariantId) => {
     }
 };
 
-// Remove item from wishlist
 export const removeFromWishlist = async (wishlistItemId) => {
     if (!isAuthenticated()) {
         return { success: false, error: 'Not authenticated', requiresAuth: true };
