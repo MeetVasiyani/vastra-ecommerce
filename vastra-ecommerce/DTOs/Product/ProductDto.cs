@@ -34,6 +34,17 @@ namespace EcommerceApplication.DTOs.Product
         public List<CreateProductVariantDto> Variants { get; set; } = new();
     }
 
+    public class UpdateProductDto
+    {
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        public decimal? BasePrice { get; set; }
+        public bool? IsActive { get; set; }
+        public int? CategoryId { get; set; }
+        public List<string>? ImageUrls { get; set; }
+        public List<UpdateProductVariantDto>? Variants { get; set; }
+    }
+
     public class ProductImageDto
     {
         public int Id { get; set; }
@@ -62,5 +73,15 @@ namespace EcommerceApplication.DTOs.Product
         public int StockQuantity { get; set; }
         
         public decimal PriceAdjustment { get; set; }
+    }
+
+    public class UpdateProductVariantDto
+    {
+        public int Id { get; set; }
+        public string? Size { get; set; }
+        public string? Color { get; set; }
+        public string? Material { get; set; }
+        public int? StockQuantity { get; set; }
+        public decimal? PriceAdjustment { get; set; }
     }
 }

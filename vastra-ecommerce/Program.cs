@@ -58,6 +58,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.Configure<EcommerceApplication.Settings.EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddTransient<EcommerceApplication.Services.IEmailService, EcommerceApplication.Services.EmailService>();
+builder.Services.AddTransient<EcommerceApplication.Services.IProductService, EcommerceApplication.Services.ProductService>();
 
 builder.Services.AddIdentity<User, IdentityRole>(options =>
 {

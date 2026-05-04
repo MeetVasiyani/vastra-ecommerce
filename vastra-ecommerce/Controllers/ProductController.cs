@@ -1,9 +1,7 @@
-using EcommerceApplication.Data;
 using EcommerceApplication.DTOs.Product;
-using EcommerceApplication.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using EcommerceApplication.Services;
 
 namespace EcommerceApplication.Controllers
 {
@@ -11,11 +9,11 @@ namespace EcommerceApplication.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IProductService _productService;
 
-        public ProductController(AppDbContext context)
+        public ProductController(IProductService productService)
         {
-            _context = context;
+            _productService = productService;
         }
 
         [HttpGet]
@@ -29,156 +27,14 @@ namespace EcommerceApplication.Controllers
             [FromQuery] int page = 1, 
             [FromQuery] int pageSize = 20)
         {
-            if (page < 1) page = 1;
-            if (pageSize < 1 || pageSize > 100) pageSize = 20;
-
-            List<int>? categoryIds = null;
-            if (categoryId.HasValue)
-            {
-                categoryIds = await GetCategoryAndChildrenIds(categoryId.Value);
-            }
-
-            var query = BuildProductQuery(
-                search, categoryIds, minPrice, maxPrice, colors, sizes
-            );
-
-            var totalCount = await query.CountAsync();
-            var products = await query
-                .OrderBy(p => p.Name)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(p => MapToProductDto(p))
-                .ToListAsync();
-
-            await EnrichProductsWithReviews(products);
-
-            return Ok(new DTOs.Common.PagedResult<ProductDto>
-            {
-                Items = products,
-                TotalCount = totalCount,
-                Page = page,
-                PageSize = pageSize
-            });
-        }
-
-        private IQueryable<Product> BuildProductQuery(
-            string? search, 
-            List<int>? categoryIds,
-            decimal? minPrice,
-            decimal? maxPrice,
-            string? colors,
-            string? sizes)
-        {
-            var query = _context.Products
-                .Include(p => p.Images)
-                .Include(p => p.Variants)
-                .AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(search))
-                query = query.Where(p => p.Name.Contains(search));
-
-            if (categoryIds != null && categoryIds.Any())
-            {
-                query = query.Where(p => categoryIds.Contains(p.CategoryId));
-            }
-
-            if (minPrice.HasValue)
-                query = query.Where(p => p.BasePrice >= minPrice.Value);
-
-            if (maxPrice.HasValue)
-                query = query.Where(p => p.BasePrice <= maxPrice.Value);
-
-            if (!string.IsNullOrWhiteSpace(colors))
-            {
-                var colorList = colors.Split(',').Select(c => c.Trim().ToLower()).ToList();
-                query = query.Where(p => p.Variants.Any(v => colorList.Contains(v.Color.ToLower())));
-            }
-
-            if (!string.IsNullOrWhiteSpace(sizes))
-            {
-                var sizeList = sizes.Split(',').Select(s => s.Trim().ToUpper()).ToList();
-                query = query.Where(p => p.Variants.Any(v => sizeList.Contains(v.Size.ToUpper())));
-            }
-
-            return query;
-        }
-
-        private static ProductDto MapToProductDto(Product product) =>
-            new ProductDto
-            {
-                Id = product.Id,
-                Name = product.Name,
-                Description = product.Description,
-                BasePrice = product.BasePrice,
-                IsActive = product.IsActive,
-                CategoryId = product.CategoryId,
-                CreatedDate = product.CreatedDate,
-                Images = product.Images.Select(i => new ProductImageDto
-                {
-                    Id = i.Id,
-                    ImageUrl = i.ImageUrl,
-                    IsMainImage = i.IsMainImage
-                }).ToList(),
-                Variants = product.Variants.Select(v => new ProductVariantDto
-                {
-                    Id = v.Id,
-                    SKU = v.SKU,
-                    Size = v.Size,
-                    Color = v.Color,
-                    Material = v.Material,
-                    StockQuantity = v.StockQuantity,
-                    PriceAdjustment = v.PriceAdjustment
-                }).ToList()
-            };
-
-        private async Task EnrichProductsWithReviews(List<ProductDto> products)
-        {
-            var productIds = products.Select(p => p.Id).ToList();
-            var reviewAggregates = await _context.Reviews
-                .Where(r => productIds.Contains(r.ProductId))
-                .GroupBy(r => r.ProductId)
-                .Select(g => new 
-                { 
-                    ProductId = g.Key, 
-                    Avg = g.Average(r => (double)r.Rating), 
-                    Count = g.Count() 
-                })
-                .ToDictionaryAsync(x => x.ProductId, x => (x.Avg, x.Count));
-
-            foreach (var p in products)
-            {
-                if (reviewAggregates.TryGetValue(p.Id, out var agg))
-                {
-                    p.AverageRating = agg.Avg;
-                    p.ReviewCount = agg.Count;
-                }
-            }
+                return Ok(await _productService.GetAllAsync(search, categoryId, minPrice, maxPrice, colors, sizes, page, pageSize));
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var product = await _context.Products
-                .Include(p => p.Images)
-                .Include(p => p.Variants)
-                .FirstOrDefaultAsync(p => p.Id == id);
-
-            if (product == null) return NotFound();
-
-            var productDto = MapToProductDto(product);
-
-            var reviews = await _context.Reviews
-                .Where(r => r.ProductId == id)
-                .Select(r => (double)r.Rating)
-                .ToListAsync();
-
-            if (reviews.Any())
-            {
-                productDto.AverageRating = reviews.Average();
-                productDto.ReviewCount = reviews.Count;
-            }
-
-            return Ok(productDto);
+            var product = await _productService.GetByIdAsync(id);
+            return product == null ? NotFound() : Ok(product);
         }
 
         [HttpPost]
@@ -187,110 +43,17 @@ namespace EcommerceApplication.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var product = new Product
-            {
-                Name = createProductDto.Name,
-                Description = createProductDto.Description,
-                BasePrice = createProductDto.BasePrice,
-                IsActive = createProductDto.IsActive,
-                CategoryId = createProductDto.CategoryId,
-                CreatedDate = DateTime.UtcNow
-            };
-
-
-            _context.Products.Add(product);
-            
-            if (createProductDto.ImageUrls != null)
-            {
-                var firstUrl = createProductDto.ImageUrls.FirstOrDefault();
-                foreach (var url in createProductDto.ImageUrls)
-                {
-                    _context.ProductImages.Add(new ProductImage
-                    {
-                        ImageUrl = url,
-                        Product = product,
-                        IsMainImage = url == firstUrl
-                    });
-                }
-            }
-
-            if (createProductDto.Variants != null)
-            {
-                foreach (var variantDto in createProductDto.Variants)
-                {
-                    _context.ProductVariants.Add(new ProductVariant
-                    {
-                        SKU = variantDto.SKU,
-                        Size = variantDto.Size,
-                        Color = variantDto.Color,
-                        Material = variantDto.Material,
-                        StockQuantity = variantDto.StockQuantity,
-                        PriceAdjustment = variantDto.PriceAdjustment,
-                        Product = product
-                    });
-                }
-            }
-
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetById), new { id = product.Id }, createProductDto);
+            var product = await _productService.CreateAsync(createProductDto);
+            return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
         }
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Update(int id, [FromBody] CreateProductDto createProductDto)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateProductDto updateProductDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var product = await _context.Products
-                .Include(p => p.Images)
-                .Include(p => p.Variants)
-                .FirstOrDefaultAsync(p => p.Id == id);
-            
-            if (product == null) return NotFound();
-
-            product.Name = createProductDto.Name;
-            product.Description = createProductDto.Description;
-            product.BasePrice = createProductDto.BasePrice;
-            product.IsActive = createProductDto.IsActive;
-            product.CategoryId = createProductDto.CategoryId;
-
-            if (createProductDto.ImageUrls != null && createProductDto.ImageUrls.Any())
-            {
-                _context.ProductImages.RemoveRange(product.Images);
-                
-                var firstUrl = createProductDto.ImageUrls.FirstOrDefault();
-                foreach (var url in createProductDto.ImageUrls)
-                {
-                    _context.ProductImages.Add(new ProductImage
-                    {
-                        ImageUrl = url,
-                        Product = product,
-                        IsMainImage = url == firstUrl
-                    });
-                }
-            }
-
-            if (createProductDto.Variants != null && createProductDto.Variants.Any())
-            {
-                _context.ProductVariants.RemoveRange(product.Variants);
-                
-                foreach (var variantDto in createProductDto.Variants)
-                {
-                    _context.ProductVariants.Add(new ProductVariant
-                    {
-                        SKU = variantDto.SKU,
-                        Size = variantDto.Size,
-                        Color = variantDto.Color,
-                        Material = variantDto.Material,
-                        StockQuantity = variantDto.StockQuantity,
-                        PriceAdjustment = variantDto.PriceAdjustment,
-                        Product = product
-                    });
-                }
-            }
-            
-            await _context.SaveChangesAsync();
+            await _productService.UpdateAsync(id, updateProductDto);
             return NoContent();
         }
 
@@ -298,28 +61,8 @@ namespace EcommerceApplication.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
-            var product = await _context.Products.FindAsync(id);
-            if (product == null) return NotFound();
-
-            _context.Products.Remove(product);
-            await _context.SaveChangesAsync();
+            await _productService.DeleteAsync(id);
             return NoContent();
-        }
-
-        private async Task<List<int>> GetCategoryAndChildrenIds(int categoryId)
-        {
-            var ids = new List<int> { categoryId };
-            var childIds = await _context.Categories
-                .Where(c => c.ParentCategoryId == categoryId)
-                .Select(c => c.Id)
-                .ToListAsync();
-
-            foreach (var childId in childIds)
-            {
-                ids.AddRange(await GetCategoryAndChildrenIds(childId));
-            }
-
-            return ids;
         }
     }
 }
