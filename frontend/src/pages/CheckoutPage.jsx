@@ -434,9 +434,11 @@ const CheckoutPage = () => {
         const loadProfile = async () => {
             setIsLoadingProfile(true);
             const result = await fetchUserProfile();
-            if (result.success?.profile?.addresses) {
+            if (result.success && result.profile?.addresses) {
                 setAddresses(result.profile.addresses);
                 setSelectedAddress(result.profile.addresses[0]);
+            } else if (!result.success) {
+                setError(result.error || 'Failed to load addresses');
             }
             setIsLoadingProfile(false);
         };
@@ -449,7 +451,7 @@ const CheckoutPage = () => {
         setIsAddingAddress(true);
         setError('');
         const result = await addUserAddress(addressData);
-        if (result.success?.address) {
+        if (result.success && result.address) {
             setAddresses(prev => [...prev, result.address]);
             setSelectedAddress(result.address);
             setShowAddressForm(false);
