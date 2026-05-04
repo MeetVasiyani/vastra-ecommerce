@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace EcommerceApplication.DTOs.Order
 {
     public class OrderDto
@@ -27,5 +29,18 @@ namespace EcommerceApplication.DTOs.Order
         public string PaymentMethod { get; set; } = "COD"; // Default
         
         public int? CouponId { get; set; } // Optional coupon
+    }
+
+    public class UpdateOrderStatusDto
+    {
+        private static readonly HashSet<string> AllowedStatuses = new()
+        {
+            "Pending", "Processing", "Shipped", "Delivered", "Cancelled"
+        };
+
+        [Required(ErrorMessage = "Status is required.")]
+        public string Status { get; set; } = string.Empty;
+
+        public bool IsValid() => AllowedStatuses.Contains(Status);
     }
 }

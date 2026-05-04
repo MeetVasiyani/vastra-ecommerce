@@ -131,6 +131,117 @@ namespace EcommerceApplication.Controllers
             return NoContent();
         }
 
+        [HttpGet("Users")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var users = await _userManager.Users.ToListAsync();
+
+            var userDtos = new List<object>();
+
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                userDtos.Add(new
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Roles = roles,
+                    IsDeactivated = user.LockoutEnd.HasValue && user.LockoutEnd > DateTimeOffset.UtcNow
+                });
+            }
+
+            return Ok(userDtos);
+        }
+
+        [HttpPost("Users/{id}/promote")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> PromoteUser(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound(new { Message = "User not found" });
+            }
+
+            var result = await _userManager.AddToRoleAsync(user, "Admin");
+            if (result.Succeeded)
+            {
+                return Ok(new { Message = "User successfully promoted to Admin." });
+            }
+
+            return BadRequest(new { Message = string.Join(", ", result.Errors.Select(e => e.Description)) });
+        }
+
+        [HttpPost("Users/{id}/toggle-status")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ToggleUserStatus(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound(new { Message = "User not found" });
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+            if (roles.Contains("Admin"))
+            {
+                return BadRequest(new { Message = "Cannot deactivate an Admin user." });
+            }
+
+            bool isCurrentlyDeactivated = user.LockoutEnd.HasValue && user.LockoutEnd > DateTimeOffset.UtcNow;
+
+            IdentityResult result;
+            if (isCurrentlyDeactivated)
+            {
+                // Unban
+                result = await _userManager.SetLockoutEndDateAsync(user, null);
+                if (result.Succeeded)
+                {
+                    return Ok(new { Message = "User successfully activated.", isDeactivated = false });
+                }
+            }
+            else
+            {
+                // Ban
+                result = await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MaxValue);
+                if (result.Succeeded)
+                {
+                    return Ok(new { Message = "User successfully deactivated.", isDeactivated = true });
+                }
+            }
+
+            return BadRequest(new { Message = string.Join(", ", result.Errors.Select(e => e.Description)) });
+        }
+
+        [HttpPost("Users/{id}/reset-password")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AdminResetPassword(string id, [FromBody] AdminResetPasswordDto request)
+        {
+            if (string.IsNullOrEmpty(request.NewPassword))
+            {
+                return BadRequest(new { Message = "New password is required." });
+            }
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound(new { Message = "User not found" });
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var result = await _userManager.ResetPasswordAsync(user, token, request.NewPassword);
+
+            if (result.Succeeded)
+            {
+                return Ok(new { Message = "User password forcefully reset successfully." });
+            }
+
+            return BadRequest(new { Message = string.Join(", ", result.Errors.Select(e => e.Description)) });
+        }
+
         private static UserDto MapToUserDto(User user, List<Address> addresses)
         {
             return new UserDto
@@ -156,5 +267,6 @@ namespace EcommerceApplication.Controllers
                 Country = address.Country
             };
         }
+
     }
 }

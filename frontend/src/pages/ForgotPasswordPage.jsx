@@ -15,16 +15,13 @@ const ForgotPasswordPage = () => {
         setError('');
         setIsLoading(true);
 
-        try {
-            const response = await authService.forgotPassword(email);
-            setMessage(response.message);
-        } catch (err) {
-            console.error("Forgot Password Error:", err);
-            const errorMsg = err.response?.data?.message || err.message || 'Something went wrong. Please try again.';
-            setError(errorMsg);
-        } finally {
-            setIsLoading(false);
+        const result = await authService.forgotPassword(email);
+        if (result.success) {
+            setMessage(result.message);
+        } else {
+            setError(result.error || 'Something went wrong. Please try again.');
         }
+        setIsLoading(false);
     };
 
     return (

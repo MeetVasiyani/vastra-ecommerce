@@ -41,22 +41,22 @@ const ResetPasswordPage = () => {
 
         setIsLoading(true);
 
-        try {
-            const response = await authService.resetPassword({
-                email,
-                token,
-                newPassword
-            });
-            setMessage(response.message);
+        const result = await authService.resetPassword({
+            email,
+            token,
+            newPassword
+        });
+
+        if (result.success) {
+            setMessage(result.message);
             setIsSuccess(true);
             setTimeout(() => {
                 navigate('/login');
             }, 3000);
-        } catch (err) {
-            setError(err.response?.data?.message || 'Something went wrong. Please try again.');
-        } finally {
-            setIsLoading(false);
+        } else {
+            setError(result.error || 'Something went wrong. Please try again.');
         }
+        setIsLoading(false);
     };
 
     const PasswordToggleButton = ({ show, onToggle }) => (

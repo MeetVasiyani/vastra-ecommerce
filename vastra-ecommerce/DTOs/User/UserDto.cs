@@ -44,4 +44,9 @@ namespace EcommerceApplication.DTOs.User
         [Phone(ErrorMessage = "Invalid phone number format")]
         public string? PhoneNumber { get; set; }
     }
+
+    public class AdminResetPasswordDto
+    {
+        public string NewPassword { get; set; } = string.Empty;
+    }
 }

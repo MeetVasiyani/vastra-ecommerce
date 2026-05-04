@@ -185,16 +185,16 @@ const AccountPage = () => {
 
   const handleChangePassword = async (passwordData) => {
     setIsChangingPassword(true);
-    try {
-      await changePassword(passwordData);
+    const result = await changePassword(passwordData);
+    setIsChangingPassword(false);
+
+    if (result.success) {
       setShowChangePasswordModal(false);
-      alert("Password changed successfully.");
-      setIsChangingPassword(false);
+      alert(result.message || "Password changed successfully.");
       return { success: true };
-    } catch (err) {
-      setIsChangingPassword(false);
-      return { success: false, error: err.message };
     }
+
+    return { success: false, error: result.error || "Failed to change password" };
   };
 
   const handleDeleteAccount = async () => {

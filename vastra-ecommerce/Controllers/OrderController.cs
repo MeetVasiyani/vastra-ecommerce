@@ -27,6 +27,15 @@ namespace EcommerceApplication.Controllers
 
         private string GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
+        private static IQueryable<Order> IncludeOrderDetails(IQueryable<Order> query)
+        {
+            return query
+                .Include(o => o.Payment)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(i => i.ProductVariant)
+                    .ThenInclude(v => v.Product);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto createOrderDto)
         {
@@ -91,6 +100,7 @@ namespace EcommerceApplication.Controllers
                 {
                     Order = order,
                     ProductVariantId = cartItem.ProductVariantId,
+                    ProductVariant = variant,
                     Quantity = cartItem.Quantity,
                     UnitPrice = price
                 };
@@ -164,7 +174,7 @@ namespace EcommerceApplication.Controllers
 
             await transaction.CommitAsync();
 
-            var orderDto = await MapToDto(order);
+            var orderDto = MapToDto(order);
             return CreatedAtAction(nameof(GetById), new { id = order.Id }, new { Order = orderDto, RazorpayOrderId = razorpayOrderId });
         }
 
@@ -176,8 +186,7 @@ namespace EcommerceApplication.Controllers
 
             var userId = GetUserId();
 
-            var query = _context.Orders
-                .Include(o => o.OrderItems)
+            var query = IncludeOrderDetails(_context.Orders)
                 .Where(o => o.UserId == userId)
                 .OrderByDescending(o => o.OrderDate);
 
@@ -191,7 +200,7 @@ namespace EcommerceApplication.Controllers
             var orderDtos = new List<OrderDto>();
             foreach (var order in orders)
             {
-                orderDtos.Add(await MapToDto(order));
+                orderDtos.Add(MapToDto(order));
             }
 
             var result = new DTOs.Common.PagedResult<OrderDto>
@@ -209,13 +218,12 @@ namespace EcommerceApplication.Controllers
         public async Task<IActionResult> GetById(int id)
         {
             var userId = GetUserId();
-            var order = await _context.Orders
-                .Include(o => o.OrderItems)
+            var order = await IncludeOrderDetails(_context.Orders)
                 .FirstOrDefaultAsync(o => o.Id == id && o.UserId == userId);
 
             if (order == null) return NotFound();
 
-            return Ok(await MapToDto(order));
+            return Ok(MapToDto(order));
         }
 
         [HttpPost("{id}/cancel")]
@@ -225,8 +233,7 @@ namespace EcommerceApplication.Controllers
 
             using var transaction = await _context.Database.BeginTransactionAsync();
 
-            var order = await _context.Orders
-                .Include(o => o.OrderItems)
+            var order = await IncludeOrderDetails(_context.Orders)
                 .FirstOrDefaultAsync(o => o.Id == id && o.UserId == userId);
 
             if (order == null)
@@ -264,26 +271,18 @@ namespace EcommerceApplication.Controllers
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
-            return Ok(await MapToDto(order));
+            return Ok(MapToDto(order));
         }
 
-        private async Task<OrderDto> MapToDto(Order order)
+        private static OrderDto MapToDto(Order order)
         {
-            var payment = await _context.Payments.FirstOrDefaultAsync(p => p.OrderId == order.Id);
-
-            var variantIds = order.OrderItems?.Select(i => i.ProductVariantId).ToList() ?? new List<int>();
-            var variants = await _context.ProductVariants
-                .Include(v => v.Product)
-                .Where(v => variantIds.Contains(v.Id))
-                .ToListAsync();
-
             var dto = new OrderDto
             {
                 Id = order.Id,
                 OrderDate = order.OrderDate,
                 Status = order.Status,
                 TotalAmount = order.TotalAmount,
-                PaymentStatus = payment?.PaymentStatus ?? "Unknown",
+                PaymentStatus = order.Payment?.PaymentStatus ?? "Unknown",
                 Items = new List<OrderItemDto>()
             };
 
@@ -291,7 +290,7 @@ namespace EcommerceApplication.Controllers
             {
                 foreach (var item in order.OrderItems)
                 {
-                    var variant = variants.FirstOrDefault(v => v.Id == item.ProductVariantId);
+                    var variant = item.ProductVariant;
 
                     if (variant != null)
                     {
@@ -317,9 +316,7 @@ namespace EcommerceApplication.Controllers
             if (page < 1) page = 1;
             if (pageSize < 1 || pageSize > 100) pageSize = 10;
 
-            var query = _context.Orders
-                .Include(o => o.OrderItems)
-                .AsQueryable();
+            var query = IncludeOrderDetails(_context.Orders);
 
             if (!string.IsNullOrEmpty(status))
             {
@@ -337,7 +334,7 @@ namespace EcommerceApplication.Controllers
             var orderDtos = new List<OrderDto>();
             foreach (var order in orders)
             {
-                orderDtos.Add(await MapToDto(order));
+                orderDtos.Add(MapToDto(order));
             }
 
             var result = new DTOs.Common.PagedResult<OrderDto>
@@ -382,8 +379,7 @@ namespace EcommerceApplication.Controllers
                 return BadRequest(new { Message = $"Invalid status '{statusDto.Status}'. Allowed values: Pending, Processing, Shipped, Delivered, Cancelled." });
             }
 
-            var order = await _context.Orders
-                .Include(o => o.OrderItems)
+            var order = await IncludeOrderDetails(_context.Orders)
                 .FirstOrDefaultAsync(o => o.Id == id);
 
             if (order == null) return NotFound();
@@ -421,19 +417,7 @@ namespace EcommerceApplication.Controllers
             }
 
             await _context.SaveChangesAsync();
-            return Ok(await MapToDto(order));
-        }
-        public class UpdateOrderStatusDto
-        {
-            private static readonly HashSet<string> AllowedStatuses = new()
-            {
-                "Pending", "Processing", "Shipped", "Delivered", "Cancelled"
-            };
-
-            [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Status is required.")]
-            public string Status { get; set; } = string.Empty;
-
-            public bool IsValid() => AllowedStatuses.Contains(Status);
+            return Ok(MapToDto(order));
         }
     }
 }

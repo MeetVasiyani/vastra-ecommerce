@@ -9,7 +9,6 @@ using System.Security.Claims;
 using System.Text;
 using EcommerceApplication.Services;
 using System.Net;
-using Microsoft.EntityFrameworkCore;
 
 namespace EcommerceApplication.Controllers
 {
@@ -105,7 +104,6 @@ namespace EcommerceApplication.Controllers
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
-            // Add user roles to claims
             var roles = await _userManager.GetRolesAsync(user);
             foreach (var role in roles)
             {
@@ -115,7 +113,6 @@ namespace EcommerceApplication.Controllers
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            // Remember Me: 30-day token; otherwise a short 1-hour session token
             var expiry = rememberMe
                 ? DateTime.UtcNow.AddDays(30)
                 : DateTime.UtcNow.AddHours(1);
@@ -217,121 +214,5 @@ namespace EcommerceApplication.Controllers
             return BadRequest(new { Message = string.Join(", ", result.Errors.Select(e => e.Description)) });
         }
 
-        [HttpGet("Users")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAllUsers()
-        {
-            // In a real app, use pagination. For now, list all.
-            var users = await _userManager.Users.ToListAsync();
-
-            var userDtos = new List<object>();
-
-            foreach (var user in users)
-            {
-                var roles = await _userManager.GetRolesAsync(user);
-                userDtos.Add(new 
-                {
-                    Id = user.Id,
-                    Email = user.Email,
-                    FirstName = user.FirstName,
-                    LastName = user.LastName,
-                    Roles = roles,
-                    IsDeactivated = user.LockoutEnd.HasValue && user.LockoutEnd > DateTimeOffset.UtcNow
-                });
-            }
-
-            return Ok(userDtos);
-        }
-
-        [HttpPost("Users/{id}/promote")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> PromoteUser(string id)
-        {
-            var user = await _userManager.FindByIdAsync(id);
-            if (user == null)
-            {
-                return NotFound(new { Message = "User not found" });
-            }
-
-            var result = await _userManager.AddToRoleAsync(user, "Admin");
-            if (result.Succeeded)
-            {
-                return Ok(new { Message = "User successfully promoted to Admin." });
-            }
-
-            return BadRequest(new { Message = string.Join(", ", result.Errors.Select(e => e.Description)) });
-        }
-
-        [HttpPost("Users/{id}/toggle-status")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> ToggleUserStatus(string id)
-        {
-            var user = await _userManager.FindByIdAsync(id);
-            if (user == null)
-            {
-                return NotFound(new { Message = "User not found" });
-            }
-
-            var roles = await _userManager.GetRolesAsync(user);
-            if (roles.Contains("Admin"))
-            {
-                return BadRequest(new { Message = "Cannot deactivate an Admin user." });
-            }
-
-            bool isCurrentlyDeactivated = user.LockoutEnd.HasValue && user.LockoutEnd > DateTimeOffset.UtcNow;
-            
-            IdentityResult result;
-            if (isCurrentlyDeactivated)
-            {
-                // Unban
-                result = await _userManager.SetLockoutEndDateAsync(user, null);
-                if (result.Succeeded) 
-                {
-                    return Ok(new { Message = "User successfully activated.", isDeactivated = false });
-                }
-            }
-            else
-            {
-                // Ban
-                result = await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MaxValue);
-                if (result.Succeeded) 
-                {
-                    return Ok(new { Message = "User successfully deactivated.", isDeactivated = true });
-                }
-            }
-
-            return BadRequest(new { Message = string.Join(", ", result.Errors.Select(e => e.Description)) });
-        }
-
-        public class AdminResetPasswordDto 
-        {
-            public string NewPassword { get; set; } = string.Empty;
-        }
-
-        [HttpPost("Users/{id}/reset-password")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> AdminResetPassword(string id, [FromBody] AdminResetPasswordDto request)
-        {
-            if (string.IsNullOrEmpty(request.NewPassword))
-            {
-                 return BadRequest(new { Message = "New password is required." });
-            }
-
-            var user = await _userManager.FindByIdAsync(id);
-            if (user == null)
-            {
-                return NotFound(new { Message = "User not found" });
-            }
-
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var result = await _userManager.ResetPasswordAsync(user, token, request.NewPassword);
-
-            if (result.Succeeded)
-            {
-                return Ok(new { Message = "User password forcefully reset successfully." });
-            }
-
-            return BadRequest(new { Message = string.Join(", ", result.Errors.Select(e => e.Description)) });
-        }
     }
 }

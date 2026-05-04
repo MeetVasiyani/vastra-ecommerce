@@ -13,6 +13,9 @@ const handleApiError = (error, fallbackMsg = 'Something went wrong', clearOnUnau
     if (error.response?.data?.message) {
         return error.response.data.message;
     }
+    if (typeof error.response?.data === 'string' && error.response.data) {
+        return error.response.data;
+    }
     if (error.response?.status) {
         return fallbackMsg;
     }
@@ -171,15 +174,10 @@ export async function deleteUserAddress(addressId) {
 
         return { success: true };
     } catch (error) {
-        if (error.response && error.response.status === 401) {
-            clearAuthData();
-            return { success: false, error: 'Session expired' };
-        }
-        if (error.response) {
-            return { success: false, error: 'Failed to delete address' };
-        }
-        console.error('Delete address error:', error);
-        return { success: false, error: 'Network error' };
+        return {
+            success: false,
+            error: handleApiError(error, 'Failed to delete address')
+        };
     }
 }
 
@@ -192,16 +190,10 @@ export async function updateUserAddress(addressId, addressData) {
         const address = response.data;
         return { success: true, address };
     } catch (error) {
-        if (error.response && error.response.status === 401) {
-            clearAuthData();
-            return { success: false, error: 'Session expired' };
-        }
-        if (error.response) {
-            const errorText = typeof error.response.data === 'string' ? error.response.data : '';
-            return { success: false, error: errorText || 'Failed to update address' };
-        }
-        console.error('Update address error:', error);
-        return { success: false, error: 'Network error' };
+        return {
+            success: false,
+            error: handleApiError(error, 'Failed to update address')
+        };
     }
 }
 
@@ -214,16 +206,10 @@ export async function updateUserProfile(profileData) {
         const profile = response.data;
         return { success: true, profile };
     } catch (error) {
-        if (error.response && error.response.status === 401) {
-            clearAuthData();
-            return { success: false, error: 'Session expired' };
-        }
-        if (error.response) {
-            const errorText = typeof error.response.data === 'string' ? error.response.data : '';
-            return { success: false, error: errorText || 'Failed to update profile' };
-        }
-        console.error('Update profile error:', error);
-        return { success: false, error: 'Network error' };
+        return {
+            success: false,
+            error: handleApiError(error, 'Failed to update profile')
+        };
     }
 }
 
@@ -236,16 +222,10 @@ export async function deleteAccount() {
         clearAuthData();
         return { success: true };
     } catch (error) {
-        if (error.response && error.response.status === 401) {
-            clearAuthData();
-            return { success: false, error: 'Session expired' };
-        }
-        if (error.response) {
-            const data = error.response.data || {};
-            return { success: false, error: data.message || 'Failed to delete account' };
-        }
-        console.error('Delete account error:', error);
-        return { success: false, error: 'Network error' };
+        return {
+            success: false,
+            error: handleApiError(error, 'Failed to delete account')
+        };
     }
 }
 
@@ -255,15 +235,19 @@ export async function forgotPassword(email) {
             headers: { 'Content-Type': 'application/json' }
         });
 
-        return response.data;
-    } catch (error) {
-        if (error.response) {
-            const data = error.response.data;
-            const err = new Error(data.message || 'Failed to send reset email');
-            err.response = { data };
-            throw err;
+        if (response.data?.isSuccess === false) {
+            return {
+                success: false,
+                error: response.data.message || 'Failed to send reset email'
+            };
         }
-        throw error;
+
+        return { success: true, message: response.data?.message || 'Password reset email sent.' };
+    } catch (error) {
+        return {
+            success: false,
+            error: handleApiError(error, 'Failed to send reset email', false)
+        };
     }
 }
 
@@ -273,15 +257,19 @@ export async function resetPassword(data) {
             headers: { 'Content-Type': 'application/json' }
         });
 
-        return response.data;
-    } catch (error) {
-        if (error.response) {
-            const responseData = error.response.data;
-            const err = new Error(responseData.message || 'Failed to reset password');
-            err.response = { data: responseData };
-            throw err;
+        if (response.data?.isSuccess === false) {
+            return {
+                success: false,
+                error: response.data.message || 'Failed to reset password'
+            };
         }
-        throw error;
+
+        return { success: true, message: response.data?.message || 'Password reset successfully.' };
+    } catch (error) {
+        return {
+            success: false,
+            error: handleApiError(error, 'Failed to reset password', false)
+        };
     }
 }
 
@@ -291,19 +279,19 @@ export async function changePassword(data) {
             headers: getAuthHeaders()
         });
 
-        return response.data;
+        if (response.data?.isSuccess === false) {
+            return {
+                success: false,
+                error: response.data.message || 'Failed to change password'
+            };
+        }
+
+        return { success: true, message: response.data?.message || 'Password changed successfully.' };
     } catch (error) {
-        if (error.response && error.response.status === 401) {
-            clearAuthData();
-            throw new Error('Session expired');
-        }
-        if (error.response) {
-            const responseData = error.response.data;
-            const err = new Error(responseData.message || 'Failed to change password');
-            err.response = { data: responseData };
-            throw err;
-        }
-        throw error;
+        return {
+            success: false,
+            error: handleApiError(error, 'Failed to change password')
+        };
     }
 }
 

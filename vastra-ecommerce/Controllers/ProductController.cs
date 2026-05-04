@@ -198,7 +198,6 @@ namespace EcommerceApplication.Controllers
             };
 
 
-            // Add to context but don't save yet
             _context.Products.Add(product);
             
             if (createProductDto.ImageUrls != null)
@@ -305,56 +304,6 @@ namespace EcommerceApplication.Controllers
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
             return NoContent();
-        }
-
-        [HttpPost("fix-anarkali-images")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> FixAnarkaliImages()
-        {
-            var anarkaliCategory = await _context.Categories
-                .FirstOrDefaultAsync(c => c.Name == "Anarkalis");
-
-            if (anarkaliCategory == null)
-                return NotFound(new { message = "Anarkalis category not found" });
-
-            var anarkaliProducts = await _context.Products
-                .Include(p => p.Images)
-                .Where(p => p.CategoryId == anarkaliCategory.Id)
-                .OrderBy(p => p.Id)
-                .ToListAsync();
-
-            if (!anarkaliProducts.Any())
-                return NotFound(new { message = "No Anarkali products found" });
-
-            var updatedCount = 0;
-            var imageIndex = 1;
-
-            foreach (var product in anarkaliProducts)
-            {
-                if (product.Images.Any())
-                {
-                    _context.ProductImages.RemoveRange(product.Images);
-                }
-
-                var imageNumber = ((imageIndex - 1) % 5) + 1;
-                _context.ProductImages.Add(new ProductImage
-                {
-                    ProductId = product.Id,
-                    ImageUrl = $"/images/products/anarkali/Anarkali {imageNumber}.png",
-                    IsMainImage = true
-                });
-
-                imageIndex++;
-                updatedCount++;
-            }
-
-            await _context.SaveChangesAsync();
-
-            return Ok(new
-            {
-                message = $"Successfully updated {updatedCount} Anarkali products with local images",
-                productsUpdated = updatedCount
-            });
         }
 
         private async Task<List<int>> GetCategoryAndChildrenIds(int categoryId)
