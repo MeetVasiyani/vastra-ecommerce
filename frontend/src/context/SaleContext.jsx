@@ -4,8 +4,6 @@ import { getActiveCoupons } from '../services/couponService';
 
 const SaleContext = createContext(null);
 
-// coupons with minimumOrderAmount = 0 are sitewide sale coupons
-// they show discounted prices on product cards and detail pages
 export const SaleProvider = ({ children }) => {
     const [saleCoupons, setSaleCoupons] = useState([]);
     const location = useLocation();
@@ -15,12 +13,11 @@ export const SaleProvider = ({ children }) => {
             try {
                 const result = await getActiveCoupons();
                 if (result.success && result.coupons) {
-                    // only coupons with no minimum order amount count as sitewide sales
                     const sitewideCoupons = result.coupons.filter(c => Number(c.minimumOrderAmount) === 0);
                     setSaleCoupons(sitewideCoupons);
                 }
             } catch {
-                // not critical, just ignore
+                console.warn('Failed to load sale coupons');
             }
         }
 
@@ -31,8 +28,6 @@ export const SaleProvider = ({ children }) => {
         return () => window.removeEventListener('focus', loadSaleCoupons);
     }, [location.pathname]);
 
-    // given a price, find the best sale coupon and return discount info
-    // returns null if no sale is active
     function getBestSaleForPrice(price) {
         if (!price || saleCoupons.length === 0) return null;
 
@@ -48,7 +43,7 @@ export const SaleProvider = ({ children }) => {
                 saving = coupon.discountAmount;
             }
 
-            // saving can't be more than the price
+            // saving cannot exceed the price
             saving = Math.min(saving, price);
 
             if (!best || saving > best.saving) {
@@ -61,7 +56,6 @@ export const SaleProvider = ({ children }) => {
             }
         }
 
-        // only return if there's actually a positive saving
         return best && best.saving > 0 ? best : null;
     }
 

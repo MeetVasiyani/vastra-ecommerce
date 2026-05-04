@@ -7,6 +7,34 @@ import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { isAdmin } from '../../services/adminService';
 
+// Badge component for cart/wishlist counts
+const NavBadge = ({ count }) => {
+    if (count <= 0) return null;
+    return (
+        <AnimatePresence>
+            <motion.span
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0 }}
+                className="position-absolute d-flex align-items-center justify-content-center"
+                style={{
+                    top: '-8px',
+                    right: '-10px',
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '50%',
+                    background: 'var(--vastra-maroon)',
+                    color: '#fff',
+                    fontSize: '0.7rem',
+                    fontWeight: 600
+                }}
+            >
+                {count > 99 ? '99+' : count}
+            </motion.span>
+        </AnimatePresence>
+    );
+};
+
 const Navbar = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -17,8 +45,8 @@ const Navbar = () => {
     const { itemCount } = useCart();
     const { itemCount: wishlistCount } = useWishlist();
     const navigate = useNavigate();
-    const location = useLocation(); // Initialize useLocation
-    const userIsAdmin = isAdmin(); // Check admin status
+    const location = useLocation();
+    const userIsAdmin = isAdmin();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -121,29 +149,7 @@ const Navbar = () => {
                         }}
                     >
                         <ShoppingBag size={22} />
-                        <AnimatePresence>
-                            {itemCount > 0 && (
-                                <motion.span
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    exit={{ scale: 0 }}
-                                    className="position-absolute d-flex align-items-center justify-content-center"
-                                    style={{
-                                        top: '-8px',
-                                        right: '-10px',
-                                        width: '20px',
-                                        height: '20px',
-                                        borderRadius: '50%',
-                                        background: 'var(--vastra-maroon)',
-                                        color: '#fff',
-                                        fontSize: '0.7rem',
-                                        fontWeight: 600
-                                    }}
-                                >
-                                    {itemCount > 99 ? '99+' : itemCount}
-                                </motion.span>
-                            )}
-                        </AnimatePresence>
+                        <NavBadge count={itemCount} />
                     </Link>
 
                     {/* Wishlist Icon */}
@@ -156,29 +162,7 @@ const Navbar = () => {
                         }}
                     >
                         <Heart size={22} />
-                        <AnimatePresence>
-                            {wishlistCount > 0 && (
-                                <motion.span
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    exit={{ scale: 0 }}
-                                    className="position-absolute d-flex align-items-center justify-content-center"
-                                    style={{
-                                        top: '-8px',
-                                        right: '-10px',
-                                        width: '20px',
-                                        height: '20px',
-                                        borderRadius: '50%',
-                                        background: 'var(--vastra-maroon)',
-                                        color: '#fff',
-                                        fontSize: '0.7rem',
-                                        fontWeight: 600
-                                    }}
-                                >
-                                    {wishlistCount > 99 ? '99+' : wishlistCount}
-                                </motion.span>
-                            )}
-                        </AnimatePresence>
+                        <NavBadge count={wishlistCount} />
                     </Link>
 
                     {/* Auth Section */}

@@ -66,18 +66,7 @@ namespace EcommerceApplication.Controllers
             var coupon = await _context.Coupons.FindAsync(id);
             if (coupon == null) return NotFound();
 
-            var couponDto = new CouponDto
-            {
-                Id = coupon.Id,
-                Code = coupon.Code,
-                DiscountAmount = coupon.DiscountAmount,
-                DiscountPercentage = coupon.DiscountPercentage,
-                ExpirationDate = coupon.ExpirationDate,
-                IsActive = coupon.IsActive,
-                MinimumOrderAmount = coupon.MinimumOrderAmount
-            };
-
-            return Ok(couponDto);
+            return Ok(MapToCouponDto(coupon));
         }
 
         [HttpPost]
@@ -86,7 +75,6 @@ namespace EcommerceApplication.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            // Check if code already exists
             var existingCoupon = await _context.Coupons
                 .FirstOrDefaultAsync(c => c.Code == createCouponDto.Code);
 
@@ -109,18 +97,7 @@ namespace EcommerceApplication.Controllers
             _context.Coupons.Add(coupon);
             await _context.SaveChangesAsync();
 
-            var couponDto = new CouponDto
-            {
-                Id = coupon.Id,
-                Code = coupon.Code,
-                DiscountAmount = coupon.DiscountAmount,
-                DiscountPercentage = coupon.DiscountPercentage,
-                ExpirationDate = coupon.ExpirationDate,
-                IsActive = coupon.IsActive,
-                MinimumOrderAmount = coupon.MinimumOrderAmount
-            };
-
-            return CreatedAtAction(nameof(GetById), new { id = coupon.Id }, couponDto);
+            return CreatedAtAction(nameof(GetById), new { id = coupon.Id }, MapToCouponDto(coupon));
         }
 
         [HttpPut("{id}")]
@@ -132,7 +109,6 @@ namespace EcommerceApplication.Controllers
             var coupon = await _context.Coupons.FindAsync(id);
             if (coupon == null) return NotFound();
 
-            // Check if new code conflicts with existing coupon
             if (coupon.Code != createCouponDto.Code.ToUpper())
             {
                 var existingCoupon = await _context.Coupons
@@ -149,7 +125,7 @@ namespace EcommerceApplication.Controllers
             coupon.DiscountPercentage = createCouponDto.DiscountPercentage;
             coupon.ExpirationDate = createCouponDto.ExpirationDate;
             coupon.MinimumOrderAmount = createCouponDto.MinimumOrderAmount;
-            coupon.IsActive = createCouponDto.IsActive; // was silently ignored before
+            coupon.IsActive = createCouponDto.IsActive;
 
             await _context.SaveChangesAsync();
             return NoContent();
@@ -162,7 +138,6 @@ namespace EcommerceApplication.Controllers
             var coupon = await _context.Coupons.FindAsync(id);
             if (coupon == null) return NotFound();
 
-            // Soft delete - just deactivate
             coupon.IsActive = false;
             await _context.SaveChangesAsync();
             return NoContent();
@@ -224,7 +199,6 @@ namespace EcommerceApplication.Controllers
                 discountAmount = coupon.DiscountAmount;
             }
 
-            // Ensure discount doesn't exceed order amount
             discountAmount = Math.Min(discountAmount, validateCouponDto.OrderAmount);
 
             return Ok(new CouponValidationResultDto
@@ -234,6 +208,20 @@ namespace EcommerceApplication.Controllers
                 DiscountAmount = discountAmount,
                 CouponId = coupon.Id
             });
+        }
+
+        private static CouponDto MapToCouponDto(Coupon coupon)
+        {
+            return new CouponDto
+            {
+                Id = coupon.Id,
+                Code = coupon.Code,
+                DiscountAmount = coupon.DiscountAmount,
+                DiscountPercentage = coupon.DiscountPercentage,
+                ExpirationDate = coupon.ExpirationDate,
+                IsActive = coupon.IsActive,
+                MinimumOrderAmount = coupon.MinimumOrderAmount
+            };
         }
     }
 }

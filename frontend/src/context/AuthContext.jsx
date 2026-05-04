@@ -15,7 +15,6 @@ export const AuthProvider = ({ children }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // check if user is already logged in when app starts
     useEffect(() => {
         async function initAuth() {
             try {
@@ -23,7 +22,6 @@ export const AuthProvider = ({ children }) => {
                     const storedUser = getStoredUser();
                     if (storedUser) {
                         setUser(storedUser);
-                        // get fresh profile data
                         const result = await fetchUserProfile();
                         if (result.success && result.profile) {
                             setUser({ ...storedUser, ...result.profile });
@@ -40,7 +38,6 @@ export const AuthProvider = ({ children }) => {
         initAuth();
     }, []);
 
-    // login
     const login = async (email, password, remember) => {
         if (remember === undefined) remember = true;
         setError(null);
@@ -58,7 +55,6 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    // register
     const register = async (userData) => {
         setError(null);
         setIsLoading(true);
@@ -75,14 +71,11 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    // logout
     const logout = () => {
         authLogout();
         setUser(null);
         setError(null);
     };
-
-    // clear errors
     const clearError = () => {
         setError(null);
     };
@@ -105,7 +98,6 @@ export const AuthProvider = ({ children }) => {
     );
 };
 
-// hook to use auth context
 export const useAuth = () => {
     const context = useContext(AuthContext);
     if (!context) {

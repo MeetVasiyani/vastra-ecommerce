@@ -6,9 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Razorpay.Api;
-using Microsoft.Extensions.Configuration;
-using Order = EcommerceApplication.Models.Order; // Fix Ambiguity with Razorpay
-using Payment = EcommerceApplication.Models.Payment; // Fix Ambiguity with Razorpay
+using Order = EcommerceApplication.Models.Order;
+using Payment = EcommerceApplication.Models.Payment;
 
 namespace EcommerceApplication.Controllers
 {
@@ -33,11 +32,9 @@ namespace EcommerceApplication.Controllers
         {
              if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            // Start transaction
             using var transaction = await _context.Database.BeginTransactionAsync();
 
             var userId = GetUserId();
-            // 1. Get Cart
             var cart = await _context.Carts
                 .Include(c => c.Items)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
@@ -47,15 +44,12 @@ namespace EcommerceApplication.Controllers
                 return BadRequest("Cart is empty");
             }
 
-            // Fetch Items detail
-            // Optimization: Fetch all needed variants in one go to avoid N+1
             var variantIds = cart.Items.Select(i => i.ProductVariantId).Distinct().ToList();
             var variants = await _context.ProductVariants
                 .Include(v => v.Product)
                 .Where(v => variantIds.Contains(v.Id))
                 .ToListAsync();
 
-            // Validate stock availability for all items
             foreach (var cartItem in cart.Items)
             {
                 var variant = variants.FirstOrDefault(v => v.Id == cartItem.ProductVariantId);
@@ -70,7 +64,6 @@ namespace EcommerceApplication.Controllers
                 }
             }
 
-            // 2. Create Order
             var order = new Order
             {
                 UserId = userId,
@@ -81,7 +74,6 @@ namespace EcommerceApplication.Controllers
             };
 
             _context.Orders.Add(order);
-            // Don't save yet
 
             decimal totalAmount = 0;
 
@@ -97,20 +89,18 @@ namespace EcommerceApplication.Controllers
 
                 var orderItem = new OrderItem
                 {
-                    Order = order, // Link by reference
+                    Order = order,
                     ProductVariantId = cartItem.ProductVariantId,
                     Quantity = cartItem.Quantity,
                     UnitPrice = price
                 };
                 _context.OrderItems.Add(orderItem);
 
-                // Decrement stock
                 variant.StockQuantity -= cartItem.Quantity;
             }
 
             order.TotalAmount = totalAmount;
 
-            // 3. Apply coupon if provided
             if (createOrderDto.CouponId.HasValue)
             {
                 var coupon = await _context.Coupons.FindAsync(createOrderDto.CouponId.Value);
@@ -135,31 +125,27 @@ namespace EcommerceApplication.Controllers
                 }
             }
 
-            // 4. Create Payment Record & Razorpay Order
             string? razorpayOrderId = null;
 
             if (createOrderDto.PaymentMethod != "COD")
             {
-                // Initialize Razorpay Client
                 var key = _configuration["Razorpay:KeyId"];
                 var secret = _configuration["Razorpay:KeySecret"];
                 RazorpayClient client = new RazorpayClient(key, secret);
 
-                // Create Razorpay Order options
-                // Amount must be in the smallest currency unit (paise for INR)
+                
                 Dictionary<string, object> options = new Dictionary<string, object>();
-                options.Add("amount", (int)(order.TotalAmount * 100)); // converting rupees to paise
+                options.Add("amount", (int)(order.TotalAmount * 100));
                 options.Add("currency", "INR");
                 options.Add("receipt", order.Id.ToString());
 
-                // Call Razorpay API
                 var razorpayOrder = client.Order.Create(options);
                 razorpayOrderId = razorpayOrder["id"].ToString();
             }
 
             var payment = new Payment
             {
-                Order = order, // Link by reference
+                Order = order,
                 Amount = order.TotalAmount,
                 PaymentMethod = createOrderDto.PaymentMethod,
                 PaymentStatus = "Pending",
@@ -169,7 +155,6 @@ namespace EcommerceApplication.Controllers
             };
             _context.Payments.Add(payment);
 
-            // 5. Clear Cart ONLY if COD or amount is 0
             if (createOrderDto.PaymentMethod == "COD" || order.TotalAmount == 0)
             {
                 _context.CartItems.RemoveRange(cart.Items);
@@ -177,7 +162,6 @@ namespace EcommerceApplication.Controllers
 
             await _context.SaveChangesAsync();
 
-            // Commit transaction
             await transaction.CommitAsync();
 
             var orderDto = await MapToDto(order);
@@ -239,10 +223,8 @@ namespace EcommerceApplication.Controllers
         {
             var userId = GetUserId();
 
-            // Start transaction
             using var transaction = await _context.Database.BeginTransactionAsync();
 
-            // Get the order with items
             var order = await _context.Orders
                 .Include(o => o.OrderItems)
                 .FirstOrDefaultAsync(o => o.Id == id && o.UserId == userId);
@@ -252,16 +234,13 @@ namespace EcommerceApplication.Controllers
                 return NotFound("Order not found");
             }
 
-            // Only allow cancellation for pending orders
             if (order.Status?.ToLower() != "pending")
             {
                 return BadRequest($"Cannot cancel order with status: {order.Status}. Only pending orders can be cancelled.");
             }
 
-            // Update order status
             order.Status = "Cancelled";
 
-            // Restore stock for all order items
             var variantIds = order.OrderItems.Select(i => i.ProductVariantId).ToList();
             var variants = await _context.ProductVariants
                 .Where(v => variantIds.Contains(v.Id))
@@ -272,12 +251,10 @@ namespace EcommerceApplication.Controllers
                 var variant = variants.FirstOrDefault(v => v.Id == orderItem.ProductVariantId);
                 if (variant != null)
                 {
-                    // Restore the stock
                     variant.StockQuantity += orderItem.Quantity;
                 }
             }
 
-            // Update payment status if exists
             var payment = await _context.Payments.FirstOrDefaultAsync(p => p.OrderId == order.Id);
             if (payment != null)
             {
@@ -294,7 +271,6 @@ namespace EcommerceApplication.Controllers
         {
             var payment = await _context.Payments.FirstOrDefaultAsync(p => p.OrderId == order.Id);
 
-            // Fix N+1: Load all variants with products in one query
             var variantIds = order.OrderItems?.Select(i => i.ProductVariantId).ToList() ?? new List<int>();
             var variants = await _context.ProductVariants
                 .Include(v => v.Product)
@@ -334,10 +310,6 @@ namespace EcommerceApplication.Controllers
             return dto;
         }
 
-        // ====================================================================================
-        // ADMIN ENDPOINTS
-        // ====================================================================================
-
         [HttpGet("Admin/All")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllOrders([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? status = null)
@@ -354,7 +326,6 @@ namespace EcommerceApplication.Controllers
                 query = query.Where(o => o.Status == status);
             }
 
-            // Order by most recent
             query = query.OrderByDescending(o => o.OrderDate);
 
             var totalCount = await query.CountAsync();
@@ -384,10 +355,14 @@ namespace EcommerceApplication.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetOrderStats()
         {
-            var totalOrders = await _context.Orders.CountAsync();
+            var totalOrders = await _context.Orders
+                .Where(o => o.Status != null && o.Status.Trim().ToLower() != "cancelled")
+                .CountAsync();
+
             var totalRevenue = await _context.Orders
-                .Where(o => o.Status != "Cancelled")
-                .SumAsync(o => o.TotalAmount);
+                .Where(o => o.Payment != null && o.Payment.PaymentStatus == "Completed")
+                .Where(o => o.Status != null && o.Status.Trim().ToLower() != "cancelled")
+                .SumAsync(o => (decimal?)o.TotalAmount) ?? 0m;
 
             return Ok(new
             {
@@ -416,10 +391,9 @@ namespace EcommerceApplication.Controllers
             var oldStatus = order.Status;
             order.Status = statusDto.Status;
 
-            // Handle cancellation if status changed to Cancelled
             if (statusDto.Status == "Cancelled" && oldStatus != "Cancelled")
             {
-                // Restore stock
+
                 var variantIds = order.OrderItems.Select(i => i.ProductVariantId).ToList();
                 var variants = await _context.ProductVariants
                     .Where(v => variantIds.Contains(v.Id))
@@ -434,11 +408,9 @@ namespace EcommerceApplication.Controllers
                     }
                 }
 
-                 // Update payment
                 var payment = await _context.Payments.FirstOrDefaultAsync(p => p.OrderId == order.Id);
                 if (payment != null) payment.PaymentStatus = "Cancelled";
             }
-             // Handle payment status update if Delivered
             else if (statusDto.Status == "Delivered")
             {
                  var payment = await _context.Payments.FirstOrDefaultAsync(p => p.OrderId == order.Id);
@@ -451,8 +423,6 @@ namespace EcommerceApplication.Controllers
             await _context.SaveChangesAsync();
             return Ok(await MapToDto(order));
         }
-
-        // DTO for status update
         public class UpdateOrderStatusDto
         {
             private static readonly HashSet<string> AllowedStatuses = new()

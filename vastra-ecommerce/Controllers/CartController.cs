@@ -25,9 +25,10 @@ namespace EcommerceApplication.Controllers
         [HttpGet]
         public async Task<IActionResult> GetCart()
         {
-             var cart = await GetOrCreateCart(GetUserId(), includeDetails: true);
-             if (cart == null) return Unauthorized("User session invalid. Please log in again.");
-             return Ok(await MapToDto(cart));
+            var cart = await GetOrCreateCart(GetUserId(), includeDetails: true);
+            if (cart == null) return Unauthorized("User session invalid. Please log in again.");
+
+            return Ok(MapToDto(cart));
         }
 
         [HttpPost("items")]
@@ -40,19 +41,15 @@ namespace EcommerceApplication.Controllers
             if (cart == null) return Unauthorized("User session invalid. Please log in again.");
 
             var existingItem = cart.Items.FirstOrDefault(i => i.ProductVariantId == addToCartDto.ProductVariantId);
-
-            // Get variant to check stock
             var variant = await _context.ProductVariants.FindAsync(addToCartDto.ProductVariantId);
             if (variant == null) return NotFound("Variant not found");
 
-            // Calculate total quantity (existing + new)
             var totalQuantity = addToCartDto.Quantity;
             if (existingItem != null)
             {
                 totalQuantity += existingItem.Quantity;
             }
 
-            // Validate stock availability
             if (totalQuantity > variant.StockQuantity)
             {
                 return BadRequest($"Insufficient stock. Only {variant.StockQuantity} items available.");
@@ -75,9 +72,9 @@ namespace EcommerceApplication.Controllers
 
             await _context.SaveChangesAsync();
 
-            // Refresh cart to get full data for DTO
             var updatedCart = await GetOrCreateCart(userId, includeDetails: true);
-            return Ok(await MapToDto(updatedCart));
+            if (updatedCart == null) return Unauthorized("User session invalid. Please log in again.");
+            return Ok(MapToDto(updatedCart));
         }
 
         [HttpPut("items")]
@@ -92,7 +89,6 @@ namespace EcommerceApplication.Controllers
 
             if (item == null) return NotFound("Cart item not found");
 
-            // Validate stock before updating
             var variant = await _context.ProductVariants.FindAsync(item.ProductVariantId);
             if (variant == null) return NotFound("Product variant not found");
 
@@ -105,7 +101,8 @@ namespace EcommerceApplication.Controllers
             await _context.SaveChangesAsync();
 
             var updatedCart = await GetOrCreateCart(userId, includeDetails: true);
-            return Ok(await MapToDto(updatedCart));
+            if (updatedCart == null) return Unauthorized("User session invalid. Please log in again.");
+            return Ok(MapToDto(updatedCart));
         }
 
         [HttpDelete("items/{itemId}")]
@@ -158,11 +155,10 @@ namespace EcommerceApplication.Controllers
 
             if (cart == null)
             {
-                // Verify user exists to prevent FK violation (e.g. stale token)
                 var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
                 if (!userExists)
                 {
-                     return null;
+                    return null;
                 }
 
                 cart = new Cart { UserId = userId };
@@ -172,7 +168,7 @@ namespace EcommerceApplication.Controllers
             return cart;
         }
 
-        private Task<CartDto> MapToDto(Cart cart)
+        private static CartDto MapToDto(Cart cart)
         {
             var cartDto = new CartDto
             {
@@ -187,27 +183,29 @@ namespace EcommerceApplication.Controllers
                 var variant = item.ProductVariant;
                 if (variant != null)
                 {
-                     var product = variant.Product;
-                     var mainImage = product.Images?.FirstOrDefault(i => i.IsMainImage)?.ImageUrl ?? product.Images?.FirstOrDefault()?.ImageUrl ?? "";
+                    var product = variant.Product;
+                    var mainImage = product.Images?.FirstOrDefault(i => i.IsMainImage)?.ImageUrl
+                        ?? product.Images?.FirstOrDefault()?.ImageUrl
+                        ?? "";
 
-                     cartDto.Items.Add(new CartItemDto
-                     {
-                         Id = item.Id,
-                         ProductId = product.Id,
-                         ProductName = product.Name,
-                         VariantSku = variant.SKU,
-                         Size = variant.Size,
-                         Color = variant.Color,
-                         Price = product.BasePrice + variant.PriceAdjustment,
-                         Quantity = item.Quantity,
-                         ProductVariantId = item.ProductVariantId,
-                         ImageUrl = mainImage
-                     });
+                    cartDto.Items.Add(new CartItemDto
+                    {
+                        Id = item.Id,
+                        ProductId = product.Id,
+                        ProductName = product.Name,
+                        VariantSku = variant.SKU,
+                        Size = variant.Size,
+                        Color = variant.Color,
+                        Price = product.BasePrice + variant.PriceAdjustment,
+                        Quantity = item.Quantity,
+                        ProductVariantId = item.ProductVariantId,
+                        ImageUrl = mainImage
+                    });
                 }
             }
 
             cartDto.TotalAmount = cartDto.Items.Sum(i => i.Price * i.Quantity);
-            return Task.FromResult(cartDto);
+            return cartDto;
         }
     }
 }

@@ -18,10 +18,9 @@ namespace EcommerceApplication.Services
 
         public async Task SendEmailAsync(string toEmail, string subject, string message)
         {
-            // If settings are missing, log the email content for debugging (Development mode fallback)
             if (string.IsNullOrEmpty(_emailSettings.Host) || string.IsNullOrEmpty(_emailSettings.Username))
             {
-                _logger.LogWarning($"[Email Mock] To: {toEmail}, Subject: {subject}, Body: {message}");
+                _logger.LogWarning("Email settings are incomplete. Skipping send for {Recipient} with subject {Subject}.", toEmail, subject);
                 return;
             }
 
@@ -35,18 +34,20 @@ namespace EcommerceApplication.Services
 
             mailMessage.To.Add(toEmail);
 
-            _logger.LogInformation($"Attempting to send email via {_emailSettings.Host}:{_emailSettings.Port} with user {_emailSettings.Username}");
+            _logger.LogInformation(
+                "Sending email through {Host}:{Port} as {Username}",
+                _emailSettings.Host,
+                _emailSettings.Port,
+                _emailSettings.Username);
 
-            using (var smtpClient = new SmtpClient(_emailSettings.Host, _emailSettings.Port))
-            {
-                smtpClient.UseDefaultCredentials = false;
-                // Remove spaces from the password if it's a formatted App Password
-                var password = _emailSettings.Password.Replace(" ", "");
-                smtpClient.Credentials = new NetworkCredential(_emailSettings.Username, password);
-                smtpClient.EnableSsl = true;
-                
-                await smtpClient.SendMailAsync(mailMessage);
-            }
+            using var smtpClient = new SmtpClient(_emailSettings.Host, _emailSettings.Port);
+            smtpClient.UseDefaultCredentials = false;
+
+            var password = _emailSettings.Password.Replace(" ", "");
+            smtpClient.Credentials = new NetworkCredential(_emailSettings.Username, password);
+            smtpClient.EnableSsl = true;
+
+            await smtpClient.SendMailAsync(mailMessage);
         }
     }
 }

@@ -17,7 +17,6 @@ const CallToAction = () => {
                 color: 'var(--vastra-ivory)'
             }}
         >
-            {/* Decorative Background Pattern */}
             <div
                 className="position-absolute w-100 h-100"
                 style={{
@@ -33,7 +32,6 @@ const CallToAction = () => {
                     animate={isInView ? { opacity: 1, y: 0 } : {}}
                     transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
                 >
-                    {/* Subtitle */}
                     <motion.p
                         className="text-uppercase mb-3"
                         initial={{ opacity: 0 }}
@@ -49,7 +47,6 @@ const CallToAction = () => {
                         Begin Your Journey
                     </motion.p>
 
-                    {/* Main Heading */}
                     <motion.h2
                         className="display-3 fw-bold mb-4"
                         initial={{ opacity: 0, y: 20 }}
@@ -64,7 +61,6 @@ const CallToAction = () => {
                         Experience the Poetry of Indian Textiles
                     </motion.h2>
 
-                    {/* Divider */}
                     <motion.div
                         initial={{ opacity: 0, scaleX: 0 }}
                         animate={isInView ? { opacity: 1, scaleX: 1 } : {}}
@@ -77,7 +73,6 @@ const CallToAction = () => {
                         }}
                     />
 
-                    {/* Description */}
                     <motion.p
                         className="lead mx-auto mb-5"
                         initial={{ opacity: 0 }}
@@ -94,7 +89,6 @@ const CallToAction = () => {
                         celebrate craftsmanship, and embrace timeless elegance.
                     </motion.p>
 
-                    {/* CTA Button */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={isInView ? { opacity: 1, y: 0 } : {}}

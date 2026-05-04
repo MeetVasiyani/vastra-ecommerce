@@ -34,23 +34,7 @@ namespace EcommerceApplication.Controllers
 
             var addresses = await _context.Addresses.Where(a => a.UserId == userId).ToListAsync();
 
-            return Ok(new UserDto
-            {
-                Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email!,
-                PhoneNumber = user.PhoneNumber,
-                Addresses = addresses.Select(a => new AddressDto
-                {
-                    Id = a.Id,
-                    Street = a.Street,
-                    City = a.City,
-                    State = a.State,
-                    ZipCode = a.ZipCode,
-                    Country = a.Country
-                }).ToList()
-            });
+            return Ok(MapToUserDto(user, addresses));
         }
 
         [HttpPut("profile")]
@@ -72,25 +56,8 @@ namespace EcommerceApplication.Controllers
                 return BadRequest(result.Errors);
             }
 
-            return Ok(new UserDto
-            {
-                Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email!,
-                PhoneNumber = user.PhoneNumber,
-                Addresses = await _context.Addresses
-                    .Where(a => a.UserId == userId)
-                    .Select(a => new AddressDto
-                    {
-                        Id = a.Id,
-                        Street = a.Street,
-                        City = a.City,
-                        State = a.State,
-                        ZipCode = a.ZipCode,
-                        Country = a.Country
-                    }).ToListAsync()
-            });
+            var addresses = await _context.Addresses.Where(a => a.UserId == userId).ToListAsync();
+            return Ok(MapToUserDto(user, addresses));
         }
 
         [HttpPost("addresses")]
@@ -111,15 +78,7 @@ namespace EcommerceApplication.Controllers
             _context.Addresses.Add(address);
             await _context.SaveChangesAsync();
 
-            return Ok(new AddressDto
-            {
-                Id = address.Id,
-                Street = address.Street,
-                City = address.City,
-                State = address.State,
-                ZipCode = address.ZipCode,
-                Country = address.Country
-            });
+            return Ok(MapToAddressDto(address));
         }
 
         [HttpDelete("addresses/{addressId}")]
@@ -153,15 +112,7 @@ namespace EcommerceApplication.Controllers
 
             await _context.SaveChangesAsync();
 
-            return Ok(new AddressDto
-            {
-                Id = address.Id,
-                Street = address.Street,
-                City = address.City,
-                State = address.State,
-                ZipCode = address.ZipCode,
-                Country = address.Country
-            });
+            return Ok(MapToAddressDto(address));
         }
 
         [HttpDelete]
@@ -178,6 +129,32 @@ namespace EcommerceApplication.Controllers
             }
 
             return NoContent();
+        }
+
+        private static UserDto MapToUserDto(User user, List<Address> addresses)
+        {
+            return new UserDto
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email!,
+                PhoneNumber = user.PhoneNumber,
+                Addresses = addresses.Select(MapToAddressDto).ToList()
+            };
+        }
+
+        private static AddressDto MapToAddressDto(Address address)
+        {
+            return new AddressDto
+            {
+                Id = address.Id,
+                Street = address.Street,
+                City = address.City,
+                State = address.State,
+                ZipCode = address.ZipCode,
+                Country = address.Country
+            };
         }
     }
 }

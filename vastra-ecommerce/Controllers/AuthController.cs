@@ -8,7 +8,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using EcommerceApplication.Services;
-using System.Web;
+using System.Net;
+using Microsoft.EntityFrameworkCore;
 
 namespace EcommerceApplication.Controllers
 {
@@ -34,19 +35,11 @@ namespace EcommerceApplication.Controllers
         public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
         {
             if (!ModelState.IsValid)
-            {
                 return BadRequest(ModelState);
-            }
 
             var existingUser = await _userManager.FindByEmailAsync(registerDto.Email);
             if (existingUser != null)
-            {
-                return BadRequest(new AuthResponseDto
-                {
-                    IsSuccess = false,
-                    Message = "User already exists with this email"
-                });
-            }
+                return BadRequest(CreateErrorResponse("User already exists with this email"));
 
             var user = new User
             {
@@ -57,72 +50,51 @@ namespace EcommerceApplication.Controllers
             };
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
-
             if (!result.Succeeded)
-            {
-                return BadRequest(new AuthResponseDto
-                {
-                    IsSuccess = false,
-                    Message = string.Join(", ", result.Errors.Select(e => e.Description))
-                });
-            }
+                return BadRequest(CreateErrorResponse(
+                    string.Join(", ", result.Errors.Select(e => e.Description))
+                ));
 
-            // Assign default Customer role
             await _userManager.AddToRoleAsync(user, "Customer");
-
             var token = await GenerateJwtToken(user);
 
-            return Ok(new AuthResponseDto
-            {
-                IsSuccess = true,
-                Token = token,
-                Email = user.Email!,
-                UserId = user.Id,
-                Message = "User registered successfully"
-            });
+            return Ok(CreateSuccessResponse(token, user, "User registered successfully"));
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
             if (!ModelState.IsValid)
-            {
                 return BadRequest(ModelState);
-            }
 
             var user = await _userManager.FindByEmailAsync(loginDto.Email);
-
             if (user == null)
-            {
-                return Unauthorized(new AuthResponseDto
-                {
-                    IsSuccess = false,
-                    Message = "Invalid email or password"
-                });
-            }
+                return Unauthorized(CreateErrorResponse("Invalid email or password"));
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
-
             if (!result.Succeeded)
-            {
-                return Unauthorized(new AuthResponseDto
-                {
-                    IsSuccess = false,
-                    Message = "Invalid email or password"
-                });
-            }
+                return Unauthorized(CreateErrorResponse("Invalid email or password"));
 
             var token = await GenerateJwtToken(user, loginDto.RememberMe);
+            return Ok(CreateSuccessResponse(token, user, "Login successful"));
+        }
 
-            return Ok(new AuthResponseDto
+        private AuthResponseDto CreateSuccessResponse(string token, User user, string message) =>
+            new AuthResponseDto
             {
                 IsSuccess = true,
                 Token = token,
                 Email = user.Email!,
                 UserId = user.Id,
-                Message = "Login successful"
-            });
-        }
+                Message = message
+            };
+
+        private AuthResponseDto CreateErrorResponse(string message) =>
+            new AuthResponseDto
+            {
+                IsSuccess = false,
+                Message = message
+            };
 
         private async Task<string> GenerateJwtToken(User user, bool rememberMe = false)
         {
@@ -181,7 +153,7 @@ namespace EcommerceApplication.Controllers
             
             // In a real app, this URL should be configurable or constructed based on the request
             var frontendUrl = "http://localhost:5173"; 
-            var resetLink = $"{frontendUrl}/reset-password?token={HttpUtility.UrlEncode(token)}&email={HttpUtility.UrlEncode(user.Email)}";
+            var resetLink = $"{frontendUrl}/reset-password?token={WebUtility.UrlEncode(token)}&email={WebUtility.UrlEncode(user.Email)}";
             
             var subject = "Reset your password";
             var message = $"Please reset your password by clicking here: <a href='{resetLink}'>link</a>";
@@ -246,10 +218,10 @@ namespace EcommerceApplication.Controllers
         public async Task<IActionResult> GetAllUsers()
         {
             // In a real app, use pagination. For now, list all.
-            var users = _userManager.Users.ToList(); // Note: This might be slow if many users, good for now.
-            
+            var users = await _userManager.Users.ToListAsync();
+
             var userDtos = new List<object>();
-            
+
             foreach (var user in users)
             {
                 var roles = await _userManager.GetRolesAsync(user);

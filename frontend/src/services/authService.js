@@ -9,30 +9,43 @@ const TOKEN_KEY = 'vastra_auth_token';
 const USER_KEY = 'vastra_user';
 const REMEMBER_KEY = 'vastra_remember';
 
+// Helper to handle API errors consistently
+const handleApiError = (error, fallbackMsg = 'Something went wrong', clearOnUnauthorized = true) => {
+    if (error.response?.status === 401 && clearOnUnauthorized) {
+        clearAuthData();
+        return 'Session expired';
+    }
+    if (error.response?.data?.message) {
+        return error.response.data.message;
+    }
+    if (error.response?.status) {
+        return fallbackMsg;
+    }
+    console.error('API error:', error);
+    return 'Network error. Please try again.';
+};
+
 // save token and user to storage
 function storeAuthData(token, user, remember) {
-    if (remember === undefined) remember = true;
-    localStorage.setItem(REMEMBER_KEY, remember.toString());
-    if (remember) {
-        sessionStorage.removeItem(TOKEN_KEY);
-        sessionStorage.removeItem(USER_KEY);
-        localStorage.setItem(TOKEN_KEY, token);
-        localStorage.setItem(USER_KEY, JSON.stringify(user));
-    } else {
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(USER_KEY);
-        sessionStorage.setItem(TOKEN_KEY, token);
-        sessionStorage.setItem(USER_KEY, JSON.stringify(user));
-    }
+    const shouldRemember = remember !== false;
+    localStorage.setItem(REMEMBER_KEY, shouldRemember.toString());
+    
+    const storage = shouldRemember ? localStorage : sessionStorage;
+    const otherStorage = shouldRemember ? sessionStorage : localStorage;
+    
+    storage.setItem(TOKEN_KEY, token);
+    storage.setItem(USER_KEY, JSON.stringify(user));
+    otherStorage.removeItem(TOKEN_KEY);
+    otherStorage.removeItem(USER_KEY);
 }
 
 // remove token and user from storage
 function clearAuthData() {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-    localStorage.removeItem(REMEMBER_KEY);
-    sessionStorage.removeItem(TOKEN_KEY);
-    sessionStorage.removeItem(USER_KEY);
+    [localStorage, sessionStorage].forEach(storage => {
+        storage.removeItem(TOKEN_KEY);
+        storage.removeItem(USER_KEY);
+        storage.removeItem(REMEMBER_KEY);
+    });
 }
 
 // get stored token
@@ -43,14 +56,12 @@ export function getToken() {
 // get stored user object
 export function getStoredUser() {
     const userStr = localStorage.getItem(USER_KEY) || sessionStorage.getItem(USER_KEY);
-    if (userStr) {
-        try {
-            return JSON.parse(userStr);
-        } catch {
-            return null;
-        }
+    if (!userStr) return null;
+    try {
+        return JSON.parse(userStr);
+    } catch {
+        return null;
     }
-    return null;
 }
 
 // check if user is logged in and token is not expired
@@ -60,8 +71,7 @@ export function isAuthenticated() {
 
     try {
         const payload = JSON.parse(atob(token.split('.')[1]));
-        const expTime = payload.exp * 1000;
-        return Date.now() < expTime;
+        return Date.now() < payload.exp * 1000;
     } catch {
         return false;
     }
@@ -70,53 +80,37 @@ export function isAuthenticated() {
 // get auth headers for API requests
 export function getAuthHeaders() {
     const token = getToken();
-    if (token) {
-        return {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        };
-    }
     return {
+        'Authorization': token ? `Bearer ${token}` : undefined,
         'Content-Type': 'application/json'
     };
 }
 
 // login
-export async function login(email, password, remember) {
-    if (remember === undefined) remember = true;
+export async function login(email, password, remember = true) {
     try {
         const response = await axios.post(`${API_BASE_URL}/Auth/login`, { email, password, rememberMe: remember }, {
             headers: { 'Content-Type': 'application/json' }
         });
 
-        const data = response.data;
-
-        if (data.isSuccess) {
+        if (response.data.isSuccess) {
             const user = {
-                id: data.userId,
-                email: data.email,
-                token: data.token
+                id: response.data.userId,
+                email: response.data.email,
+                token: response.data.token
             };
-            storeAuthData(data.token, user, remember);
+            storeAuthData(response.data.token, user, remember);
             return { success: true, user };
         }
 
         return {
             success: false,
-            error: data.message || 'Invalid email or password'
+            error: response.data.message || 'Invalid email or password'
         };
     } catch (error) {
-        if (error.response) {
-            const data = error.response.data;
-            return {
-                success: false,
-                error: data.message || 'Invalid email or password'
-            };
-        }
-        console.error('Login error:', error);
         return {
             success: false,
-            error: 'Network error. Please try again.'
+            error: handleApiError(error, 'Invalid email or password', false)
         };
     }
 }
@@ -128,34 +122,24 @@ export async function register(userData) {
             headers: { 'Content-Type': 'application/json' }
         });
 
-        const data = response.data;
-
-        if (data.isSuccess) {
+        if (response.data.isSuccess) {
             const user = {
-                id: data.userId,
-                email: data.email,
-                token: data.token
+                id: response.data.userId,
+                email: response.data.email,
+                token: response.data.token
             };
-            storeAuthData(data.token, user, true);
+            storeAuthData(response.data.token, user, true);
             return { success: true, user };
         }
 
         return {
             success: false,
-            error: data.message || 'Registration failed. Please try again.'
+            error: response.data.message || 'Registration failed'
         };
     } catch (error) {
-        if (error.response) {
-            const data = error.response.data;
-            return {
-                success: false,
-                error: data.message || 'Registration failed. Please try again.'
-            };
-        }
-        console.error('Registration error:', error);
         return {
             success: false,
-            error: 'Network error. Please try again.'
+            error: handleApiError(error, 'Registration failed', false)
         };
     }
 }
@@ -171,19 +155,12 @@ export async function fetchUserProfile() {
         const response = await axios.get(`${API_BASE_URL}/User/profile`, {
             headers: getAuthHeaders()
         });
-
-        const profile = response.data;
-        return { success: true, profile };
+        return { success: true, profile: response.data };
     } catch (error) {
-        if (error.response && error.response.status === 401) {
-            clearAuthData();
-            return { success: false, error: 'Session expired' };
-        }
-        if (error.response) {
-            return { success: false, error: 'Failed to fetch profile' };
-        }
-        console.error('Profile fetch error:', error);
-        return { success: false, error: 'Network error' };
+        return {
+            success: false,
+            error: handleApiError(error, 'Failed to load profile')
+        };
     }
 }
 
@@ -193,20 +170,12 @@ export async function addUserAddress(addressData) {
         const response = await axios.post(`${API_BASE_URL}/User/addresses`, addressData, {
             headers: getAuthHeaders()
         });
-
-        const address = response.data;
-        return { success: true, address };
+        return { success: true, address: response.data };
     } catch (error) {
-        if (error.response && error.response.status === 401) {
-            clearAuthData();
-            return { success: false, error: 'Session expired' };
-        }
-        if (error.response) {
-            const errorText = typeof error.response.data === 'string' ? error.response.data : '';
-            return { success: false, error: errorText || 'Failed to add address' };
-        }
-        console.error('Add address error:', error);
-        return { success: false, error: 'Network error' };
+        return {
+            success: false,
+            error: handleApiError(error, 'Failed to add address')
+        };
     }
 }
 

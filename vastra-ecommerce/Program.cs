@@ -13,15 +13,11 @@ using EcommerceApplication.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
 
 builder.Services.AddFluentValidationAutoValidation()
     .AddFluentValidationClientsideAdapters();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
-
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -51,15 +47,12 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Register DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Configure Email Settings
 builder.Services.Configure<EcommerceApplication.Settings.EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddTransient<EcommerceApplication.Services.IEmailService, EcommerceApplication.Services.EmailService>();
 
-// Configure Identity
 builder.Services.AddIdentity<User, IdentityRole>(options =>
 {
     options.Password.RequireDigit = true;
@@ -71,7 +64,6 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
 
-// Configure Authentication
 builder.Services.AddAuthentication(options => {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -90,9 +82,6 @@ builder.Services.AddAuthentication(options => {
     };
 });
 
-// Services and Repositories removed for Controller-based architecture
-
-// Configure CORS for frontend
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -107,14 +96,12 @@ var app = builder.Build();
 
 app.UseMiddleware<ExceptionMiddleware>();
 
-// Seed roles and admin user
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    await EcommerceApplication.Data.DataSeeder.SeedDataAsync(services);
+    await RoleSeeder.SeedRolesAsync(services);
 }
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

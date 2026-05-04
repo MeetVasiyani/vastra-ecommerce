@@ -14,7 +14,6 @@ export const WishlistProvider = ({ children }) => {
 
     const itemCount = wishlist.length;
 
-    // fetch wishlist when user logs in or out
     useEffect(() => {
         if (isAuthenticated) {
             loadWishlist();
@@ -22,8 +21,6 @@ export const WishlistProvider = ({ children }) => {
             setWishlist([]);
         }
     }, [isAuthenticated, user]);
-
-    // load wishlist from API
     const loadWishlist = async () => {
         if (!isAuthenticated) return;
 
@@ -42,29 +39,18 @@ export const WishlistProvider = ({ children }) => {
         }
     };
 
-    // show a toast notification
     const showNotification = (message, type) => {
         if (type === undefined) type = 'success';
         setNotification({ message, type });
         setTimeout(() => setNotification(null), 3000);
     };
-
-    // check if a product variant is already in wishlist
     const isInWishlist = (productVariantId) => {
-        let found = null;
-        for (let i = 0; i < wishlist.length; i++) {
-            if (wishlist[i].productVariantId === productVariantId) {
-                found = wishlist[i];
-                break;
-            }
-        }
+        const item = wishlist.find(item => item.productVariantId === productVariantId);
         return {
-            inWishlist: found !== null,
-            wishlistItemId: found ? found.id : null
+            inWishlist: !!item,
+            wishlistItemId: item?.id
         };
     };
-
-    // add item to wishlist
     const addItem = async (productVariantId) => {
         setIsLoading(true);
         setError(null);
@@ -90,7 +76,6 @@ export const WishlistProvider = ({ children }) => {
         }
     };
 
-    // remove item from wishlist
     const removeItem = async (wishlistItemId) => {
         setIsLoading(true);
         setError(null);
@@ -113,7 +98,6 @@ export const WishlistProvider = ({ children }) => {
         }
     };
 
-    // toggle wishlist for a product variant
     const toggleWishlist = async (productVariantId) => {
         const { inWishlist, wishlistItemId } = isInWishlist(productVariantId);
 
@@ -126,7 +110,6 @@ export const WishlistProvider = ({ children }) => {
         }
     };
 
-    // clear entire wishlist
     const clearWishlistItems = async () => {
         setIsLoading(true);
         setError(null);
@@ -148,14 +131,12 @@ export const WishlistProvider = ({ children }) => {
         }
     };
 
-    // dismiss notification
     const dismissNotification = () => {
         setNotification(null);
     };
 
     const value = {
         wishlist,
-        items: wishlist,
         itemCount,
         isLoading,
         error,
@@ -176,7 +157,6 @@ export const WishlistProvider = ({ children }) => {
     );
 };
 
-// hook to use wishlist context
 export const useWishlist = () => {
     const context = useContext(WishlistContext);
     if (!context) {

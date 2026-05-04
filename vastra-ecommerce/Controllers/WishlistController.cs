@@ -34,27 +34,7 @@ namespace EcommerceApplication.Controllers
                 .OrderByDescending(w => w.DateAdded)
                 .ToListAsync();
 
-            var wishlistDtos = wishlistItems.Select(w =>
-            {
-                var variant = w.ProductVariant;
-                var product = variant.Product;
-                var mainImage = product.Images?.FirstOrDefault(i => i.IsMainImage)?.ImageUrl 
-                    ?? product.Images?.FirstOrDefault()?.ImageUrl ?? "";
-
-                return new WishlistDto
-                {
-                    Id = w.Id,
-                    ProductId = product.Id,
-                    ProductName = product.Name,
-                    ProductVariantId = w.ProductVariantId,
-                    VariantSku = variant.SKU,
-                    Size = variant.Size,
-                    Color = variant.Color,
-                    Price = product.BasePrice + variant.PriceAdjustment,
-                    ImageUrl = mainImage,
-                    DateAdded = w.DateAdded
-                };
-            }).ToList();
+            var wishlistDtos = wishlistItems.Select(MapToWishlistDto).ToList();
 
             return Ok(wishlistDtos);
         }
@@ -93,26 +73,7 @@ namespace EcommerceApplication.Controllers
             _context.Wishlists.Add(wishlistItem);
             await _context.SaveChangesAsync();
 
-            // Return the created item
-            var product = variant.Product;
-            var mainImage = product.Images?.FirstOrDefault(i => i.IsMainImage)?.ImageUrl 
-                ?? product.Images?.FirstOrDefault()?.ImageUrl ?? "";
-
-            var wishlistDto = new WishlistDto
-            {
-                Id = wishlistItem.Id,
-                ProductId = product.Id,
-                ProductName = product.Name,
-                ProductVariantId = variant.Id,
-                VariantSku = variant.SKU,
-                Size = variant.Size,
-                Color = variant.Color,
-                Price = product.BasePrice + variant.PriceAdjustment,
-                ImageUrl = mainImage,
-                DateAdded = wishlistItem.DateAdded
-            };
-
-            return CreatedAtAction(nameof(GetWishlist), wishlistDto);
+            return CreatedAtAction(nameof(GetWishlist), MapToWishlistDto(wishlistItem));
         }
 
         [HttpDelete("{id}")]
@@ -146,6 +107,29 @@ namespace EcommerceApplication.Controllers
             }
 
             return NoContent();
+        }
+
+        private static WishlistDto MapToWishlistDto(Wishlist wishlist)
+        {
+            var variant = wishlist.ProductVariant;
+            var product = variant.Product;
+            var mainImage = product.Images?.FirstOrDefault(i => i.IsMainImage)?.ImageUrl
+                ?? product.Images?.FirstOrDefault()?.ImageUrl
+                ?? "";
+
+            return new WishlistDto
+            {
+                Id = wishlist.Id,
+                ProductId = product.Id,
+                ProductName = product.Name,
+                ProductVariantId = wishlist.ProductVariantId,
+                VariantSku = variant.SKU,
+                Size = variant.Size,
+                Color = variant.Color,
+                Price = product.BasePrice + variant.PriceAdjustment,
+                ImageUrl = mainImage,
+                DateAdded = wishlist.DateAdded
+            };
         }
     }
 }

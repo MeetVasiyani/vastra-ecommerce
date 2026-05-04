@@ -16,19 +16,11 @@ export const CartProvider = ({ children }) => {
 
     const { isAuthenticated, user, logout } = useAuth();
 
-    // how many items are in the cart
-    let itemCount = 0;
-    if (cart && cart.items) {
-        for (let i = 0; i < cart.items.length; i++) {
-            itemCount += cart.items[i].quantity;
-        }
-    }
-
-    const discountAmount = appliedCoupon ? appliedCoupon.discountAmount : 0;
-    const totalAmount = cart ? cart.totalAmount : 0;
+    const itemCount = cart?.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
+    const discountAmount = appliedCoupon?.discountAmount ?? 0;
+    const totalAmount = cart?.totalAmount ?? 0;
     const finalTotal = Math.max(0, totalAmount - discountAmount);
 
-    // fetch cart when user logs in or out
     useEffect(() => {
         if (isAuthenticated) {
             loadCart();
@@ -38,66 +30,42 @@ export const CartProvider = ({ children }) => {
         }
     }, [isAuthenticated, user]);
 
-    // re-validate coupon when cart total changes
     useEffect(() => {
-        if (appliedCoupon && cart && cart.totalAmount) {
-            applyCoupon(appliedCoupon.code, true);
-        }
-    }, [cart && cart.totalAmount]);
+        if (!appliedCoupon?.code || !cart?.totalAmount) return;
+        applyCoupon(appliedCoupon.code, true);
+    }, [totalAmount]);
 
-    // auto-apply best sitewide coupon (minimum order amount = 0) when no coupon is applied
     useEffect(() => {
-        const autoApplySitewideCoupon = async () => {
-            if (!isAuthenticated) return;
-            if (appliedCoupon) return;
-            if (!cart || !cart.totalAmount || cart.totalAmount <= 0) return;
-            if (isCouponLoading) return;
-            if (lastAutoAppliedTotal.current === cart.totalAmount) return;
+        if (!isAuthenticated || appliedCoupon || !totalAmount || isCouponLoading) return;
+        if (lastAutoAppliedTotal.current === totalAmount) return;
 
-            lastAutoAppliedTotal.current = cart.totalAmount;
+        lastAutoAppliedTotal.current = totalAmount;
 
+        const autoApply = async () => {
             const couponsResult = await getActiveCoupons();
-            if (!couponsResult.success || !couponsResult.coupons) return;
+            if (!couponsResult || !couponsResult.success || !couponsResult.coupons) return;
 
-            const sitewideCoupons = couponsResult.coupons.filter(
-                (c) => Number(c.minimumOrderAmount) === 0
-            );
+            const sitewideCoupons = couponsResult.coupons.filter(c => Number(c.minimumOrderAmount) === 0);
+            if (!sitewideCoupons.length) return;
 
-            if (sitewideCoupons.length === 0) return;
-
-            const orderTotal = Number(cart.totalAmount);
-            let bestCoupon = null;
-            let bestDiscount = 0;
-
-            for (let i = 0; i < sitewideCoupons.length; i++) {
-                const coupon = sitewideCoupons[i];
+            const bestCoupon = sitewideCoupons.reduce((best, coupon) => {
                 const pct = Number(coupon.discountPercentage) || 0;
                 const amt = Number(coupon.discountAmount) || 0;
-                let discount = 0;
+                const discount = Math.min(
+                    pct > 0 ? (totalAmount * pct) / 100 : amt,
+                    totalAmount
+                );
+                return discount > (best.discount || 0) ? { coupon, discount } : best;
+            }, {});
 
-                if (pct > 0) {
-                    discount = (orderTotal * pct) / 100;
-                } else if (amt > 0) {
-                    discount = amt;
-                }
-
-                discount = Math.min(discount, orderTotal);
-
-                if (discount > bestDiscount) {
-                    bestDiscount = discount;
-                    bestCoupon = coupon;
-                }
+            if (bestCoupon?.coupon && bestCoupon.discount > 0) {
+                await applyCoupon(bestCoupon.coupon.code, true);
             }
-
-            if (!bestCoupon || bestDiscount <= 0) return;
-
-            await applyCoupon(bestCoupon.code, true);
         };
 
-        autoApplySitewideCoupon();
-    }, [isAuthenticated, cart && cart.totalAmount, appliedCoupon, isCouponLoading]);
+        autoApply();
+    }, [isAuthenticated, totalAmount, appliedCoupon, isCouponLoading]);
 
-    // load cart from API
     const loadCart = async () => {
         if (!isAuthenticated) return;
 
@@ -120,14 +88,12 @@ export const CartProvider = ({ children }) => {
         }
     };
 
-    // show a toast notification for a few seconds
     const showNotification = (message, type) => {
         if (type === undefined) type = 'success';
         setNotification({ message, type });
         setTimeout(() => setNotification(null), 3000);
     };
 
-    // add item to cart
     const addItemToCart = async (productVariantId, quantity) => {
         if (quantity === undefined) quantity = 1;
         setIsLoading(true);
@@ -155,7 +121,6 @@ export const CartProvider = ({ children }) => {
         }
     };
 
-    // update quantity of an item already in cart
     const updateItem = async (cartItemId, quantity) => {
         setIsLoading(true);
         setError(null);
@@ -181,7 +146,6 @@ export const CartProvider = ({ children }) => {
         }
     };
 
-    // remove a single item from cart
     const removeItem = async (itemId) => {
         setIsLoading(true);
         setError(null);
@@ -190,13 +154,7 @@ export const CartProvider = ({ children }) => {
             const result = await removeFromCart(itemId);
 
             if (result.success) {
-                // rebuild cart items without the removed item
-                const newItems = cart.items.filter(item => item.id !== itemId);
-                let newTotal = 0;
-                for (let i = 0; i < newItems.length; i++) {
-                    newTotal += newItems[i].price * newItems[i].quantity;
-                }
-                setCart({ ...cart, items: newItems, totalAmount: newTotal });
+                setCart(result.cart);
                 showNotification('Item removed from cart', 'success');
                 return { success: true };
             }
@@ -214,7 +172,6 @@ export const CartProvider = ({ children }) => {
         }
     };
 
-    // clear all items from cart
     const clearCartItems = async () => {
         setIsLoading(true);
         setError(null);
@@ -223,7 +180,7 @@ export const CartProvider = ({ children }) => {
             const result = await clearCart();
 
             if (result.success) {
-                setCart({ ...cart, items: [], totalAmount: 0 });
+                setCart(result.cart);
                 showNotification('Cart cleared', 'success');
                 return { success: true };
             }
@@ -241,7 +198,6 @@ export const CartProvider = ({ children }) => {
         }
     };
 
-    // apply a coupon code
     const applyCoupon = async (code, silent) => {
         if (silent === undefined) silent = false;
 
@@ -284,13 +240,10 @@ export const CartProvider = ({ children }) => {
         }
     };
 
-    // remove coupon
     const removeCoupon = () => {
         setAppliedCoupon(null);
         showNotification('Coupon removed', 'success');
     };
-
-    // dismiss the notification banner
     const dismissNotification = () => {
         setNotification(null);
     };
@@ -324,7 +277,6 @@ export const CartProvider = ({ children }) => {
     );
 };
 
-// hook to use cart context
 export const useCart = () => {
     const context = useContext(CartContext);
     if (!context) {

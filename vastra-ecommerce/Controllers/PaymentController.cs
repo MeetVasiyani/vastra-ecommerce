@@ -39,14 +39,11 @@ namespace EcommerceApplication.Controllers
                 return StatusCode(500, "Razorpay secret not configured.");
             }
 
-            // Razorpay's signature verification logic
             string payload = dto.RazorpayOrderId + "|" + dto.RazorpayPaymentId;
             string generatedSignature = GetHmacSha256(payload, secret);
 
             if (generatedSignature == dto.RazorpaySignature)
             {
-                // Payment is verified
-                // Find the payment record in our DB using the Razorpay Order ID
                 var payment = await _context.Payments
                     .Include(p => p.Order)
                     .FirstOrDefaultAsync(p => p.TransactionId == dto.RazorpayOrderId);
@@ -56,10 +53,8 @@ namespace EcommerceApplication.Controllers
                     return NotFound("Payment record not found.");
                 }
 
-                // Update local payment
                 payment.PaymentStatus = "Completed";
-                
-                // Clear the user's cart
+
                 var cart = await _context.Carts
                     .Include(c => c.Items)
                     .FirstOrDefaultAsync(c => c.UserId == payment.Order.UserId);
@@ -68,8 +63,6 @@ namespace EcommerceApplication.Controllers
                 {
                     _context.CartItems.RemoveRange(cart.Items);
                 }
-
-                // Note: Order.Status remains. The Admin can change it to "Processing" or "Shipped" 
 
                 await _context.SaveChangesAsync();
                 

@@ -12,109 +12,48 @@ import RelatedProducts from '../components/product/RelatedProducts';
 import ReviewSection from '../components/product/ReviewSection';
 import { fetchProductById } from '../services/api';
 
-// Loading Skeleton
+// Helper to render skeleton placeholder
+const SkeletonBox = ({ width = '100%', height = '40px', borderRadius = '8px', className = '' }) => (
+    <div
+        className={`skeleton-shimmer ${className}`}
+        style={{
+            width,
+            height,
+            background: 'var(--vastra-beige)',
+            borderRadius
+        }}
+    />
+);
+
+// Loading Skeleton Component
 const ProductDetailSkeleton = () => (
     <div className="product-detail-skeleton">
         <Container className="py-5">
             <Row className="g-5">
                 <Col lg={6}>
-                    <div
-                        className="skeleton-shimmer"
-                        style={{
-                            height: '600px',
-                            background: 'var(--vastra-beige)',
-                            borderRadius: '16px',
-                        }}
-                    />
+                    <SkeletonBox height="600px" borderRadius="16px" />
                     <div className="d-flex gap-2 mt-3">
                         {[1, 2, 3, 4].map((i) => (
-                            <div
-                                key={i}
-                                className="skeleton-shimmer"
-                                style={{
-                                    width: '80px',
-                                    height: '100px',
-                                    background: 'var(--vastra-beige)',
-                                    borderRadius: '10px',
-                                }}
-                            />
+                            <SkeletonBox key={i} width="80px" height="100px" borderRadius="10px" />
                         ))}
                     </div>
                 </Col>
                 <Col lg={6}>
-                    <div
-                        className="skeleton-shimmer mb-3"
-                        style={{
-                            height: '40px',
-                            width: '70%',
-                            background: 'var(--vastra-beige)',
-                            borderRadius: '8px',
-                        }}
-                    />
-                    <div
-                        className="skeleton-shimmer mb-4"
-                        style={{
-                            height: '20px',
-                            width: '30%',
-                            background: 'var(--vastra-beige)',
-                            borderRadius: '8px',
-                        }}
-                    />
-                    <div
-                        className="skeleton-shimmer mb-4"
-                        style={{
-                            height: '35px',
-                            width: '25%',
-                            background: 'var(--vastra-beige)',
-                            borderRadius: '8px',
-                        }}
-                    />
-                    <div
-                        className="skeleton-shimmer mb-4"
-                        style={{
-                            height: '100px',
-                            width: '100%',
-                            background: 'var(--vastra-beige)',
-                            borderRadius: '8px',
-                        }}
-                    />
+                    <SkeletonBox width="70%" height="40px" className="mb-3" />
+                    <SkeletonBox width="30%" height="20px" className="mb-4" />
+                    <SkeletonBox width="25%" height="35px" className="mb-4" />
+                    <SkeletonBox width="100%" height="100px" className="mb-4" />
                     <div className="d-flex gap-2 mb-4">
                         {[1, 2, 3].map((i) => (
-                            <div
-                                key={i}
-                                className="skeleton-shimmer"
-                                style={{
-                                    width: '40px',
-                                    height: '40px',
-                                    background: 'var(--vastra-beige)',
-                                    borderRadius: '50%',
-                                }}
-                            />
+                            <SkeletonBox key={i} width="40px" height="40px" borderRadius="50%" />
                         ))}
                     </div>
                     <div className="d-flex gap-2 mb-4">
                         {[1, 2, 3, 4].map((i) => (
-                            <div
-                                key={i}
-                                className="skeleton-shimmer"
-                                style={{
-                                    width: '50px',
-                                    height: '50px',
-                                    background: 'var(--vastra-beige)',
-                                    borderRadius: '8px',
-                                }}
-                            />
+                            <SkeletonBox key={i} width="50px" height="50px" borderRadius="8px" />
                         ))}
                     </div>
-                    <div
-                        className="skeleton-shimmer"
-                        style={{
-                            height: '55px',
-                            width: '100%',
-                            background: 'var(--vastra-beige)',
-                            borderRadius: '8px',
-                        }}
-                    />
+                    <SkeletonBox width="100%" height="55px" borderRadius="8px" />
                 </Col>
             </Row>
         </Container>

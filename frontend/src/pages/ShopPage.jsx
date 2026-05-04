@@ -32,6 +32,9 @@ const ShopPage = () => {
 
     const pageSize = 12;
 
+    // Helper to reset page and load
+    const resetPaginationAndLoad = () => setCurrentPage(1);
+
     // Load categories on mount
     useEffect(() => {
         const loadCategories = async () => {
@@ -78,7 +81,7 @@ const ShopPage = () => {
     // Handle category change
     const handleCategoryChange = (categoryId) => {
         setSelectedCategory(categoryId);
-        setCurrentPage(1);
+        resetPaginationAndLoad();
     };
 
     // Handle page change
@@ -90,34 +93,26 @@ const ShopPage = () => {
     // Clear all filters
     const handleClearFilters = () => {
         setSearchQuery('');
-        setFilters({
-            minPrice: null,
-            maxPrice: null,
-            colors: [],
-            sizes: []
-        });
-        setCurrentPage(1);
+        setFilters({ minPrice: null, maxPrice: null, colors: [], sizes: [] });
+        resetPaginationAndLoad();
     };
 
     // Handle search input
     const handleSearchChange = (value) => {
         setSearchQuery(value);
-        setCurrentPage(1);
+        resetPaginationAndLoad();
     };
 
     // Clear search
     const handleSearchClear = () => {
         setSearchQuery('');
-        setCurrentPage(1);
+        resetPaginationAndLoad();
     };
 
     // Handle filter change
     const handleFilterChange = (name, value) => {
-        setFilters(prev => ({
-            ...prev,
-            [name]: value
-        }));
-        setCurrentPage(1);
+        setFilters(prev => ({ ...prev, [name]: value }));
+        resetPaginationAndLoad();
     };
 
     return (

@@ -26,8 +26,8 @@ namespace EcommerceApplication.Controllers
                 {
                     Id = c.Id,
                     Name = c.Name,
-                    Description = c.Description,
-                    ImageUrl = c.ImageUrl,
+                    Description = c.Description ?? string.Empty,
+                    ImageUrl = c.ImageUrl ?? string.Empty,
                     ParentCategoryId = c.ParentCategoryId
                 })
                 .ToListAsync();
@@ -45,8 +45,8 @@ namespace EcommerceApplication.Controllers
             {
                 Id = category.Id,
                 Name = category.Name,
-                Description = category.Description,
-                ImageUrl = category.ImageUrl,
+                Description = category.Description ?? string.Empty,
+                ImageUrl = category.ImageUrl ?? string.Empty,
                 ParentCategoryId = category.ParentCategoryId
             });
         }
@@ -71,8 +71,8 @@ namespace EcommerceApplication.Controllers
             {
                 Id = category.Id,
                 Name = category.Name,
-                Description = category.Description,
-                ImageUrl = category.ImageUrl
+                Description = category.Description ?? string.Empty,
+                ImageUrl = category.ImageUrl ?? string.Empty
             });
         }
 

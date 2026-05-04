@@ -1,55 +1,24 @@
-using Microsoft.AspNetCore.Identity;
 using EcommerceApplication.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace EcommerceApplication.Data
 {
     public static class RoleSeeder
     {
-        public static async Task SeedRolesAndAdminAsync(IServiceProvider serviceProvider)
+        private static readonly string[] RequiredRoles = { "Admin", "Customer" };
+
+        public static async Task SeedRolesAsync(IServiceProvider serviceProvider)
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-            var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
 
-            // Define roles
-            string[] roleNames = { "Admin", "Customer" };
-
-            foreach (var roleName in roleNames)
+            foreach (var roleName in RequiredRoles)
             {
-                var roleExist = await roleManager.RoleExistsAsync(roleName);
-                if (!roleExist)
+                if (await roleManager.RoleExistsAsync(roleName))
                 {
-                    await roleManager.CreateAsync(new IdentityRole(roleName));
+                    continue;
                 }
-            }
 
-            // Create default admin user
-            var adminEmail = "admin@vastra.com";
-            var adminUser = await userManager.FindByEmailAsync(adminEmail);
-
-            if (adminUser == null)
-            {
-                adminUser = new User
-                {
-                    UserName = adminEmail,
-                    Email = adminEmail,
-                    FirstName = "Admin",
-                    LastName = "User",
-                    EmailConfirmed = true
-                };
-
-                var result = await userManager.CreateAsync(adminUser, "Admin@123");
-                if (result.Succeeded)
-                {
-                    await userManager.AddToRoleAsync(adminUser, "Admin");
-                }
-            }
-            else
-            {
-                // Ensure existing admin has the Admin role
-                if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
-                {
-                    await userManager.AddToRoleAsync(adminUser, "Admin");
-                }
+                await roleManager.CreateAsync(new IdentityRole(roleName));
             }
         }
     }
