@@ -15,7 +15,7 @@ namespace EcommerceApplication.Validators
                 .NotEmpty().WithMessage("Description is required.");
 
             RuleFor(x => x.BasePrice)
-                .GreaterThanOrEqualTo(0).WithMessage("Base price must be simpler or equal to 0.");
+                .GreaterThanOrEqualTo(0).WithMessage("Base price must be greater than or equal to 0.");
 
             RuleFor(x => x.CategoryId)
                 .GreaterThan(0).WithMessage("Valid CategoryId is required.");
