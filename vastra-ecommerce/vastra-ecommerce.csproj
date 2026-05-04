@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>vastra_ecommerce</RootNamespace>
     <DisableBuildCompression>true</DisableBuildCompression>
+    <UserSecretsId>fb4335de-e77c-405a-8c8b-3ee72bc89900</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

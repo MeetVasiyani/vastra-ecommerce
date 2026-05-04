@@ -6,6 +6,14 @@
 # dotenv files
 .env
 
+# Configuration files with secrets
+appsettings.json
+appsettings.*.json
+!appsettings.Development.json
+
+# .NET User Secrets
+secrets.json
+
 # User-specific files
 *.rsuser
 *.suo

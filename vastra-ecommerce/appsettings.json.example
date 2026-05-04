@@ -1,0 +1,29 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=LAPTOP-C1BEDHV7\\SQLEXPRESS;Database=EcommerceDb;Trusted_Connection=True;TrustServerCertificate=True;Connection Timeout=120;"
+  },
+  "Jwt": {
+    "Key": "${JWT_SIGNING_KEY}",
+    "Issuer": "https://localhost:7001",
+    "Audience": "https://localhost:7001"
+  },
+  "EmailSettings": {
+    "Host": "smtp.gmail.com",
+    "Port": 587,
+    "Username": "${EMAIL_USERNAME}",
+    "Password": "${EMAIL_PASSWORD}",
+    "FromEmail": "no-reply@vastra.com",
+    "FromName": "Vastra Support"
+  },
+  "Razorpay": {
+    "KeyId": "${RAZORPAY_KEY_ID}",
+    "KeySecret": "${RAZORPAY_KEY_SECRET}"
+  }
+}
