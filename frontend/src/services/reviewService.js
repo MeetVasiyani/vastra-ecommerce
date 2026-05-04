@@ -1,8 +1,6 @@
 import axios from 'axios';
 import { getAuthHeaders } from './authService';
-
-const BACKEND_URL = 'http://localhost:5121';
-const API_BASE_URL = `${BACKEND_URL}/api`;
+import { API_BASE_URL } from './config';
 
 export const fetchProductReviews = async (productId, page = 1, pageSize = 10) => {
     const params = new URLSearchParams({

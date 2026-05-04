@@ -1,8 +1,6 @@
 import axios from 'axios';
 import { getAuthHeaders } from './authService';
-
-const BACKEND_URL = 'http://localhost:5121';
-const API_BASE_URL = `${BACKEND_URL}/api`;
+import { API_BASE_URL, BACKEND_URL } from './config';
 
 const DEFAULT_HEADERS = { 'Content-Type': 'application/json' };
 

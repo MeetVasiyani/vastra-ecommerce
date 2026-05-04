@@ -1,7 +1,5 @@
 import axios from 'axios';
-
-const BACKEND_URL = 'http://localhost:5121';
-const API_BASE_URL = `${BACKEND_URL}/api`;
+import { API_BASE_URL } from './config';
 
 const TOKEN_KEY = 'vastra_auth_token';
 const USER_KEY = 'vastra_user';

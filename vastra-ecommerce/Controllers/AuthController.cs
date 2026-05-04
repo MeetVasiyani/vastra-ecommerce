@@ -151,8 +151,12 @@ namespace EcommerceApplication.Controllers
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             
-            // In a real app, this URL should be configurable or constructed based on the request
-            var frontendUrl = "http://localhost:5173"; 
+            var frontendUrl = _configuration["Frontend:BaseUrl"]?.TrimEnd('/');
+            if (string.IsNullOrWhiteSpace(frontendUrl))
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Frontend base URL is not configured." });
+            }
+
             var resetLink = $"{frontendUrl}/reset-password?token={WebUtility.UrlEncode(token)}&email={WebUtility.UrlEncode(user.Email)}";
             
             var subject = "Reset your password";

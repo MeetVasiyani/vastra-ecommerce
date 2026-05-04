@@ -7,7 +7,13 @@
   },
   "AllowedHosts": "*",
   "ConnectionStrings": {
-    "DefaultConnection": "Server=LAPTOP-C1BEDHV7\\SQLEXPRESS;Database=EcommerceDb;Trusted_Connection=True;TrustServerCertificate=True;Connection Timeout=120;"
+    "DefaultConnection": ""
+  },
+  "Frontend": {
+    "BaseUrl": ""
+  },
+  "Cors": {
+    "AllowedOrigins": []
   },
   "Jwt": {
     "Key": "${JWT_SIGNING_KEY}",
