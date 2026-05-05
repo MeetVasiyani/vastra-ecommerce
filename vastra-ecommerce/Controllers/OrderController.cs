@@ -138,7 +138,7 @@ namespace EcommerceApplication.Controllers
 
             string? razorpayOrderId = null;
 
-            if (createOrderDto.PaymentMethod != "COD")
+            if (createOrderDto.PaymentMethod != PaymentMethod.Cod)
             {
                 var key = _configuration["Razorpay:KeyId"];
                 var secret = _configuration["Razorpay:KeySecret"];
@@ -162,11 +162,11 @@ namespace EcommerceApplication.Controllers
                 PaymentStatus = PaymentStatus.Pending,
                 TransactionId = razorpayOrderId ?? Guid.NewGuid().ToString(), 
                 PaymentDate = DateTime.UtcNow,
-                PaymentGateway = createOrderDto.PaymentMethod == "COD" ? "Cash" : "Razorpay"
+                PaymentGateway = createOrderDto.PaymentMethod == PaymentMethod.Cod ? PaymentGateway.Cash : PaymentGateway.Razorpay
             };
             _context.Payments.Add(payment);
 
-            if (createOrderDto.PaymentMethod == "COD" || order.TotalAmount == 0)
+            if (createOrderDto.PaymentMethod == PaymentMethod.Cod || order.TotalAmount == 0)
             {
                 _context.CartItems.RemoveRange(cart.Items);
             }
