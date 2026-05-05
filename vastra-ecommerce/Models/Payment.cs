@@ -1,3 +1,4 @@
+using EcommerceApplication.Constants;
 namespace EcommerceApplication.Models
 {
     public class Payment
@@ -10,7 +11,7 @@ namespace EcommerceApplication.Models
         public string PaymentGateway { get; set; } = string.Empty;
         public string TransactionId { get; set; } = string.Empty;
         public decimal Amount { get; set; }
-        public string PaymentStatus { get; set; } = "Pending";
+        public string PaymentStatus { get; set; } = Constants.PaymentStatus.Pending;
         public DateTime PaymentDate { get; set; } = DateTime.UtcNow;
     }
 }

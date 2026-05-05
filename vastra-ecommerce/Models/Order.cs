@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using EcommerceApplication.Constants;
 namespace EcommerceApplication.Models
 {
     public class Order
@@ -7,7 +8,7 @@ namespace EcommerceApplication.Models
         public DateTime OrderDate { get; set; } = DateTime.UtcNow;
         [Column(TypeName = "decimal(18,2)")]
         public decimal TotalAmount { get; set; }
-        public string Status { get; set; } = "Pending"; 
+        public string Status { get; set; } = OrderStatus.Pending; 
         public string UserId { get; set; } = string.Empty;
         public virtual User User { get; set; } = null!;
         

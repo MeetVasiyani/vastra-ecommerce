@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using EcommerceApplication.Constants;
 
 namespace EcommerceApplication.DTOs.Order
 {
@@ -33,10 +34,7 @@ namespace EcommerceApplication.DTOs.Order
 
     public class UpdateOrderStatusDto
     {
-        private static readonly HashSet<string> AllowedStatuses = new()
-        {
-            "Pending", "Processing", "Shipped", "Delivered", "Cancelled"
-        };
+        private static readonly HashSet<string> AllowedStatuses = new(OrderStatus.GetAllStatuses());
 
         [Required(ErrorMessage = "Status is required.")]
         public string Status { get; set; } = string.Empty;

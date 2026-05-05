@@ -1,4 +1,5 @@
 using EcommerceApplication.Data;
+using EcommerceApplication.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -53,7 +54,7 @@ namespace EcommerceApplication.Controllers
                     return NotFound("Payment record not found.");
                 }
 
-                payment.PaymentStatus = "Completed";
+                payment.PaymentStatus = PaymentStatus.Completed;
 
                 var cart = await _context.Carts
                     .Include(c => c.Items)

@@ -1,6 +1,7 @@
 using EcommerceApplication.Data;
 using EcommerceApplication.DTOs.Order;
 using EcommerceApplication.Models;
+using EcommerceApplication.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -77,7 +78,7 @@ namespace EcommerceApplication.Controllers
             {
                 UserId = userId,
                 OrderDate = DateTime.UtcNow,
-                Status = "Pending",
+                Status = OrderStatus.Pending,
                 TotalAmount = 0,
                 ShippingAddress = createOrderDto.ShippingAddress // Map address
             };
@@ -158,7 +159,7 @@ namespace EcommerceApplication.Controllers
                 Order = order,
                 Amount = order.TotalAmount,
                 PaymentMethod = createOrderDto.PaymentMethod,
-                PaymentStatus = "Pending",
+                PaymentStatus = PaymentStatus.Pending,
                 TransactionId = razorpayOrderId ?? Guid.NewGuid().ToString(), 
                 PaymentDate = DateTime.UtcNow,
                 PaymentGateway = createOrderDto.PaymentMethod == "COD" ? "Cash" : "Razorpay"
@@ -241,12 +242,12 @@ namespace EcommerceApplication.Controllers
                 return NotFound("Order not found");
             }
 
-            if (order.Status?.ToLower() != "pending")
+            if (!string.Equals(order.Status?.Trim(), OrderStatus.Pending, StringComparison.OrdinalIgnoreCase))
             {
                 return BadRequest($"Cannot cancel order with status: {order.Status}. Only pending orders can be cancelled.");
             }
 
-            order.Status = "Cancelled";
+            order.Status = OrderStatus.Cancelled;
 
             var variantIds = order.OrderItems.Select(i => i.ProductVariantId).ToList();
             var variants = await _context.ProductVariants
@@ -263,10 +264,10 @@ namespace EcommerceApplication.Controllers
             }
 
             var payment = await _context.Payments.FirstOrDefaultAsync(p => p.OrderId == order.Id);
-            if (payment != null)
-            {
-                payment.PaymentStatus = "Cancelled";
-            }
+                if (payment != null)
+                {
+                    payment.PaymentStatus = PaymentStatus.Cancelled;
+                }
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
@@ -282,7 +283,7 @@ namespace EcommerceApplication.Controllers
                 OrderDate = order.OrderDate,
                 Status = order.Status,
                 TotalAmount = order.TotalAmount,
-                PaymentStatus = order.Payment?.PaymentStatus ?? "Unknown",
+                PaymentStatus = order.Payment?.PaymentStatus ?? PaymentStatus.Unknown,
                 Items = new List<OrderItemDto>()
             };
 
@@ -353,12 +354,12 @@ namespace EcommerceApplication.Controllers
         public async Task<IActionResult> GetOrderStats()
         {
             var totalOrders = await _context.Orders
-                .Where(o => o.Status != null && o.Status.Trim().ToLower() != "cancelled")
+                .Where(o => o.Status != OrderStatus.Cancelled)
                 .CountAsync();
 
             var totalRevenue = await _context.Orders
-                .Where(o => o.Payment != null && o.Payment.PaymentStatus == "Completed")
-                .Where(o => o.Status != null && o.Status.Trim().ToLower() != "cancelled")
+                .Where(o => o.Payment != null && o.Payment.PaymentStatus == PaymentStatus.Completed)
+                .Where(o => o.Status != OrderStatus.Cancelled)
                 .SumAsync(o => (decimal?)o.TotalAmount) ?? 0m;
 
             return Ok(new
@@ -376,7 +377,7 @@ namespace EcommerceApplication.Controllers
 
             if (!statusDto.IsValid())
             {
-                return BadRequest(new { Message = $"Invalid status '{statusDto.Status}'. Allowed values: Pending, Processing, Shipped, Delivered, Cancelled." });
+                return BadRequest(new { Message = $"Invalid status '{statusDto.Status}'. Allowed values: {string.Join(", ", OrderStatus.GetAllStatuses())}." });
             }
 
             var order = await IncludeOrderDetails(_context.Orders)
@@ -387,7 +388,7 @@ namespace EcommerceApplication.Controllers
             var oldStatus = order.Status;
             order.Status = statusDto.Status;
 
-            if (statusDto.Status == "Cancelled" && oldStatus != "Cancelled")
+            if (string.Equals(statusDto.Status, OrderStatus.Cancelled, StringComparison.OrdinalIgnoreCase) && !string.Equals(oldStatus, OrderStatus.Cancelled, StringComparison.OrdinalIgnoreCase))
             {
 
                 var variantIds = order.OrderItems.Select(i => i.ProductVariantId).ToList();
@@ -405,14 +406,14 @@ namespace EcommerceApplication.Controllers
                 }
 
                 var payment = await _context.Payments.FirstOrDefaultAsync(p => p.OrderId == order.Id);
-                if (payment != null) payment.PaymentStatus = "Cancelled";
+                if (payment != null) payment.PaymentStatus = PaymentStatus.Cancelled;
             }
-            else if (statusDto.Status == "Delivered")
+            else if (string.Equals(statusDto.Status, OrderStatus.Delivered, StringComparison.OrdinalIgnoreCase))
             {
                  var payment = await _context.Payments.FirstOrDefaultAsync(p => p.OrderId == order.Id);
-                 if (payment != null && payment.PaymentStatus == "Pending")
+                 if (payment != null && string.Equals(payment.PaymentStatus, PaymentStatus.Pending, StringComparison.OrdinalIgnoreCase))
                  {
-                     payment.PaymentStatus = "Completed";
+                     payment.PaymentStatus = PaymentStatus.Completed;
                  }
             }
 

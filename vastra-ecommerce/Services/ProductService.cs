@@ -341,7 +341,7 @@ namespace EcommerceApplication.Services
                     FROM [Categories]
                     WHERE [Id] = {categoryId}
 
-                    UNION
+                    UNION ALL
 
                     SELECT c.[Id]
                     FROM [Categories] c
